@@ -1,6 +1,192 @@
 @squad_api_HostAddress = http://localhost:5212
 
-GET {{squad_api_HostAddress}}/weatherforecast/
+### Leagues
+
+# @name GetAllLeagues
+GET {{squad_api_HostAddress}}/api/leagues
 Accept: application/json
 
 ###
+
+# @name GetLeagueById
+GET {{squad_api_HostAddress}}/api/leagues/1
+Accept: application/json
+
+###
+
+# @name CreateLeague
+POST {{squad_api_HostAddress}}/api/leagues
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Premier League",
+  "type": "League",
+  "logo": "https://example.com/logo.png",
+  "countryName": "England",
+  "countryCode": "GB",
+  "countryFlag": "https://example.com/flag.png"
+}
+
+###
+
+# @name UpdateLeague
+PUT {{squad_api_HostAddress}}/api/leagues/1
+Content-Type: application/json
+
+{
+  "name": "Premier League Updated",
+  "type": "League",
+  "logo": "https://example.com/logo_updated.png",
+  "countryName": "England",
+  "countryCode": "GB",
+  "countryFlag": "https://example.com/flag_updated.png"
+}
+
+###
+
+# @name DeleteLeague
+DELETE {{squad_api_HostAddress}}/api/leagues/1
+
+###
+
+### Fixtures
+
+# @name GetAllFixtures
+GET {{squad_api_HostAddress}}/api/fixtures
+Accept: application/json
+
+###
+
+# @name GetFixtureById
+GET {{squad_api_HostAddress}}/api/fixtures/1
+Accept: application/json
+
+###
+
+# @name CreateFixture
+POST {{squad_api_HostAddress}}/api/fixtures
+Content-Type: application/json
+
+{
+  "id": 1,
+  "leagueId": 1,
+  "homeTeamId": 10,
+  "homeTeamName": "Arsenal",
+  "awayTeamId": 11,
+  "awayTeamName": "Chelsea"
+}
+
+###
+
+# @name UpdateFixture
+PUT {{squad_api_HostAddress}}/api/fixtures/1
+Content-Type: application/json
+
+{
+  "leagueId": 1,
+  "homeTeamId": 10,
+  "homeTeamName": "Arsenal FC",
+  "awayTeamId": 11,
+  "awayTeamName": "Chelsea FC"
+}
+
+###
+
+# @name DeleteFixture
+DELETE {{squad_api_HostAddress}}/api/fixtures/1
+
+###
+
+### Players
+
+# @name GetAllPlayers
+GET {{squad_api_HostAddress}}/api/players
+Accept: application/json
+
+###
+
+# @name GetPlayerById
+GET {{squad_api_HostAddress}}/api/players/1
+Accept: application/json
+
+###
+
+# @name CreatePlayer
+POST {{squad_api_HostAddress}}/api/players
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Bukayo Saka",
+  "photo": "https://example.com/saka.png"
+}
+
+###
+
+# @name UpdatePlayer
+PUT {{squad_api_HostAddress}}/api/players/1
+Content-Type: application/json
+
+{
+  "name": "Bukayo Saka Updated",
+  "photo": "https://example.com/saka_updated.png"
+}
+
+###
+
+# @name DeletePlayer
+DELETE {{squad_api_HostAddress}}/api/players/1
+
+###
+
+### Player Fixture Statistics
+
+# @name GetAllPlayerFixtureStatistics
+GET {{squad_api_HostAddress}}/api/player-fixture-statistics
+Accept: application/json
+
+###
+
+# @name GetPlayerFixtureStatisticById
+GET {{squad_api_HostAddress}}/api/player-fixture-statistics/1/1
+Accept: application/json
+
+###
+
+# @name CreatePlayerFixtureStatistic
+POST {{squad_api_HostAddress}}/api/player-fixture-statistics
+Content-Type: application/json
+
+{
+  "fixtureId": 1,
+  "playerId": 1,
+  "teamId": 10,
+  "minutes": 90,
+  "number": 7,
+  "position": "RW",
+  "rating": 8.5,
+  "isCaptain": false,
+  "isSubstitute": false
+}
+
+###
+
+# @name UpdatePlayerFixtureStatistic
+PUT {{squad_api_HostAddress}}/api/player-fixture-statistics/1/1
+Content-Type: application/json
+
+{
+  "teamId": 10,
+  "minutes": 95,
+  "number": 7,
+  "position": "RW",
+  "rating": 9.0,
+  "isCaptain": true,
+  "isSubstitute": false
+}
+
+###
+
+# @name DeletePlayerFixtureStatistic
+DELETE {{squad_api_HostAddress}}/api/player-fixture-statistics/1/1
