@@ -37,27 +37,54 @@ public class SquadSelector
             var random = new Random();
             var shuffledFixtures = fixtures.OrderBy(x => random.Next()).ToList();
 
-            // Identify the first 11 unique team IDs
+            // Create a new game record for today
+            var gameRecord = new GameRecord
+            {
+                GameDate = DateTime.UtcNow.Date
+            };
+            
+            _context.GameRecords.Add(gameRecord);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Created new GameRecord with ID: {id}", gameRecord.Id);
+
+            // Identify the first 11 unique team IDs and create tags
             var uniqueTeamIds = new HashSet<int>();
+            var tagsToAdd = new List<GameRecordTag>();
+
             foreach (var fixture in shuffledFixtures)
             {
-                if (fixture.HomeTeamId.HasValue)
+                if (fixture.HomeTeamId.HasValue && uniqueTeamIds.Add(fixture.HomeTeamId.Value))
                 {
-                    uniqueTeamIds.Add(fixture.HomeTeamId.Value);
+                    tagsToAdd.Add(new GameRecordTag
+                    {
+                        GameRecordId = gameRecord.Id,
+                        FixtureId = fixture.Id,
+                        TeamId = fixture.HomeTeamId.Value
+                    });
                 }
 
                 if (uniqueTeamIds.Count >= 11) break;
 
-                if (fixture.AwayTeamId.HasValue)
+                if (fixture.AwayTeamId.HasValue && uniqueTeamIds.Add(fixture.AwayTeamId.Value))
                 {
-                    uniqueTeamIds.Add(fixture.AwayTeamId.Value);
+                    tagsToAdd.Add(new GameRecordTag
+                    {
+                        GameRecordId = gameRecord.Id,
+                        FixtureId = fixture.Id,
+                        TeamId = fixture.AwayTeamId.Value
+                    });
                 }
 
                 if (uniqueTeamIds.Count >= 11) break;
             }
 
-            _logger.LogInformation("Identified {count} unique team IDs: {ids}", 
-                uniqueTeamIds.Count, string.Join(", ", uniqueTeamIds));
+            if (tagsToAdd.Any())
+            {
+                _context.GameRecordTags.AddRange(tagsToAdd);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}", 
+                    tagsToAdd.Count, gameRecord.Id, string.Join(", ", uniqueTeamIds));
+            }
 
             if (uniqueTeamIds.Count < 11)
             {

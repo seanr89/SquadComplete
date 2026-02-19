@@ -11,13 +11,21 @@ public class SquadContext : DbContext
     public DbSet<Team> Teams { get; set; }
     public DbSet<Player> Players { get; set; }
     public DbSet<PlayerFixtureStatistic> PlayerFixtureStatistics { get; set; }
+    public DbSet<GameRecord> GameRecords { get; set; }
+    public DbSet<GameRecordTag> GameRecordTags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         
-        // Ensure standard behavior or specific configurations if needed
-        // For example, if we wanted snake_case mapping globally without attributes, we'd use snake case naming convention package.
-        // But we used [Column("name")] attributes so manual mapping is done.
+        // Configuration for decimal precision on Rating
+        modelBuilder.Entity<PlayerFixtureStatistic>()
+            .Property(p => p.Rating)
+            .HasPrecision(4, 2);
+
+        // Unique constraint for GameRecordTag
+        modelBuilder.Entity<GameRecordTag>()
+            .HasIndex(t => new { t.GameRecordId, t.FixtureId, t.TeamId })
+            .IsUnique();
     }
 }
