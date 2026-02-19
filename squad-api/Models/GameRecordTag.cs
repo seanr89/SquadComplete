@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace squad_func.Models;
+namespace squad_api.Models;
 
 [Table("game_record_tags")]
 public class GameRecordTag

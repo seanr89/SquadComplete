@@ -190,3 +190,57 @@ Content-Type: application/json
 
 # @name DeletePlayerFixtureStatistic
 DELETE {{squad_api_HostAddress}}/api/player-fixture-statistics/1/1
+
+###
+
+### Game Records
+
+# @name GetAllGameRecords
+GET {{squad_api_HostAddress}}/api/game-records
+Accept: application/json
+
+###
+
+# @name GetGameRecordById
+GET {{squad_api_HostAddress}}/api/game-records/1
+Accept: application/json
+
+###
+
+# @name CreateGameRecord
+POST {{squad_api_HostAddress}}/api/game-records
+Content-Type: application/json
+
+{
+  "gameDate": "2026-02-18T19:00:00Z",
+  "tags": [
+    {
+      "fixtureId": 1,
+      "teamId": 10
+    }
+  ]
+}
+
+###
+
+# @name UpdateGameRecord
+PUT {{squad_api_HostAddress}}/api/game-records/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "gameDate": "2026-02-19T20:00:00Z",
+  "tags": [
+    {
+      "fixtureId": 2,
+      "teamId": 11
+    }
+  ]
+}
+
+###
+
+# @name DeleteGameRecord
+DELETE {{squad_api_HostAddress}}/api/game-records/1
+
+###

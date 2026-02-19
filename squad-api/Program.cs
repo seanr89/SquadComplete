@@ -24,5 +24,6 @@ app.MapLeagueEndpoints();
 app.MapFixtureEndpoints();
 app.MapPlayerEndpoints();
 app.MapPlayerFixtureStatisticEndpoints();
+app.MapGameRecordEndpoints();
 
 app.Run();
