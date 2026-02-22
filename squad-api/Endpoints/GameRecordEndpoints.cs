@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.Models;
+using squad_api.Services;
 
 namespace squad_api.Endpoints;
 
@@ -9,25 +10,25 @@ public static class GameRecordEndpoints
     {
         var group = routes.MapGroup("/api/game-records").WithTags(nameof(GameRecord));
 
-        group.MapGet("/", async (SquadContext db) =>
+        group.MapGet("/{id}", async (int id, GameRecordService service) =>
         {
-            return await db.GameRecords
-                .Include(gr => gr.Tags)
-                .ToListAsync();
-        })
-        .WithName("GetAllGameRecords")
-        .WithOpenApi();
-
-        group.MapGet("/{id}", async (int id, SquadContext db) =>
-        {
-            return await db.GameRecords
-                .Include(gr => gr.Tags)
-                .FirstOrDefaultAsync(gr => gr.Id == id)
-                is GameRecord model
-                    ? Results.Ok(model)
-                    : Results.NotFound();
+            var recordDto = await service.GetGameRecordByIdAsync(id);
+            return recordDto != null 
+                ? Results.Ok(recordDto) 
+                : Results.NotFound();
         })
         .WithName("GetGameRecordById")
+        .WithOpenApi();
+        
+        //get game record by date
+        group.MapGet("/date/{date}", async (DateTime date, GameRecordService service) =>
+        {
+            var recordDto = await service.GetGameRecordByDateAsync(date);
+            return recordDto != null 
+                ? Results.Ok(recordDto) 
+                : Results.NotFound();
+        })
+        .WithName("GetGameRecordByDate")
         .WithOpenApi();
 
         group.MapPut("/{id}", async (int id, GameRecord inputRecord, SquadContext db) =>
@@ -64,15 +65,10 @@ public static class GameRecordEndpoints
         .WithName("UpdateGameRecord")
         .WithOpenApi();
 
-        group.MapPost("/", async (GameRecord record, SquadContext db) =>
+        group.MapPost("/", async (GameRecord record, GameRecordService service) =>
         {
-            // Reset dates on creation
-            record.CreatedAt = DateTime.UtcNow;
-            record.UpdatedAt = DateTime.UtcNow;
-
-            db.GameRecords.Add(record);
-            await db.SaveChangesAsync();
-            return Results.Created($"/api/game-records/{record.Id}", record);
+            var createdRecordDto = await service.CreateGameRecordAsync(record);
+            return Results.Created($"/api/game-records/{createdRecordDto.Id}", createdRecordDto);
         })
         .WithName("CreateGameRecord")
         .WithOpenApi();

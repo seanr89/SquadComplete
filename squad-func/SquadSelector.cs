@@ -53,6 +53,16 @@ public class SquadSelector
 
             foreach (var fixture in shuffledFixtures)
             {
+                // add player fixture check to ensure that player stats are present first
+                var playerFixture = await _context.PlayerFixtureStatistics
+                    .FirstOrDefaultAsync(pf => pf.FixtureId == fixture.Id);
+
+                if (playerFixture == null)
+                {
+                    _logger.LogInformation("Player fixture not found for fixture {fixtureId}", fixture.Id);
+                    continue;
+                }   
+
                 if (fixture.HomeTeamId.HasValue && uniqueTeamIds.Add(fixture.HomeTeamId.Value))
                 {
                     tagsToAdd.Add(new GameRecordTag
