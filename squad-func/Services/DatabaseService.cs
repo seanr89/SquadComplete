@@ -45,10 +45,10 @@ public class DatabaseService : IDatabaseService
     private readonly SquadContext _context;
     private readonly ILogger<DatabaseService> _logger;
 
-    public DatabaseService(SquadContext context, ILogger<DatabaseService> logger)
+    public DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = loggerFactory.CreateLogger<DatabaseService>();
     }
 
     /// <inheritdoc />

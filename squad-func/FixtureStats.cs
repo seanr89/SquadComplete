@@ -40,6 +40,7 @@ public class FixtureStats
         {
             var fixturesWithoutStats = await _context.Fixtures
                 .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
+                .OrderBy(f => f.Id)
                 .Take(5)
                 .ToListAsync();
 
