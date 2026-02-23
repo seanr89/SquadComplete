@@ -54,11 +54,17 @@ public class DatabaseService : IDatabaseService
     /// <inheritdoc />
     public async Task UpsertTeamAsync(int id, string name, string? logo, DateTime? lastUpdate)
     {
+        string lastUpdateString = lastUpdate.HasValue ? lastUpdate.Value.ToString("yyyy-MM-dd HH:mm:ss") : "NULL";
+        _logger.LogInformation("Upserting team {TeamId}", id);
+        _logger.LogInformation("Team name: {TeamName}", name);
+        _logger.LogInformation("Team logo: {TeamLogo}", logo);
+        _logger.LogInformation("Team last update: {TeamLastUpdate}", lastUpdateString);
+        
         try
         {
-            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            await _context.Database.ExecuteSqlRawAsync($@"
                 INSERT INTO teams (id, name, logo, last_update)
-                VALUES ({id}, {name}, {logo}, {lastUpdate})
+                VALUES ({id}, '{name}', '{logo}', '{lastUpdateString}')
                 ON CONFLICT (id) DO UPDATE SET
                     name = EXCLUDED.name,
                     logo = EXCLUDED.logo,
@@ -69,7 +75,10 @@ public class DatabaseService : IDatabaseService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error upserting team {TeamId}", id);
+            //_logger.LogError(ex, "Error upserting team {TeamId}", id);
+            _logger.LogError($"Failed to upsert team {id}: {ex.Message}");
+            //internal message
+            _logger.LogError($"Failed to upsert team {id}: inner {ex.InnerException?.Message}");
             throw;
         }
     }
@@ -104,7 +113,7 @@ public class DatabaseService : IDatabaseService
             await _context.Database.ExecuteSqlInterpolatedAsync($@"
                 INSERT INTO player_fixture_statistics 
                 (fixture_id, team_id, player_id, minutes, number, position, rating, is_captain, is_substitute)
-                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, {position}, {rating}, {isCaptain}, {isSubstitute})
+                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, '{position}', {rating}, {isCaptain}, {isSubstitute})
                 ON CONFLICT (fixture_id, player_id) DO UPDATE SET
                     team_id = EXCLUDED.team_id,
                     minutes = EXCLUDED.minutes,

@@ -66,6 +66,13 @@ public class FixtureStats
         {
             _logger.LogError(ex, "Error occurred during fixture stats retrieval.");
         }
+
+        // get updated count
+        var fixturesWithoutStatsUpdated = await _context.Fixtures
+            .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
+            .CountAsync();
+        
+        _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStatsUpdated);   
         
         if (myTimer.ScheduleStatus is not null)
         {
