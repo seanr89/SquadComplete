@@ -10,7 +10,6 @@
         },
         "logLevel": {
             "default": "Information",
-            "Microsoft.AspNetCore": "Information",
             "Microsoft.EntityFrameworkCore": "Warning",
             "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
         }

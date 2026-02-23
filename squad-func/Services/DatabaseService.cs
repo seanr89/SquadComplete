@@ -55,10 +55,10 @@ public class DatabaseService : IDatabaseService
     public async Task UpsertTeamAsync(int id, string name, string? logo, DateTime? lastUpdate)
     {
         string lastUpdateString = lastUpdate.HasValue ? lastUpdate.Value.ToString("yyyy-MM-dd HH:mm:ss") : "NULL";
-        _logger.LogInformation("Upserting team {TeamId}", id);
-        _logger.LogInformation("Team name: {TeamName}", name);
-        _logger.LogInformation("Team logo: {TeamLogo}", logo);
-        _logger.LogInformation("Team last update: {TeamLastUpdate}", lastUpdateString);
+        // _logger.LogInformation("Upserting team {TeamId}", id);
+        // _logger.LogInformation("Team name: {TeamName}", name);
+        // _logger.LogInformation("Team logo: {TeamLogo}", logo);
+        // _logger.LogInformation("Team last update: {TeamLastUpdate}", lastUpdateString);
         
         try
         {
