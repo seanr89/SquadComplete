@@ -32,7 +32,7 @@ public class FixtureStats
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("FixtureStats")]
-    public async Task Run([TimerTrigger("0 0 13-20 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 13-19 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 

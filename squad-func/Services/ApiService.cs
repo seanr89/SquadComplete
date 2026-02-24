@@ -45,6 +45,25 @@ public class ApiService : IApiService
         }
     }
 
+    /// <summary>
+    /// Fetches fixtures for a specific league and date.
+    /// </summary>
+    /// <param name="leagueid">The ID of the league.</param>
+    /// <param name="date">The date for which to fetch fixtures.</param>
+    // public async Task GetFixturesForLeague(int leagueid, DateTime date)
+    // {
+    //     try{
+    //         var url = $"{BaseUrl}/fixtures?league={leagueid}&date={date}";
+    //         var response = await GetAsync(url);
+    //         return response;
+    //     }
+    //     catch(Exception ex)
+    //     {
+    //         _logger.LogError(ex, "Error occurred while fetching data from {Url}", url);
+    //         throw;
+    //     }
+    // }
+
     public async Task<List<PlayerStatsResponse>?> GetPlayerStatsAsync(int fixtureId, int teamId)
     {
         var url = $"{BaseUrl}/fixtures/players?fixture={fixtureId}&team={teamId}";
