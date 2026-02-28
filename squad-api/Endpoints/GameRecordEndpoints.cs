@@ -10,7 +10,7 @@ public static class GameRecordEndpoints
     {
         var group = routes.MapGroup("/api/game-records").WithTags(nameof(GameRecord));
 
-        group.MapGet("/{id}", async (int id, GameRecordService service) =>
+        group.MapGet("/{id:int}", async (int id, GameRecordService service) =>
         {
             var recordDto = await service.GetGameRecordByIdAsync(id);
             return recordDto != null 
@@ -31,7 +31,7 @@ public static class GameRecordEndpoints
         .WithName("GetGameRecordByDate")
         .WithOpenApi();
 
-        group.MapPut("/{id}", async (int id, GameRecord inputRecord, SquadContext db) =>
+        group.MapPut("/{id:int}", async (int id, GameRecord inputRecord, SquadContext db) =>
         {
             var foundModel = await db.GameRecords
                 .Include(gr => gr.Tags)
@@ -73,7 +73,7 @@ public static class GameRecordEndpoints
         .WithName("CreateGameRecord")
         .WithOpenApi();
 
-        group.MapDelete("/{id}", async (int id, SquadContext db) =>
+        group.MapDelete("/{id:int}", async (int id, SquadContext db) =>
         {
             if (await db.GameRecords.Include(gr => gr.Tags).FirstOrDefaultAsync(gr => gr.Id == id) is GameRecord record)
             {

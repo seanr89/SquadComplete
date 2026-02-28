@@ -8,6 +8,8 @@ namespace squad_func.Services;
 
 public interface IDatabaseService
 {
+    Task<List<League>> GetLeaguesAsync();
+    
     /// <summary>
     /// Inserts or updates a team record.
     /// </summary>
@@ -51,6 +53,11 @@ public class DatabaseService : IDatabaseService
         _logger = loggerFactory.CreateLogger<DatabaseService>();
     }
 
+    public async Task<List<League>> GetLeaguesAsync()
+    {
+        return await _context.Leagues.AsNoTracking().ToListAsync();
+    }   
+
     /// <inheritdoc />
     public async Task UpsertTeamAsync(int id, string name, string? logo, DateTime? lastUpdate)
     {
@@ -67,7 +74,7 @@ public class DatabaseService : IDatabaseService
                     last_update = EXCLUDED.last_update,
                     updated_at = CURRENT_TIMESTAMP;");
             
-            _logger.LogInformation("Successfully upserted team {TeamId}", id);
+            //_logger.LogInformation("Successfully upserted team {TeamId}", id);
         }
         catch (Exception ex)
         {

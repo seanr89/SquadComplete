@@ -6,19 +6,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using squad_func.Models;
 using squad_func.Services;
-using Microsoft.ApplicationInsights.DependencyCollector;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
+// 1. Core Functions setup
 builder.ConfigureFunctionsWebApplication();
 
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights()
-    .AddDbContext<SquadContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-        .EnableSensitiveDataLogging(false))
-    .AddHttpClient<IApiService, ApiService>()
-    .Services.AddScoped<IDatabaseService, DatabaseService>();
+// 2. Telemetry - Order matters here for the Worker
+// builder.Services
+//     .AddApplicationInsightsTelemetryWorkerService()
+//     .ConfigureFunctionsApplicationInsights();
+
+// 3. Your Custom Services
+builder.Services.AddDbContext<SquadContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Warning));
+
+builder.Services.AddHttpClient<IApiService, ApiService>();
+builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 
 builder.Build().Run();

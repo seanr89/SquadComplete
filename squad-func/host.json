@@ -10,6 +10,7 @@
         },
         "logLevel": {
             "default": "Information",
+            "Microsoft": "Warning",
             "Microsoft.EntityFrameworkCore": "Warning",
             "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
         }
