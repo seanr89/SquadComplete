@@ -30,7 +30,7 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: 'Resolve Project Dependencies Using Dotnet'
-      run: dotnet build --configuration Release --output ./output
+      run: dotnet build --configuration Release --property:PublishDir=${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output
 
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
