@@ -1,15 +1,18 @@
 name: Deploy .net project to Azure Function App
 
 on:
-  push: 
+  push:
     branches:
       - main
+    paths:
+      - 'squad-func/**'
   workflow_dispatch:
 
+
 env:
-  AZURE_FUNCTIONAPP_NAME: 'squad-func'   # set this to your function app name on Azure
+  AZURE_FUNCTIONAPP_NAME: 'sfuncrunners'   # set this to your function app name on Azure
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './squad-func/'       # set this to the path to your function app project, defaults to the repository root
-  DOTNET_VERSION: '8.0.x'                   # set this to the dotnet version to use (e.g. '2.1.x', '3.1.x', '5.0.x')
+  DOTNET_VERSION: '10.0.x'                   # set this to the dotnet version to use (e.g. '2.1.x', '3.1.x', '5.0.x')
 
 jobs:
   build-and-deploy:

@@ -20,13 +20,15 @@
 name: Build and deploy ASP.Net Core app to an Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: your-app-name    # set this to the name of your Azure Web App
-  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '5'                 # set this to the .NET Core version to use
+  AZURE_WEBAPP_NAME: whoplayapi    # set this to the name of your Azure Web App
+  AZURE_WEBAPP_PACKAGE_PATH: './squad-api/'      # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '10.0.x'                 # set this to the .NET Core version to use
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'squad-api/**'
   workflow_dispatch:
 
 permissions:
