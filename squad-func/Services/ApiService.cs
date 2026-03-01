@@ -52,9 +52,9 @@ public class ApiService : IApiService
     /// <param name="date">The date for which to fetch fixtures.</param>
     public async Task GetFixturesForLeague(int leagueid, DateTime date)
     {
+        var season = date.Year;
+        var url = $"{BaseUrl}/fixtures?league={leagueid}&season={season}&date={date}&status=ft"; 
         try{
-            var season = date.Year;
-            var url = $"{BaseUrl}/fixtures?league={leagueid}&season={season}&date={date}&status=ft";
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Add("x-rapidapi-key", ApiKey);
             request.Headers.Add("x-rapidapi-host", BaseUrl);
@@ -63,19 +63,19 @@ public class ApiService : IApiService
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("response is no okay for fixture {FixtureId} and team {TeamId}", fixtureId, teamId);
+                _logger.LogWarning("response is no okay for {leagueid} and {date}", leagueid, date);
                 throw new HttpRequestException($"HTTP error! status: {(int)response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
             using var jsonDocument = JsonDocument.Parse(content);
             
-            if (jsonDocument.RootElement.TryGetProperty("response", out var responseData))
-            {
-                return JsonSerializer.Deserialize<List<PlayerStatsResponse>>(responseData.GetRawText());
-            }
+            // if (jsonDocument.RootElement.TryGetProperty("response", out var responseData))
+            // {
+            //     return JsonSerializer.Deserialize<List<PlayerStatsResponse>>(responseData.GetRawText());
+            // }
 
-            return null;
+            return;
         }
         catch(Exception ex)
         {

@@ -1,30 +1,39 @@
 using System;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using squad_func.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using squad_func.Services;
 
-namespace Company.Function;
+namespace Squad.Function;
 
 public class DailyFixtures
 {
     private readonly ILogger _logger;
+    private readonly SquadContext _context;
     private readonly IApiService _apiService;
+    // add dbservice
     private readonly IDatabaseService _databaseService;
 
-    public DailyFixtures(ILoggerFactory loggerFactory, IApiService apiService,
-         IDatabaseService databaseService)
+    public DailyFixtures(ILoggerFactory loggerFactory, SquadContext context, 
+    IApiService apiService, IDatabaseService databaseService)
     {
         _logger = loggerFactory.CreateLogger<DailyFixtures>();
+        _context = context;
         _apiService = apiService;
         _databaseService = databaseService;
     }
 
     [Function("DailyFixtures")]
-    public void Run([TimerTrigger("0 0 5 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 5 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 
         // step 1. get all leagues we allow
-        var leagues = _databaseService.GetLeaguesAsync();
+        var leagues = await _databaseService.GetLeaguesAsync();
         var date = DateTime.Now.AddDays(-1);
         foreach (var league in leagues)
         {

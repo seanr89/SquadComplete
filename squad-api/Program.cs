@@ -29,6 +29,7 @@ app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
 
+// All Service endpoints handled here
 app.MapAllEndpoints();
 
 app.Run();

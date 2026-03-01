@@ -5,16 +5,31 @@ namespace squad_api.Endpoints;
 
 public static class LeagueEndpoints
 {
+    /// <summary>
+    /// Maps the league management endpoints for the API.
+    /// </summary>
+    /// <param name="routes">The endpoint route builder.</param>
     public static void MapLeagueEndpoints(this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("/api/leagues").WithTags(nameof(League));
 
+        /// <summary>
+        /// Retrieves all leagues.
+        /// </summary>
+        /// <param name="db">The database context.</param>
+        /// <returns>A list of all leagues.</returns>
         group.MapGet("/", async (SquadContext db) =>
         {
             return await db.Leagues.ToListAsync();
         })
         .WithName("GetAllLeagues");
 
+        /// <summary>
+        /// Retrieves a specific league by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the league.</param>
+        /// <param name="db">The database context.</param>
+        /// <returns>The requested league if found; otherwise, a 404 Not Found response.</returns>
         group.MapGet("/{id}", async (int id, SquadContext db) =>
         {
             return await db.Leagues.FindAsync(id)
@@ -24,6 +39,13 @@ public static class LeagueEndpoints
         })
         .WithName("GetLeagueById");
 
+        /// <summary>
+        /// Updates an existing league's details.
+        /// </summary>
+        /// <param name="id">The unique identifier of the league to update.</param>
+        /// <param name="inputLeague">The updated league data.</param>
+        /// <param name="db">The database context.</param>
+        /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
         group.MapPut("/{id}", async (int id, League inputLeague, SquadContext db) =>
         {
             var foundModel = await db.Leagues.FindAsync(id);
@@ -48,6 +70,12 @@ public static class LeagueEndpoints
         })
         .WithName("UpdateLeague");
 
+        /// <summary>
+        /// Creates a new league.
+        /// </summary>
+        /// <param name="league">The league data to create.</param>
+        /// <param name="db">The database context.</param>
+        /// <returns>The newly created league with a 201 Created response.</returns>
         group.MapPost("/", async (League league, SquadContext db) =>
         {
             db.Leagues.Add(league);
@@ -56,6 +84,12 @@ public static class LeagueEndpoints
         })
         .WithName("CreateLeague");
 
+        /// <summary>
+        /// Deletes a specific league by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the league to delete.</param>
+        /// <param name="db">The database context.</param>
+        /// <returns>The deleted league if successful; otherwise, a 404 Not Found response.</returns>
         group.MapDelete("/{id}", async (int id, SquadContext db) =>
         {
             if (await db.Leagues.FindAsync(id) is League league)
