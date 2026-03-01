@@ -29,10 +29,6 @@ app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
 
-app.MapLeagueEndpoints();
-app.MapFixtureEndpoints();
-app.MapPlayerEndpoints();
-app.MapPlayerFixtureStatisticEndpoints();
-app.MapGameRecordEndpoints();
+app.MapAllEndpoints();
 
 app.Run();
