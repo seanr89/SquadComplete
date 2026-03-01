@@ -12,12 +12,7 @@ var builder = FunctionsApplication.CreateBuilder(args);
 // 1. Core Functions setup
 builder.ConfigureFunctionsWebApplication();
 
-// 2. Telemetry - Order matters here for the Worker
-// builder.Services
-//     .AddApplicationInsightsTelemetryWorkerService()
-//     .ConfigureFunctionsApplicationInsights();
-
-// 3. Your Custom Services
+// 2. Your Custom Services - Db and Api services
 builder.Services.AddDbContext<SquadContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
            .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Warning));

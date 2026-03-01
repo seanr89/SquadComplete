@@ -9,8 +9,8 @@ env:
 on:
   push:
     branches: [ "main" ]
-    # paths:
-    #   - 'squad-api/**'
+    paths:
+      - 'squad-api/**'
   workflow_dispatch:
 
 permissions:
@@ -31,13 +31,13 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Set up dependency caching for faster builds
-        uses: actions/cache@v3
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
+      # - name: Set up dependency caching for faster builds
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/.nuget/packages
+      #     key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-nuget-
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
@@ -66,6 +66,9 @@ jobs:
         with:
           name: .net-app
           path: ./publish
+
+      - name: echo app name
+        run: echo ${{ env.AZURE_WEBAPP_NAME }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
