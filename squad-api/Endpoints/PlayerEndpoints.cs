@@ -13,8 +13,7 @@ public static class PlayerEndpoints
         {
             return await db.Players.ToListAsync();
         })
-        .WithName("GetAllPlayers")
-        .WithOpenApi();
+        .WithName("GetAllPlayers");
 
         group.MapGet("/{id}", async (int id, SquadContext db) =>
         {
@@ -23,8 +22,7 @@ public static class PlayerEndpoints
                     ? Results.Ok(model)
                     : Results.NotFound();
         })
-        .WithName("GetPlayerById")
-        .WithOpenApi();
+        .WithName("GetPlayerById");
 
         group.MapPut("/{id}", async (int id, Player inputPlayer, SquadContext db) =>
         {
@@ -44,8 +42,7 @@ public static class PlayerEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdatePlayer")
-        .WithOpenApi();
+        .WithName("UpdatePlayer");
 
         group.MapPost("/", async (Player player, SquadContext db) =>
         {
@@ -53,8 +50,7 @@ public static class PlayerEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/players/{player.Id}", player);
         })
-        .WithName("CreatePlayer")
-        .WithOpenApi();
+        .WithName("CreatePlayer");
 
         group.MapDelete("/{id}", async (int id, SquadContext db) =>
         {
@@ -67,7 +63,6 @@ public static class PlayerEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeletePlayer")
-        .WithOpenApi();
+        .WithName("DeletePlayer");
     }
 }

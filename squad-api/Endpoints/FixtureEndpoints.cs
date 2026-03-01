@@ -22,8 +22,7 @@ public static class FixtureEndpoints
         {
             return await db.Fixtures.Include(f => f.League).ToListAsync();
         })
-        .WithName("GetAllFixtures")
-        .WithOpenApi();
+        .WithName("GetAllFixtures");
 
         /// <summary>
         /// Retrieves a specific fixture by its unique identifier.
@@ -38,8 +37,7 @@ public static class FixtureEndpoints
                     ? Results.Ok(model)
                     : Results.NotFound();
         })
-        .WithName("GetFixtureById")
-        .WithOpenApi();
+        .WithName("GetFixtureById");
 
         /// <summary>
         /// Updates an existing fixture's details.
@@ -69,8 +67,7 @@ public static class FixtureEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdateFixture")
-        .WithOpenApi();
+        .WithName("UpdateFixture");
 
         /// <summary>
         /// Creates a new fixture.
@@ -84,8 +81,7 @@ public static class FixtureEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/fixtures/{fixture.Id}", fixture);
         })
-        .WithName("CreateFixture")
-        .WithOpenApi();
+        .WithName("CreateFixture");
 
         /// <summary>
         /// Deletes a specific fixture by its unique identifier.
@@ -104,7 +100,6 @@ public static class FixtureEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeleteFixture")
-        .WithOpenApi();
+        .WithName("DeleteFixture");
     }
 }

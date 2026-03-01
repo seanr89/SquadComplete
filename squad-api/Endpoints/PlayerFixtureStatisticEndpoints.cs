@@ -17,8 +17,7 @@ public static class PlayerFixtureStatisticEndpoints
                 .Include(pfs => pfs.Team)
                 .ToListAsync();
         })
-        .WithName("GetAllPlayerFixtureStatistics")
-        .WithOpenApi();
+        .WithName("GetAllPlayerFixtureStatistics");
 
         group.MapGet("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
         {
@@ -31,8 +30,7 @@ public static class PlayerFixtureStatisticEndpoints
                     ? Results.Ok(model)
                     : Results.NotFound();
         })
-        .WithName("GetPlayerFixtureStatisticById")
-        .WithOpenApi();
+        .WithName("GetPlayerFixtureStatisticById");
 
         group.MapPut("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, PlayerFixtureStatistic inputPfs, SquadContext db) =>
         {
@@ -57,8 +55,7 @@ public static class PlayerFixtureStatisticEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdatePlayerFixtureStatistic")
-        .WithOpenApi();
+        .WithName("UpdatePlayerFixtureStatistic");
 
         group.MapPost("/", async (PlayerFixtureStatistic pfs, SquadContext db) =>
         {
@@ -66,8 +63,7 @@ public static class PlayerFixtureStatisticEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/player-fixture-statistics/{pfs.FixtureId}/{pfs.PlayerId}", pfs);
         })
-        .WithName("CreatePlayerFixtureStatistic")
-        .WithOpenApi();
+        .WithName("CreatePlayerFixtureStatistic");
 
         group.MapDelete("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
         {
@@ -80,7 +76,6 @@ public static class PlayerFixtureStatisticEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeletePlayerFixtureStatistic")
-        .WithOpenApi();
+        .WithName("DeletePlayerFixtureStatistic");
     }
 }

@@ -17,8 +17,7 @@ public static class GameRecordEndpoints
                 ? Results.Ok(recordDto) 
                 : Results.NotFound();
         })
-        .WithName("GetGameRecordById")
-        .WithOpenApi();
+        .WithName("GetGameRecordById");
         
         //get game record by date
         group.MapGet("/date/{date}", async (DateTime date, GameRecordService service) =>
@@ -28,8 +27,7 @@ public static class GameRecordEndpoints
                 ? Results.Ok(recordDto) 
                 : Results.NotFound();
         })
-        .WithName("GetGameRecordByDate")
-        .WithOpenApi();
+        .WithName("GetGameRecordByDate");
 
         group.MapPut("/{id:int}", async (int id, GameRecord inputRecord, SquadContext db) =>
         {
@@ -62,16 +60,14 @@ public static class GameRecordEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdateGameRecord")
-        .WithOpenApi();
+        .WithName("UpdateGameRecord");
 
         group.MapPost("/", async (GameRecord record, GameRecordService service) =>
         {
             var createdRecordDto = await service.CreateGameRecordAsync(record);
             return Results.Created($"/api/game-records/{createdRecordDto.Id}", createdRecordDto);
         })
-        .WithName("CreateGameRecord")
-        .WithOpenApi();
+        .WithName("CreateGameRecord");
 
         group.MapDelete("/{id:int}", async (int id, SquadContext db) =>
         {
@@ -84,7 +80,6 @@ public static class GameRecordEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeleteGameRecord")
-        .WithOpenApi();
+        .WithName("DeleteGameRecord");
     }
 }
