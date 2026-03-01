@@ -41,7 +41,7 @@ public class FixtureStats
             var fixturesWithoutStats = await _context.Fixtures
                 .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
                 .OrderBy(f => f.Id)
-                .Take(5)
+                .Take(8)
                 .ToListAsync();
 
             _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStats.Count);

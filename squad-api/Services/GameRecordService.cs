@@ -89,12 +89,12 @@ public class GameRecordService
         {
             Id = record.Id,
             GameDate = record.GameDate,
-            CreatedAt = record.CreatedAt,
-            UpdatedAt = record.UpdatedAt,
+            //CreatedAt = record.CreatedAt,
+            //UpdatedAt = record.UpdatedAt,
             Teams = record.Tags.Select(t => new GameRecordTeamDto
             {
-                FixtureId = t.FixtureId,
-                TeamId = t.TeamId,
+                //FixtureId = t.FixtureId,
+                //TeamId = t.TeamId,
                 TeamName = t.Team?.Name ?? string.Empty,
                 TeamLogo = t.Team?.Logo,
                 Players = statistics
@@ -106,12 +106,12 @@ public class GameRecordService
                         PlayerPhoto = s.Player?.Photo,
                         Statistics = new GameRecordPlayerStatisticDto
                         {
-                            Minutes = s.Minutes,
-                            Number = s.Number,
+                            // Minutes = s.Minutes,
+                            // Number = s.Number,
                             Position = s.Position,
                             Rating = s.Rating,
-                            IsCaptain = s.IsCaptain,
-                            IsSubstitute = s.IsSubstitute
+                            // IsCaptain = s.IsCaptain,
+                            // IsSubstitute = s.IsSubstitute
                         }
                     }).ToList()
             }).ToList()
