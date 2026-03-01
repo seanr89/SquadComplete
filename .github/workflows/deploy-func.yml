@@ -36,7 +36,6 @@ jobs:
       shell: bash
       run: |
         dotnet build --configuration Release --output ./output
-        popd
         
     - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
