@@ -111,12 +111,13 @@ public class DatabaseService : IDatabaseService
     /// <inheritdoc />
     public async Task UpsertPlayerStatsAsync(int fixtureId, int teamId, int playerId, int? minutes, int? number, string? position, decimal? rating, bool isCaptain, bool isSubstitute)
     {
+        var mappedPosition = MapPosition(position);
         try
         {
-            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            await _context.Database.ExecuteSqlRawAsync($@"
                 INSERT INTO player_fixture_statistics 
                 (fixture_id, team_id, player_id, minutes, number, position, rating, is_captain, is_substitute)
-                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, '{position}', {rating}, {isCaptain}, {isSubstitute})
+                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, {mappedPosition}, {rating}, {isCaptain}, {isSubstitute})
                 ON CONFLICT (fixture_id, player_id) DO UPDATE SET
                     team_id = EXCLUDED.team_id,
                     minutes = EXCLUDED.minutes,
@@ -134,5 +135,18 @@ public class DatabaseService : IDatabaseService
             _logger.LogError(ex, "Error upserting stats for player {PlayerId} in fixture {FixtureId}", playerId, fixtureId);
             throw;
         }
+    }
+
+    private string MapPosition(string? position)
+    {
+        if (string.IsNullOrEmpty(position)) return "UNK";
+
+        var pos = position.ToUpper();
+        if (pos.Contains("GOALKEEPER") || pos == "G" || pos == "GK" || pos == "@P5") return "GK";
+        if (pos.Contains("DEFENDER") || pos == "D" || pos == "DEF" || pos == "LB" || pos == "RB" || pos == "CB") return "DEF";
+        if (pos.Contains("MIDFIELDER") || pos == "M" || pos == "MID" || pos == "CM" || pos == "DM" || pos == "AM") return "MID";
+        if (pos.Contains("FORWARD") || pos == "F" || pos == "FWD" || pos == "ST" || pos == "LW" || pos == "RW") return "FWD";
+
+        return pos;
     }
 }
