@@ -23,7 +23,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, co
 
   if (compact) {
     return (
-      <div 
+      <div
         onClick={() => !disabled && onClick?.(player)}
         className={`relative flex flex-col items-center group cursor-pointer transition-transform hover:scale-110 ${disabled ? 'opacity-50 grayscale' : ''}`}
       >
@@ -38,11 +38,11 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, co
   }
 
   return (
-    <div 
+    <div
       onClick={() => !disabled && onClick?.(player)}
       className={`relative w-full p-4 rounded-xl border-2 transition-all cursor-pointer overflow-hidden
-        ${isSelected 
-          ? 'border-yellow-400 bg-yellow-400/10 shadow-lg shadow-yellow-400/20' 
+        ${isSelected
+          ? 'border-yellow-400 bg-yellow-400/10 shadow-lg shadow-yellow-400/20'
           : 'border-slate-700 bg-slate-800/50 hover:border-slate-500 hover:bg-slate-800'
         } ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}
     >

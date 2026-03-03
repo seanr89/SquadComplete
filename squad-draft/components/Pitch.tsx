@@ -21,7 +21,7 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, activeSpotId }) =
 
       {/* Players */}
       {formation.map((spot) => (
-        <div 
+        <div
           key={spot.id}
           style={{ top: spot.top, left: spot.left }}
           className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
@@ -32,8 +32,8 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, activeSpotId }) =
             <button
               onClick={() => onSpotClick?.(spot)}
               className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-all
-                ${activeSpotId === spot.id 
-                  ? 'border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/30' 
+                ${activeSpotId === spot.id
+                  ? 'border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/30'
                   : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                 }`}
             >

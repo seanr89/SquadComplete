@@ -242,19 +242,15 @@ const App: React.FC = () => {
 
                 <div className="bg-slate-800/80 rounded-2xl p-6 border border-slate-700">
                   <h3 className="text-slate-400 font-bold text-sm uppercase mb-4 tracking-widest">Roster List</h3>
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {draft.selectedPlayers.length === 0 ? (
                       <p className="text-slate-600 text-sm text-center py-4">No players drafted yet</p>
                     ) : (
                       draft.selectedPlayers.map(p => (
-                        <div key={p.id} className="flex items-center gap-3 p-2 bg-slate-900/50 rounded-lg border border-slate-700/50">
-                          <img src={p.image} className="w-8 h-8 rounded-full" alt="" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white truncate">{p.name}</p>
-                            <p className="text-[10px] text-slate-500">{p.position} • {p.club}</p>
-                          </div>
-                          <div className="text-yellow-400 font-black text-sm">{p.rating}</div>
-                        </div>
+                        <PlayerCard
+                          key={p.id}
+                          player={p}
+                        />
                       ))
                     )}
                   </div>
