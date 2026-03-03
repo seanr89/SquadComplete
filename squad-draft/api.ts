@@ -5,6 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5212
 
 export const fetchDailySquads = async (): Promise<Squad[] | null> => {
     try {
+        console.log('API_BASE_URL', API_BASE_URL);
         const today = new Date().toISOString().split('T')[0];
         const response = await fetch(`${API_BASE_URL}/api/game-records/date/${today}`);
 
