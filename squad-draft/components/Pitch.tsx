@@ -6,10 +6,13 @@ import PlayerCard from './PlayerCard';
 interface PitchProps {
   formation: FormationSpot[];
   onSpotClick?: (spot: FormationSpot) => void;
+  onPlayerClick?: (player: Player) => void;
   activeSpotId: number | null;
+  selectedPlayerId?: string | null;
+  disabledPlayerIds?: string[];
 }
 
-const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, activeSpotId }) => {
+const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, activeSpotId, selectedPlayerId, disabledPlayerIds = [] }) => {
   return (
     <div className="pitch-bg w-full aspect-[2/3] md:aspect-auto md:h-[600px] rounded-3xl relative overflow-hidden shadow-2xl border-4 border-slate-800">
       {/* Pitch Markings */}
@@ -27,7 +30,13 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, activeSpotId }) =
           className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
         >
           {spot.player ? (
-            <PlayerCard player={spot.player} compact />
+            <PlayerCard
+              player={spot.player}
+              compact
+              onClick={onPlayerClick}
+              isSelected={selectedPlayerId === spot.player.id}
+              disabled={disabledPlayerIds.includes(spot.player.id)}
+            />
           ) : (
             <button
               onClick={() => onSpotClick?.(spot)}

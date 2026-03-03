@@ -48,6 +48,41 @@ const App: React.FC = () => {
   const currentSquad = squads[draft.currentStep];
   const isDraftComplete = draft.selectedPlayers.length === 11 || draft.currentStep >= squads.length;
 
+  const currentSquadFormation = useMemo(() => {
+    if (!currentSquad) return [];
+
+    const playersByPos: Record<string, Player[]> = {
+      GK: [], DEF: [], MID: [], FWD: []
+    };
+
+    currentSquad.players.forEach(p => {
+      const pos = p.position || 'UNK';
+      if (playersByPos[pos]) {
+        playersByPos[pos].push(p);
+      } else {
+        playersByPos['MID'].push(p);
+      }
+    });
+
+    const formation = [...INITIAL_FORMATION].map(spot => ({ ...spot, player: null }));
+
+    formation.forEach(spot => {
+      const playersForPos = playersByPos[spot.position];
+      if (playersForPos && playersForPos.length > 0) {
+        spot.player = playersForPos.shift() || null;
+      }
+    });
+
+    const leftoverPlayers = Object.values(playersByPos).flat();
+    formation.forEach(spot => {
+      if (!spot.player && leftoverPlayers.length > 0) {
+        spot.player = leftoverPlayers.shift() || null;
+      }
+    });
+
+    return formation;
+  }, [currentSquad]);
+
   const handlePlayerSelect = (player: Player) => {
     if (draft.selectedPlayers.find(p => p.id === player.id)) return;
     setTempPlayer(player);
@@ -151,15 +186,14 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  {currentSquad.players.map(player => (
-                    <PlayerCard
-                      key={player.id}
-                      player={player}
-                      isSelected={tempPlayer?.id === player.id}
-                      onClick={handlePlayerSelect}
-                    />
-                  ))}
+                <div className="mx-auto w-full">
+                  <Pitch
+                    formation={currentSquadFormation}
+                    activeSpotId={null}
+                    onPlayerClick={handlePlayerSelect}
+                    selectedPlayerId={tempPlayer?.id}
+                    disabledPlayerIds={draft.selectedPlayers.map(p => p.id)}
+                  />
                 </div>
               </div>
 
