@@ -117,7 +117,7 @@ public class DatabaseService : IDatabaseService
             await _context.Database.ExecuteSqlRawAsync($@"
                 INSERT INTO player_fixture_statistics 
                 (fixture_id, team_id, player_id, minutes, number, position, rating, is_captain, is_substitute)
-                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, {mappedPosition}, {rating}, {isCaptain}, {isSubstitute})
+                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, '{mappedPosition}', {rating}, {isCaptain}, {isSubstitute})
                 ON CONFLICT (fixture_id, player_id) DO UPDATE SET
                     team_id = EXCLUDED.team_id,
                     minutes = EXCLUDED.minutes,
