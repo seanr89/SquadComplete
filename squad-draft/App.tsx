@@ -143,7 +143,7 @@ const App: React.FC = () => {
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-xl font-bold text-white">{currentSquad.teamName}</h2>
-                    <span className="text-slate-400 text-sm">{currentSquad.season} Squad</span>
+                    <span className="text-slate-400 text-sm">Current Squad</span>
                   </div>
                   <div className="text-right">
                     <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Pick</span>
