@@ -18,6 +18,7 @@ builder.Services.AddDbContext<SquadContext>(options =>
 
 builder.Services.AddScoped<GameRecordService>();
 
+// Add CORS checks for any origin
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
