@@ -108,10 +108,15 @@ public class FixtureStats
                         var stat = playerData.Statistics?.FirstOrDefault();
                         if (stat != null)
                         {
+                            if(stat.Games?.Substitute == true)
+                            {
+                                continue;
+                            }
+
                             decimal? rating = null;
                             if (decimal.TryParse(stat.Games?.Rating, out var parsedRating))
                             {
-                                rating = parsedRating;
+                                rating = parsedRating > 0 ? parsedRating : 0.0;
                             }
 
                             await _databaseService.UpsertPlayerStatsAsync(
