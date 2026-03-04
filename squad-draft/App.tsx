@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { SQUADS as FALLBACK_SQUADS, INITIAL_FORMATION } from './constants';
+import { INITIAL_FORMATION } from './constants';
 import { DraftState, Player, Squad, FormationSpot } from './types';
 import { fetchDailySquads } from './api';
 import Pitch from './components/Pitch';
@@ -28,13 +28,12 @@ const App: React.FC = () => {
           setSquads(fetchedSquads);
         } else {
           // Fallback to hardcoded squads if API fails or returns no data
-          console.warn('Using fallback generic squads');
-          setSquads(FALLBACK_SQUADS);
+          setError('No game records returned from the API. Please try again later.');
         }
       } catch (err) {
         console.error('Failed to load squads', err);
         setError('Failed to load today\'s challenge. Using local data.');
-        setSquads(FALLBACK_SQUADS);
+
       } finally {
         setLoading(false);
       }
@@ -130,7 +129,7 @@ const App: React.FC = () => {
 
   const totalRating = useMemo(() => {
     if (draft.selectedPlayers.length === 0) return 0;
-    return Math.round(draft.selectedPlayers.reduce((acc, p) => acc + p.rating, 0) / draft.selectedPlayers.length);
+    return (draft.selectedPlayers.reduce((acc, p) => acc + p.rating, 0) / draft.selectedPlayers.length).toFixed(1);
   }, [draft.selectedPlayers]);
 
   return (
@@ -170,7 +169,25 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {!loading && currentSquad && view === 'draft' && !draft.completed && (
+        {!loading && error && (
+          <div className="flex flex-col items-center justify-center p-12 text-center max-w-lg mx-auto">
+            <div className="bg-red-500/10 text-red-400 p-8 rounded-2xl border border-red-500/20 shadow-lg shadow-red-500/10 w-full">
+              <i className="fas fa-exclamation-triangle text-5xl mb-6 text-red-500"></i>
+              <h2 className="text-2xl font-bold text-white mb-4">Error Loading Draft</h2>
+              <p className="text-slate-300 font-medium mb-8 leading-relaxed">
+                {error}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                <i className="fas fa-sync-alt mr-2"></i> Try Again
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!loading && !error && currentSquad && view === 'draft' && !draft.completed && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             {/* Squad Selection Area */}
             <div className="space-y-6">
@@ -239,7 +256,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {!loading && (view === 'team' || draft.completed) && (
+        {!loading && !error && (view === 'team' || draft.completed) && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row gap-8">
               <div className="md:w-2/3">

@@ -54,7 +54,12 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, co
 
         {/* Text Container */}
         <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <h3 className="font-bold text-base md:text-lg text-white truncate leading-tight">{player.name}</h3>
+          <div className="flex justify-between items-center gap-2">
+            <h3 className="font-bold text-base md:text-lg text-white truncate leading-tight">{player.name}</h3>
+            <span className="font-black text-[10px] md:text-xs px-1.5 py-0.5 rounded tracking-wide bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 whitespace-nowrap">
+              {player.rating} OVR
+            </span>
+          </div>
           <div className="flex items-center gap-2 mt-1 md:mt-1.5">
             <span className="font-bold text-[10px] md:text-xs px-1.5 py-0.5 rounded tracking-wide bg-slate-700 text-slate-300 uppercase leading-none">
               {player.position}

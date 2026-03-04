@@ -13,6 +13,10 @@ public class GameRecordService
         _db = db;
     }
 
+    /// <summary>
+    /// Gets all game records
+    /// </summary>
+    /// <returns>List of GameRecordDto objects</returns>
     public async Task<List<GameRecordDto>> GetAllGameRecordsAsync()
     {
         var records = await _db.GameRecords
@@ -31,6 +35,11 @@ public class GameRecordService
         return records.Select(r => MapToDto(r, statistics)).ToList();
     }
 
+    /// <summary>
+    /// Gets a game record by ID
+    /// </summary>
+    /// <param name="id">ID of the game record</param>
+    /// <returns>GameRecordDto object</returns>
     public async Task<GameRecordDto?> GetGameRecordByIdAsync(int id)
     {
         var record = await _db.GameRecords
@@ -51,6 +60,11 @@ public class GameRecordService
         return MapToDto(record, statistics);
     }
 
+    /// <summary>
+    /// Gets a game record by date
+    /// </summary>
+    /// <param name="date">Date of the game record</param>
+    /// <returns>GameRecordDto object</returns>
     public async Task<GameRecordDto?> GetGameRecordByDateAsync(DateTime date)
     {
         var record = await _db.GameRecords
@@ -71,6 +85,11 @@ public class GameRecordService
         return MapToDto(record, statistics);
     }
     
+    /// <summary>
+    /// Creates a new game record
+    /// </summary>
+    /// <param name="record">GameRecord object to create</param>
+    /// <returns>GameRecordDto object</returns>
     public async Task<GameRecordDto> CreateGameRecordAsync(GameRecord record)
     {
         record.CreatedAt = DateTime.UtcNow;
@@ -83,6 +102,12 @@ public class GameRecordService
         return await GetGameRecordByIdAsync(record.Id) ?? MapToDto(record, new List<PlayerFixtureStatistic>());
     }
 
+    /// <summary>
+    /// Maps a GameRecord and PlayerFixtureStatistic objects to a GameRecordDto object
+    /// </summary>
+    /// <param name="record">GameRecord object to map</param>
+    /// <param name="statistics">List of PlayerFixtureStatistic objects to map</param>
+    /// <returns>GameRecordDto object</returns>
     public GameRecordDto MapToDto(GameRecord record, List<PlayerFixtureStatistic> statistics)
     {
         return new GameRecordDto
@@ -118,6 +143,11 @@ public class GameRecordService
         };
     }
 
+    /// <summary>
+    /// Maps a position string to a position enum
+    /// </summary>
+    /// <param name="position">Position string to map</param>
+    /// <returns>Position enum</returns>
     private string MapPosition(string? position)
     {
         if (string.IsNullOrEmpty(position)) return "UNK";

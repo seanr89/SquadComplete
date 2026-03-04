@@ -9,6 +9,9 @@ public static class PlayerFixtureStatisticEndpoints
     {
         var group = routes.MapGroup("/api/player-fixture-statistics").WithTags("PlayerFixtureStatistic");
 
+        /// <summary>
+        /// Retrieves all player fixture statistics, including related Fixture, Player, and Team data.
+        /// </summary>
         group.MapGet("/", async (SquadContext db) =>
         {
             return await db.PlayerFixtureStatistics
@@ -19,6 +22,9 @@ public static class PlayerFixtureStatisticEndpoints
         })
         .WithName("GetAllPlayerFixtureStatistics");
 
+        /// <summary>
+        /// Retrieves a specific player fixture statistic by fixture ID and player ID.
+        /// </summary>
         group.MapGet("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
         {
             return await db.PlayerFixtureStatistics
@@ -32,6 +38,9 @@ public static class PlayerFixtureStatisticEndpoints
         })
         .WithName("GetPlayerFixtureStatisticById");
 
+        /// <summary>
+        /// Updates an existing player fixture statistic.
+        /// </summary>
         group.MapPut("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, PlayerFixtureStatistic inputPfs, SquadContext db) =>
         {
             var foundModel = await db.PlayerFixtureStatistics.FindAsync(fixtureId, playerId);
@@ -57,6 +66,9 @@ public static class PlayerFixtureStatisticEndpoints
         })
         .WithName("UpdatePlayerFixtureStatistic");
 
+        /// <summary>
+        /// Creates a new player fixture statistic.
+        /// </summary>
         group.MapPost("/", async (PlayerFixtureStatistic pfs, SquadContext db) =>
         {
             db.PlayerFixtureStatistics.Add(pfs);
@@ -65,6 +77,9 @@ public static class PlayerFixtureStatisticEndpoints
         })
         .WithName("CreatePlayerFixtureStatistic");
 
+        /// <summary>
+        /// Deletes a specific player fixture statistic by fixture ID and player ID.
+        /// </summary>
         group.MapDelete("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
         {
             if (await db.PlayerFixtureStatistics.FindAsync(fixtureId, playerId) is PlayerFixtureStatistic pfs)
