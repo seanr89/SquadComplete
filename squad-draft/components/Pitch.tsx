@@ -6,10 +6,13 @@ import PlayerCard from './PlayerCard';
 interface PitchProps {
   formation: FormationSpot[];
   onSpotClick?: (spot: FormationSpot) => void;
+  onPlayerClick?: (player: Player) => void;
   activeSpotId: number | null;
+  selectedPlayerId?: string | null;
+  disabledPlayerIds?: string[];
 }
 
-const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, activeSpotId }) => {
+const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, activeSpotId, selectedPlayerId, disabledPlayerIds = [] }) => {
   return (
     <div className="pitch-bg w-full aspect-[2/3] md:aspect-auto md:h-[600px] rounded-3xl relative overflow-hidden shadow-2xl border-4 border-slate-800">
       {/* Pitch Markings */}
@@ -21,19 +24,25 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, activeSpotId }) =
 
       {/* Players */}
       {formation.map((spot) => (
-        <div 
+        <div
           key={spot.id}
           style={{ top: spot.top, left: spot.left }}
           className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
         >
           {spot.player ? (
-            <PlayerCard player={spot.player} compact />
+            <PlayerCard
+              player={spot.player}
+              compact
+              onClick={onPlayerClick}
+              isSelected={selectedPlayerId === spot.player.id}
+              disabled={disabledPlayerIds.includes(spot.player.id)}
+            />
           ) : (
             <button
               onClick={() => onSpotClick?.(spot)}
               className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-all
-                ${activeSpotId === spot.id 
-                  ? 'border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/30' 
+                ${activeSpotId === spot.id
+                  ? 'border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/30'
                   : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                 }`}
             >

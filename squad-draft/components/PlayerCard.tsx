@@ -23,7 +23,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, co
 
   if (compact) {
     return (
-      <div 
+      <div
         onClick={() => !disabled && onClick?.(player)}
         className={`relative flex flex-col items-center group cursor-pointer transition-transform hover:scale-110 ${disabled ? 'opacity-50 grayscale' : ''}`}
       >
@@ -38,31 +38,37 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, co
   }
 
   return (
-    <div 
+    <div
       onClick={() => !disabled && onClick?.(player)}
-      className={`relative w-full p-4 rounded-xl border-2 transition-all cursor-pointer overflow-hidden
-        ${isSelected 
-          ? 'border-yellow-400 bg-yellow-400/10 shadow-lg shadow-yellow-400/20' 
-          : 'border-slate-700 bg-slate-800/50 hover:border-slate-500 hover:bg-slate-800'
+      className={`relative w-full p-4 rounded-xl border transition-all cursor-pointer overflow-hidden
+        ${isSelected
+          ? 'border-yellow-400 bg-slate-800/80 shadow-lg shadow-yellow-400/20'
+          : 'border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:bg-slate-800'
         } ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}
     >
       <div className="flex items-center gap-4">
-        <div className="relative">
-          <img src={player.image} alt={player.name} className="w-16 h-16 rounded-lg object-cover border border-slate-600" />
-          <div className={`absolute -top-2 -left-2 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md ${getPositionColor(player.position)}`}>
-            {player.rating}
+        {/* Profile Image with white backing, no rating */}
+        <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-white p-0.5 flex-shrink-0 overflow-hidden">
+          <img src={player.image} alt={player.name} className="w-full h-full rounded-lg object-cover" />
+        </div>
+
+        {/* Text Container */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <h3 className="font-bold text-base md:text-lg text-white truncate leading-tight">{player.name}</h3>
+          <div className="flex items-center gap-2 mt-1 md:mt-1.5">
+            <span className="font-bold text-[10px] md:text-xs px-1.5 py-0.5 rounded tracking-wide bg-slate-700 text-slate-300 uppercase leading-none">
+              {player.position}
+            </span>
+            <span className="text-slate-400 text-xs md:text-sm truncate">
+              {player.club}
+            </span>
           </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-lg text-white truncate">{player.name}</h3>
-          <p className="text-slate-400 text-sm flex items-center gap-2">
-            <span className="font-semibold text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">{player.position}</span>
-            <span className="truncate">{player.club} • {player.nationality}</span>
-          </p>
-        </div>
+
+        {/* Selected state indicator */}
         {isSelected && (
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400 text-slate-900">
-            <i className="fas fa-check"></i>
+          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-yellow-400 text-slate-900 border-2 border-slate-800">
+            <i className="fas fa-check text-xs md:text-sm"></i>
           </div>
         )}
       </div>

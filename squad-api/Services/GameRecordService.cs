@@ -65,7 +65,7 @@ public class GameRecordService
 
         var statistics = await _db.PlayerFixtureStatistics
             .Include(s => s.Player)
-            .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value))
+            .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value) && s.IsSubstitute == false)
             .ToListAsync();
 
         return MapToDto(record, statistics);
@@ -108,7 +108,7 @@ public class GameRecordService
                         {
                             // Minutes = s.Minutes,
                             // Number = s.Number,
-                            Position = s.Position,
+                            Position = MapPosition(s.Position),
                             Rating = s.Rating,
                             // IsCaptain = s.IsCaptain,
                             // IsSubstitute = s.IsSubstitute
@@ -116,5 +116,18 @@ public class GameRecordService
                     }).ToList()
             }).ToList()
         };
+    }
+
+    private string MapPosition(string? position)
+    {
+        if (string.IsNullOrEmpty(position)) return "UNK";
+        
+        var pos = position.ToUpper();
+        if (pos.Contains("GOALKEEPER") || pos == "G" || pos == "GK" || pos == "@P5") return "GK";
+        if (pos.Contains("DEFENDER") || pos == "D" || pos == "DEF" || pos == "LB" || pos == "RB" || pos == "CB") return "DEF";
+        if (pos.Contains("MIDFIELDER") || pos == "M" || pos == "MID" || pos == "CM" || pos == "DM" || pos == "AM") return "MID";
+        if (pos.Contains("FORWARD") || pos == "F" || pos == "FWD" || pos == "ST" || pos == "LW" || pos == "RW") return "FWD";
+        
+        return pos;
     }
 }
