@@ -12,11 +12,22 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [draft, setDraft] = useState<DraftState>({
-    currentStep: 0,
-    selectedPlayers: [],
-    formation: [...INITIAL_FORMATION],
-    completed: false
+  const [draft, setDraft] = useState<DraftState>(() => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const savedDraft = localStorage.getItem(`squad-draft-${today}`);
+      if (savedDraft) {
+        return JSON.parse(savedDraft);
+      }
+    } catch (e) {
+      console.error("Failed to load draft from local storage", e);
+    }
+    return {
+      currentStep: 0,
+      selectedPlayers: [],
+      formation: [...INITIAL_FORMATION],
+      completed: false
+    };
   });
 
   React.useEffect(() => {
@@ -40,6 +51,15 @@ const App: React.FC = () => {
     };
     loadSquads();
   }, []);
+
+  React.useEffect(() => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      localStorage.setItem(`squad-draft-${today}`, JSON.stringify(draft));
+    } catch (e) {
+      console.error("Failed to save draft to local storage", e);
+    }
+  }, [draft]);
 
   const [activeSpotId, setActiveSpotId] = useState<number | null>(null);
   const [tempPlayer, setTempPlayer] = useState<Player | null>(null);
@@ -117,6 +137,8 @@ const App: React.FC = () => {
 
   const resetDraft = () => {
     if (confirm("Reset your draft and start over?")) {
+      const today = new Date().toISOString().split('T')[0];
+      localStorage.removeItem(`squad-draft-${today}`);
       setDraft({
         currentStep: 0,
         selectedPlayers: [],
