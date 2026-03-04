@@ -116,7 +116,7 @@ public class FixtureStats
                             decimal? rating = null;
                             if (decimal.TryParse(stat.Games?.Rating, out var parsedRating))
                             {
-                                rating = parsedRating > 0 ? parsedRating : 0.0;
+                                rating = parsedRating > 0 ? parsedRating : 0.0m;
                             }
 
                             await _databaseService.UpsertPlayerStatsAsync(
