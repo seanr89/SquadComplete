@@ -14,7 +14,9 @@ name: Deploy web app to Azure Static Web Apps
 
 on:
   push:
-    branches: [ "main", "uiapisync" ]
+    branches: [ "main" ]
+    paths:
+      - 'squad-draft/**'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches: [ "main" ]
