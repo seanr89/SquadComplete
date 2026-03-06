@@ -16,10 +16,10 @@ public class DailyFixtures
     private readonly SquadContext _context;
     private readonly IApiService _apiService;
     // add dbservice
-    private readonly IDatabaseService _databaseService;
+    private readonly DatabaseService _databaseService;
 
     public DailyFixtures(ILoggerFactory loggerFactory, SquadContext context, 
-    IApiService apiService, IDatabaseService databaseService)
+    IApiService apiService, DatabaseService databaseService)
     {
         _logger = loggerFactory.CreateLogger<DailyFixtures>();
         _context = context;
@@ -33,13 +33,13 @@ public class DailyFixtures
         _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 
         // step 1. get all leagues we allow
-        var leagues = await _databaseService.GetLeaguesAsync();
-        var date = DateTime.Now.AddDays(-1);
-        foreach (var league in leagues)
-        {
-            _logger.LogInformation("Processing league {leagueId}", league.Id);
-            //var fixtures = _apiService.GetFixturesForLeague(league.Id, DateTime.Now);
-        }
+        // var leagues = await _databaseService.GetLeaguesAsync();
+        // var date = DateTime.Now.AddDays(-1);
+        // foreach (var league in leagues)
+        // {
+        //     _logger.LogInformation("Processing league {leagueId}", league.Id);
+        //     //var fixtures = _apiService.GetFixturesForLeague(league.Id, DateTime.Now);
+        // }
         
         if (myTimer.ScheduleStatus is not null)
         {

@@ -6,59 +6,42 @@ using squad_func.Models;
 
 namespace squad_func.Services;
 
-public interface IDatabaseService
-{
-    Task<List<League>> GetLeaguesAsync();
-    
-    /// <summary>
-    /// Inserts or updates a team record.
-    /// </summary>
-    /// <param name="id">The team's unique ID.</param>
-    /// <param name="name">The name of the team.</param>
-    /// <param name="logo">The URL to the team's logo.</param>
-    /// <param name="lastUpdate">The last time the team data was updated.</param>
-    Task UpsertTeamAsync(int id, string name, string? logo, DateTime? lastUpdate);
-
-    /// <summary>
-    /// Inserts or updates a player record.
-    /// </summary>
-    /// <param name="id">The player's unique ID.</param>
-    /// <param name="name">The name of the player.</param>
-    /// <param name="photo">The URL to the player's photo.</param>
-    Task UpsertPlayerAsync(int id, string name, string? photo);
-
-    /// <summary>
-    /// Inserts or updates statistics for a player in a specific fixture.
-    /// </summary>
-    /// <param name="fixtureId">The ID of the fixture.</param>
-    /// <param name="teamId">The ID of the team.</param>
-    /// <param name="playerId">The ID of the player.</param>
-    /// <param name="minutes">The number of minutes played.</param>
-    /// <param name="number">The player's jersey number.</param>
-    /// <param name="position">The player's position.</param>
-    /// <param name="rating">The player's match rating.</param>
-    /// <param name="isCaptain">Whether the player was the captain.</param>
-    /// <param name="isSubstitute">Whether the player was a substitute.</param>
-    Task UpsertPlayerStatsAsync(int fixtureId, int teamId, int playerId, int? minutes, int? number, string? position, decimal? rating, bool isCaptain, bool isSubstitute);
-}
-
-public class DatabaseService : IDatabaseService
+/// <summary>
+/// Service responsible for handling database operations related to leagues, teams, players, and their statistics.
+/// </summary>
+public class DatabaseService
 {
     private readonly SquadContext _context;
     private readonly ILogger<DatabaseService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DatabaseService"/> class.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="loggerFactory">The logger factory used to create a logger for this service.</param>
+    /// <exception cref="ArgumentNullException">Thrown if context is null.</exception>
     public DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = loggerFactory.CreateLogger<DatabaseService>();
     }
 
+    /// <summary>
+    /// Retrieves all leagues from the database.
+    /// </summary>
+    /// <returns>A list of league records.</returns>
     public async Task<List<League>> GetLeaguesAsync()
     {
         return await _context.Leagues.AsNoTracking().ToListAsync();
     }   
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Inserts or updates a team record in the database.
+    /// </summary>
+    /// <param name="id">The team's unique ID.</param>
+    /// <param name="name">The name of the team.</param>
+    /// <param name="logo">The URL to the team's logo.</param>
+    /// <param name="lastUpdate">The last time the team data was updated.</param>
     public async Task UpsertTeamAsync(int id, string name, string? logo, DateTime? lastUpdate)
     {
         string lastUpdateString = lastUpdate.HasValue ? lastUpdate.Value.ToString("yyyy-MM-dd HH:mm:ss") : "NULL";
@@ -86,7 +69,12 @@ public class DatabaseService : IDatabaseService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Inserts or updates a player record in the database.
+    /// </summary>
+    /// <param name="id">The player's unique ID.</param>
+    /// <param name="name">The name of the player.</param>
+    /// <param name="photo">The URL to the player's photo.</param>
     public async Task UpsertPlayerAsync(int id, string name, string? photo)
     {
         try
@@ -108,7 +96,18 @@ public class DatabaseService : IDatabaseService
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Inserts or updates statistics for a player in a specific fixture.
+    /// </summary>
+    /// <param name="fixtureId">The ID of the fixture.</param>
+    /// <param name="teamId">The ID of the team.</param>
+    /// <param name="playerId">The ID of the player.</param>
+    /// <param name="minutes">The number of minutes played.</param>
+    /// <param name="number">The player's jersey number.</param>
+    /// <param name="position">The player's position.</param>
+    /// <param name="rating">The player's match rating.</param>
+    /// <param name="isCaptain">Whether the player was the captain.</param>
+    /// <param name="isSubstitute">Whether the player was a substitute.</param>
     public async Task UpsertPlayerStatsAsync(int fixtureId, int teamId, int playerId, int? minutes, int? number, string? position, decimal? rating, bool isCaptain, bool isSubstitute)
     {
         var mappedPosition = MapPosition(position);
@@ -137,6 +136,11 @@ public class DatabaseService : IDatabaseService
         }
     }
 
+    /// <summary>
+    /// Maps raw position strings to standardized shorthand values.
+    /// </summary>
+    /// <param name="position">The raw position string from the API response.</param>
+    /// <returns>A standardized position string (GK, DEF, MID, FWD, or UNK).</returns>
     private string MapPosition(string? position)
     {
         if (string.IsNullOrEmpty(position)) return "UNK";
@@ -150,3 +154,4 @@ public class DatabaseService : IDatabaseService
         return pos;
     }
 }
+

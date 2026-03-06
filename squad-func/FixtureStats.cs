@@ -16,10 +16,10 @@ public class FixtureStats
     private readonly SquadContext _context;
     private readonly IApiService _apiService;
     // add dbservice
-    private readonly IDatabaseService _databaseService;
+    private readonly DatabaseService _databaseService;
 
     public FixtureStats(ILoggerFactory loggerFactory, SquadContext context, 
-    IApiService apiService, IDatabaseService databaseService)
+    IApiService apiService, DatabaseService databaseService)
     {
         _logger = loggerFactory.CreateLogger<FixtureStats>();
         _context = context;
@@ -38,18 +38,21 @@ public class FixtureStats
 
         try
         {
+            // get fixtures that don't have player stats currently and take 8
             var fixturesWithoutStats = await _context.Fixtures
                 .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
                 .OrderBy(f => f.Id)
                 .Take(8)
                 .ToListAsync();
 
-            _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStats.Count);
+            if(fixturesWithoutStats.Count == 0)
+            {
+                _logger.LogInformation("No fixtures without player statistics found.");
+                return;
+            }
 
             foreach (var fixture in fixturesWithoutStats)
             {
-                _logger.LogInformation("Fixture ID without stats: {fixtureId}", fixture.Id);
-
                 if(fixture.HomeTeamId != null)
                 {
                     var homeTeamStats = await _apiService.GetPlayerStatsAsync(fixture.Id, fixture.HomeTeamId.Value);
