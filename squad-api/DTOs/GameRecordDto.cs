@@ -18,6 +18,7 @@ public class GameRecordTeamDto
     // public int TeamId { get; set; }
     public string TeamName { get; set; } = string.Empty;
     public string? TeamLogo { get; set; }
+    public string Formation { get; set; } = string.Empty;
     public List<GameRecordPlayerDto> Players { get; set; } = new();
 }
 

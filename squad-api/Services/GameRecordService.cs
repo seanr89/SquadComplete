@@ -116,13 +116,9 @@ public class GameRecordService
             GameDate = record.GameDate,
             //CreatedAt = record.CreatedAt,
             //UpdatedAt = record.UpdatedAt,
-            Teams = record.Tags.Select(t => new GameRecordTeamDto
+            Teams = record.Tags.Select(t =>
             {
-                //FixtureId = t.FixtureId,
-                //TeamId = t.TeamId,
-                TeamName = t.Team?.Name ?? string.Empty,
-                TeamLogo = t.Team?.Logo,
-                Players = statistics
+                var players = statistics
                     .Where(s => s.FixtureId == t.FixtureId && s.TeamId == t.TeamId)
                     .Select(s => new GameRecordPlayerDto
                     {
@@ -138,7 +134,17 @@ public class GameRecordService
                             // IsCaptain = s.IsCaptain,
                             // IsSubstitute = s.IsSubstitute
                         }
-                    }).ToList()
+                    }).ToList();
+
+                return new GameRecordTeamDto
+                {
+                    //FixtureId = t.FixtureId,
+                    //TeamId = t.TeamId,
+                    TeamName = t.Team?.Name ?? string.Empty,
+                    TeamLogo = t.Team?.Logo,
+                    Formation = CalculateFormation(players),
+                    Players = players
+                };
             }).ToList()
         };
     }
@@ -159,5 +165,19 @@ public class GameRecordService
         if (pos.Contains("FORWARD") || pos == "F" || pos == "FWD" || pos == "ST" || pos == "LW" || pos == "RW") return "FWD";
         
         return pos;
+    }
+
+    /// <summary>
+    /// Calculates the expected team formation
+    /// </summary>
+    /// <param name="players">List of GameRecordPlayerDto objects</param>
+    /// <returns>Formation string (e.g., 4-4-2)</returns>
+    private string CalculateFormation(List<GameRecordPlayerDto> players)
+    {
+        var defenderCount = players.Count(p => p.Statistics?.Position == "DEF");
+        var midfielderCount = players.Count(p => p.Statistics?.Position == "MID");
+        var attackerCount = players.Count(p => p.Statistics?.Position == "FWD");
+
+        return $"{defenderCount}-{midfielderCount}-{attackerCount}";
     }
 }
