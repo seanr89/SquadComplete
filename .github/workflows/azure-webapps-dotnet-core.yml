@@ -67,8 +67,8 @@ jobs:
           name: .net-app
           path: ./publish
 
-      - name: echo app name
-        run: echo ${{ env.AZURE_WEBAPP_NAME }}
+      # - name: echo app name
+      #   run: echo ${{ env.AZURE_WEBAPP_NAME }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
