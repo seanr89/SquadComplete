@@ -163,7 +163,19 @@ const App: React.FC = () => {
             <span className="text-yellow-400"><i className="fas fa-trophy"></i></span>
             ULTIMATE 11
           </h1>
-          <p className="text-slate-400 font-medium">Daily Squad Draft Challenge</p>
+          <div className="flex items-center gap-2 relative group w-max">
+            <p className="text-slate-400 font-medium">Daily Squad Draft Challenge</p>
+            <i className="fas fa-info-circle text-slate-400 cursor-help transition-colors hover:text-slate-300"></i>
+
+            <div className="absolute left-0 top-full mt-2 w-72 bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+              <h4 className="text-slate-400 text-xs font-bold uppercase mb-2">Instructions</h4>
+              <ul className="text-xs text-slate-300 space-y-1.5 list-disc pl-4">
+                <li>Choose ONE player from each daily squad</li>
+                <li>Assign them to a specific spot on your formation</li>
+                <li>Balanced positions lead to higher team synergy</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -250,15 +262,6 @@ const App: React.FC = () => {
                   </button>
                 </div>
               )}
-
-              <div className="bg-slate-800/30 rounded-xl p-4 border border-dashed border-slate-700">
-                <h4 className="text-slate-400 text-xs font-bold uppercase mb-2">Instructions</h4>
-                <ul className="text-xs text-slate-500 space-y-1">
-                  <li>• Choose ONE player from each daily squad</li>
-                  <li>• Assign them to a specific spot on your formation</li>
-                  <li>• Balanced positions lead to higher team synergy</li>
-                </ul>
-              </div>
             </div>
 
             {/* Pitch Visualization Area */}
