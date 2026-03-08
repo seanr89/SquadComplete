@@ -103,7 +103,9 @@ public class SquadSelector
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred during fixture selection.");
+            _logger.LogError(ex, "Error occurred during game creation.");
+            _logger.LogError(ex.Message);
+            _logger.LogError(ex.InnerException?.Message);
         }
         
         if (myTimer.ScheduleStatus is not null)
