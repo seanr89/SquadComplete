@@ -5,9 +5,11 @@ import { DraftState, Player, Squad, FormationSpot } from './types';
 import { fetchDailySquads } from './api';
 import Pitch from './components/Pitch';
 import PlayerCard from './components/PlayerCard';
+import AboutDialog from './components/AboutDialog';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'draft' | 'team'>('draft');
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [squads, setSquads] = useState<Squad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -180,6 +182,13 @@ const App: React.FC = () => {
 
         <div className="flex gap-2">
           <button
+            onClick={() => setIsAboutOpen(true)}
+            className="px-4 py-2 rounded-lg font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700"
+            title="About Us"
+          >
+            <i className="fas fa-question-circle md:mr-2"></i> <span className="hidden md:inline">About</span>
+          </button>
+          <button
             onClick={() => setView('draft')}
             className={`px-4 py-2 rounded-lg font-bold transition-all ${view === 'draft' ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
           >
@@ -339,6 +348,9 @@ const App: React.FC = () => {
 
       {/* Footer Navigation (Mobile Only) */}
       <div className="md:hidden h-20"></div> {/* Spacer for fixed footer */}
+      {/* About Dialog */}
+      <AboutDialog isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
+
       <footer className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 md:hidden z-50">
         <div className="flex justify-around items-center max-w-lg mx-auto">
           <button
