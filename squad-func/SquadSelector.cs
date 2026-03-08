@@ -37,10 +37,24 @@ public class SquadSelector
             var random = new Random();
             var shuffledFixtures = fixtures.OrderBy(x => random.Next()).ToList();
 
+            // Retrieve all formations and select a random one
+            var formations = await _context.Formations.ToListAsync();
+            Formation? selectedFormation = null;
+            if (formations.Any())
+            {
+                selectedFormation = formations[random.Next(formations.Count)];
+                _logger.LogInformation("Selected random Formation with ID: {id} ({name})", selectedFormation.Id, selectedFormation.Name);
+            }
+            else
+            {
+                _logger.LogWarning("No formations found in the database.");
+            }
+
             // Create a new game record for today
             var gameRecord = new GameRecord
             {
-                GameDate = DateTime.UtcNow.Date
+                GameDate = DateTime.UtcNow.Date,
+                FormationId = selectedFormation?.Id
             };
             
             _context.GameRecords.Add(gameRecord);

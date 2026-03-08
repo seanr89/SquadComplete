@@ -13,6 +13,7 @@ public class SquadContext : DbContext
     public DbSet<PlayerFixtureStatistic> PlayerFixtureStatistics { get; set; }
     public DbSet<GameRecord> GameRecords { get; set; }
     public DbSet<GameRecordTag> GameRecordTags { get; set; }
+    public DbSet<Formation> Formations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace squad_api.Models;
+namespace squad_func.Models;
 
 [Table("formations")]
 public class Formation

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace squad_api.Models;
+namespace squad_func.Models;
 
 [Table("user_squads")]
 public class UserSquad
