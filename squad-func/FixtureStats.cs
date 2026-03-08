@@ -77,10 +77,10 @@ public class FixtureStats
         
         _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStatsUpdated);   
         
-        if (myTimer.ScheduleStatus is not null)
-        {
-            _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
-        }
+        // if (myTimer.ScheduleStatus is not null)
+        // {
+        //     _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
+        // }
     }
 
     /// <summary>
