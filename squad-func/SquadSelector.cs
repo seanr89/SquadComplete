@@ -42,7 +42,7 @@ public class SquadSelector
             {
                 GameDate = DateTime.UtcNow.Date
             };
-            
+
             _context.GameRecords.Add(gameRecord);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Created new GameRecord with ID: {id}", gameRecord.Id);
@@ -53,36 +53,46 @@ public class SquadSelector
 
             foreach (var fixture in shuffledFixtures)
             {
-                // add player fixture check to ensure that player stats are present first
-                var playerFixture = await _context.PlayerFixtureStatistics
-                    .FirstOrDefaultAsync(pf => pf.FixtureId == fixture.Id);
-
-                if (playerFixture == null)
+                if (fixture.HomeTeamId.HasValue)
                 {
-                    _logger.LogInformation("Player fixture not found for fixture {fixtureId}", fixture.Id);
-                    continue;
-                }   
+                    var homeTeamHasStats = await _context.PlayerFixtureStatistics
+                        .AnyAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.HomeTeamId.Value);
 
-                if (fixture.HomeTeamId.HasValue && uniqueTeamIds.Add(fixture.HomeTeamId.Value))
-                {
-                    tagsToAdd.Add(new GameRecordTag
+                    if (homeTeamHasStats && uniqueTeamIds.Add(fixture.HomeTeamId.Value))
                     {
-                        GameRecordId = gameRecord.Id,
-                        FixtureId = fixture.Id,
-                        TeamId = fixture.HomeTeamId.Value
-                    });
+                        tagsToAdd.Add(new GameRecordTag
+                        {
+                            GameRecordId = gameRecord.Id,
+                            FixtureId = fixture.Id,
+                            TeamId = fixture.HomeTeamId.Value
+                        });
+                    }
+                    else if (!homeTeamHasStats)
+                    {
+                        _logger.LogInformation("Player fixture stats not found for fixture {fixtureId} and team {teamId}", fixture.Id, fixture.HomeTeamId.Value);
+                    }
                 }
 
                 if (uniqueTeamIds.Count >= 11) break;
 
-                if (fixture.AwayTeamId.HasValue && uniqueTeamIds.Add(fixture.AwayTeamId.Value))
+                if (fixture.AwayTeamId.HasValue)
                 {
-                    tagsToAdd.Add(new GameRecordTag
+                    var awayTeamHasStats = await _context.PlayerFixtureStatistics
+                        .AnyAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.AwayTeamId.Value);
+
+                    if (awayTeamHasStats && uniqueTeamIds.Add(fixture.AwayTeamId.Value))
                     {
-                        GameRecordId = gameRecord.Id,
-                        FixtureId = fixture.Id,
-                        TeamId = fixture.AwayTeamId.Value
-                    });
+                        tagsToAdd.Add(new GameRecordTag
+                        {
+                            GameRecordId = gameRecord.Id,
+                            FixtureId = fixture.Id,
+                            TeamId = fixture.AwayTeamId.Value
+                        });
+                    }
+                    else if (!awayTeamHasStats)
+                    {
+                        _logger.LogInformation("Player fixture stats not found for fixture {fixtureId} and team {teamId}", fixture.Id, fixture.AwayTeamId.Value);
+                    }
                 }
 
                 if (uniqueTeamIds.Count >= 11) break;
@@ -92,7 +102,7 @@ public class SquadSelector
             {
                 _context.GameRecordTags.AddRange(tagsToAdd);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}", 
+                _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}",
                     tagsToAdd.Count, gameRecord.Id, string.Join(", ", uniqueTeamIds));
             }
 
@@ -107,7 +117,7 @@ public class SquadSelector
             _logger.LogError(ex.Message);
             _logger.LogError(ex.InnerException?.Message);
         }
-        
+
         if (myTimer.ScheduleStatus is not null)
         {
             _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
