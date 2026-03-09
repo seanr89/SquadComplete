@@ -244,3 +244,49 @@ Content-Type: application/json
 DELETE {{squad_api_HostAddress}}/api/game-records/1
 
 ###
+
+### Formations
+
+# @name GetAllFormations
+GET {{squad_api_HostAddress}}/api/formations
+Accept: application/json
+
+###
+
+# @name GetFormationById
+GET {{squad_api_HostAddress}}/api/formations/1
+Accept: application/json
+
+###
+
+# @name CreateFormation
+POST {{squad_api_HostAddress}}/api/formations
+Content-Type: application/json
+
+{
+  "name": "4-3-3",
+  "defence": 4,
+  "midfield": 3,
+  "attack": 3
+}
+
+###
+
+# @name UpdateFormation
+PUT {{squad_api_HostAddress}}/api/formations/1
+Content-Type: application/json
+
+{
+  "name": "4-4-2",
+  "defence": 4,
+  "midfield": 4,
+  "attack": 2
+}
+
+###
+
+# @name DeleteFormation
+DELETE {{squad_api_HostAddress}}/api/formations/1
+
+###
+
