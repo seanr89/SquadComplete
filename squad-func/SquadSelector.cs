@@ -53,38 +53,44 @@ public class SquadSelector
 
             foreach (var fixture in shuffledFixtures)
             {
-                // add player fixture check to ensure that player stats are present first
-                var playerFixture = await _context.PlayerFixtureStatistics
-                    .FirstOrDefaultAsync(pf => pf.FixtureId == fixture.Id);
+                // get player fixture count for home and away teams
+                var homePlayerFixtureCount = await _context.PlayerFixtureStatistics
+                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.HomeTeamId);
 
-                if (playerFixture == null)
+                var awayPlayerFixtureCount = await _context.PlayerFixtureStatistics
+                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.AwayTeamId);
+
+                if (homePlayerFixtureCount == 0 && awayPlayerFixtureCount == 0)
                 {
                     _logger.LogInformation("Player fixture not found for fixture {fixtureId}", fixture.Id);
                     continue;
-                }   
+                }
 
-                if (fixture.HomeTeamId.HasValue && uniqueTeamIds.Add(fixture.HomeTeamId.Value))
-                {
-                    tagsToAdd.Add(new GameRecordTag
+                if(fixture.HomeTeamId.HasValue && homePlayerFixtureCount >= 0){
+                    if (fixture.HomeTeamId.HasValue && uniqueTeamIds.Add(fixture.HomeTeamId.Value))
                     {
-                        GameRecordId = gameRecord.Id,
-                        FixtureId = fixture.Id,
-                        TeamId = fixture.HomeTeamId.Value
-                    });
+                        tagsToAdd.Add(new GameRecordTag
+                        {
+                            GameRecordId = gameRecord.Id,
+                            FixtureId = fixture.Id,
+                            TeamId = fixture.HomeTeamId.Value
+                        });
+                    }
                 }
 
                 if (uniqueTeamIds.Count >= 11) break;
 
-                if (fixture.AwayTeamId.HasValue && uniqueTeamIds.Add(fixture.AwayTeamId.Value))
-                {
-                    tagsToAdd.Add(new GameRecordTag
+                if(fixture.AwayTeamId.HasValue && awayPlayerFixtureCount >= 0){
+                    if (fixture.AwayTeamId.HasValue && uniqueTeamIds.Add(fixture.AwayTeamId.Value))
                     {
-                        GameRecordId = gameRecord.Id,
-                        FixtureId = fixture.Id,
-                        TeamId = fixture.AwayTeamId.Value
-                    });
+                        tagsToAdd.Add(new GameRecordTag
+                        {
+                            GameRecordId = gameRecord.Id,
+                            FixtureId = fixture.Id,
+                            TeamId = fixture.AwayTeamId.Value
+                        });
+                    }
                 }
-
                 if (uniqueTeamIds.Count >= 11) break;
             }
 
