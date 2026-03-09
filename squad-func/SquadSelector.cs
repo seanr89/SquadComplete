@@ -45,10 +45,6 @@ public class SquadSelector
                 selectedFormation = formations[random.Next(formations.Count)];
                 _logger.LogInformation("Selected random Formation with ID: {id} ({name})", selectedFormation.Id, selectedFormation.Name);
             }
-            else
-            {
-                _logger.LogWarning("No formations found in the database.");
-            }
 
             // Create a new game record for today
             var gameRecord = new GameRecord
@@ -76,7 +72,7 @@ public class SquadSelector
 
                 if (homePlayerFixtureCount == 0 && awayPlayerFixtureCount == 0)
                 {
-                    _logger.LogInformation("Player fixture not found for fixture {fixtureId}", fixture.Id);
+                    _logger.LogWarning("Player fixture not found for fixture {fixtureId}", fixture.Id);
                     continue;
                 }
 
@@ -112,8 +108,8 @@ public class SquadSelector
             {
                 _context.GameRecordTags.AddRange(tagsToAdd);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}", 
-                    tagsToAdd.Count, gameRecord.Id, string.Join(", ", uniqueTeamIds));
+                // _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}", 
+                //     tagsToAdd.Count, gameRecord.Id, string.Join(", ", uniqueTeamIds));
             }
 
             if (uniqueTeamIds.Count < 11)
