@@ -70,6 +70,7 @@ public class GameRecordService
         var record = await _db.GameRecords
             .Include(gr => gr.Tags)
                 .ThenInclude(t => t.Team)
+            .Include(gr => gr.Formation)
             .FirstOrDefaultAsync(gr => gr.GameDate.ToUniversalTime().Date == date.ToUniversalTime().Date);
 
         if (record == null) return null;
@@ -114,8 +115,7 @@ public class GameRecordService
         {
             Id = record.Id,
             GameDate = record.GameDate,
-            //CreatedAt = record.CreatedAt,
-            //UpdatedAt = record.UpdatedAt,
+            Formation = record.Formation?.Name ?? string.Empty,
             Teams = record.Tags.Select(t =>
             {
                 var players = statistics
