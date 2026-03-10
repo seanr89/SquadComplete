@@ -68,16 +68,23 @@ public class SquadSelector
             foreach (var fixture in shuffledFixtures)
             {
                 // add player fixture check to ensure that player stats are present first
-                var playerFixture = await _context.PlayerFixtureStatistics
-                    .FirstOrDefaultAsync(pf => pf.FixtureId == fixture.Id);
+                // var playerFixture = await _context.PlayerFixtureStatistics
+                //     .FirstOrDefaultAsync(pf => pf.FixtureId == fixture.Id);
 
-                if (playerFixture == null)
+                // get player fixture count for home and away teams
+                var homePlayerFixtureCount = await _context.PlayerFixtureStatistics
+                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.HomeTeamId);
+
+                var awayPlayerFixtureCount = await _context.PlayerFixtureStatistics
+                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.AwayTeamId);
+
+                if (homePlayerFixtureCount == 0 && awayPlayerFixtureCount == 0)
                 {
                     _logger.LogInformation("Player fixture not found for fixture {fixtureId}", fixture.Id);
                     continue;
                 }
 
-                if (fixture.HomeTeamId.HasValue && uniqueTeamIds.Add(fixture.HomeTeamId.Value))
+                if (fixture.HomeTeamId.HasValue && homePlayerFixtureCount >= 11 )
                 {
                     tagsToAdd.Add(new GameRecordTag
                     {
@@ -89,7 +96,7 @@ public class SquadSelector
 
                 if (uniqueTeamIds.Count >= 11) break;
 
-                if (fixture.AwayTeamId.HasValue && uniqueTeamIds.Add(fixture.AwayTeamId.Value))
+                if (fixture.AwayTeamId.HasValue && awayPlayerFixtureCount >= 11)
                 {
                     tagsToAdd.Add(new GameRecordTag
                     {
