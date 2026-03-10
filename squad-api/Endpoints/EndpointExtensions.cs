@@ -13,5 +13,6 @@ public static class EndpointExtensions
         app.MapPlayerFixtureStatisticEndpoints();
         app.MapFormationEndpoints();
         app.MapGameRecordEndpoints();
+        app.MapFeedbackEndpoints();
     }
 }
