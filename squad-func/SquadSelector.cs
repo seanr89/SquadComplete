@@ -92,6 +92,7 @@ public class SquadSelector
                         FixtureId = fixture.Id,
                         TeamId = fixture.HomeTeamId.Value
                     });
+                    uniqueTeamIds.Add(fixture.HomeTeamId.Value);
                 }
 
                 if (uniqueTeamIds.Count >= 11) break;
@@ -104,6 +105,7 @@ public class SquadSelector
                         FixtureId = fixture.Id,
                         TeamId = fixture.AwayTeamId.Value
                     });
+                    uniqueTeamIds.Add(fixture.AwayTeamId.Value);
                 }
 
                 if (uniqueTeamIds.Count >= 11) break;
