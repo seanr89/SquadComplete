@@ -40,3 +40,25 @@ export const fetchDailySquads = async (): Promise<Squad[] | null> => {
         return null;
     }
 };
+
+export const submitFeedback = async (name: string, email: string, message: string): Promise<boolean> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/feedbacks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, email, message }),
+        });
+
+        if (!response.ok) {
+            console.error('Failed to submit feedback:', response.statusText);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        return false;
+    }
+};

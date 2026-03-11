@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { submitFeedback } from '../api';
 
 interface AboutDialogProps {
   isOpen: boolean;
@@ -7,13 +8,35 @@ interface AboutDialogProps {
 
 const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'about' | 'changelog' | 'contact'>('about');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    alert("Thanks for your feedback! This will be sent on at a later date.");
-    onClose();
+
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const message = formData.get('message') as string;
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    const success = await submitFeedback(name, email, message);
+
+    setIsSubmitting(false);
+
+    if (success) {
+      setSubmitStatus('success');
+      setTimeout(() => {
+        onClose();
+        setSubmitStatus('idle');
+      }, 2000);
+    } else {
+      setSubmitStatus('error');
+    }
   };
 
   return (
@@ -117,11 +140,24 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
                 Have an idea for a feature or found a bug? Let us know! Your feedback will help shape the future of Ultimate 11.
               </p>
 
+              {submitStatus === 'success' && (
+                <div className="bg-green-500/10 border border-green-500/20 text-green-400 rounded-lg p-3 text-sm font-bold text-center">
+                  Feedback sent successfully!
+                </div>
+              )}
+
+              {submitStatus === 'error' && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg p-3 text-sm font-bold text-center">
+                  Failed to send feedback. Please try again.
+                </div>
+              )}
+
               <div>
                 <label htmlFor="name" className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Name</label>
                 <input
                   type="text"
                   id="name"
+                  name="name"
                   required
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors"
                   placeholder="Your Name"
@@ -133,6 +169,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
                 <input
                   type="email"
                   id="email"
+                  name="email"
                   required
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors"
                   placeholder="your@email.com"
@@ -143,6 +180,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
                 <label htmlFor="message" className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Message</label>
                 <textarea
                   id="message"
+                  name="message"
                   required
                   rows={4}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors resize-none"
@@ -152,9 +190,11 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
 
               <button
                 type="submit"
-                className="w-full bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-yellow-400/20"
+                disabled={isSubmitting || submitStatus === 'success'}
+                className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed text-slate-900 font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-yellow-400/20"
               >
-                <i className="fas fa-paper-plane mr-2"></i> Send Feedback
+                <i className={`fas ${isSubmitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'} mr-2`}></i>
+                {isSubmitting ? 'Sending...' : 'Send Feedback'}
               </button>
             </form>
           )}
