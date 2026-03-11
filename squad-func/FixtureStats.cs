@@ -47,7 +47,7 @@ public class FixtureStats
 
             if(fixturesWithoutStats.Count == 0)
             {
-                _logger.LogInformation("No fixtures without player statistics found.");
+                _logger.LogWarning("No fixtures without player statistics found.");
                 return;
             }
 
