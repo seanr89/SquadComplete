@@ -9,3 +9,6 @@ For a `TimerTrigger` to work, you provide a schedule in the form of a [cron expr
 ## Learn more
 
 <TODO> Documentation
+## Development Guidelines
+
+**Important:** After each successful merge into the main branch, update `CHANGELOG.md` with the new changes and update relevant documentation.
