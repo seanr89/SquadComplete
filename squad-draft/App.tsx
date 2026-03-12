@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { INITIAL_FORMATION } from './constants';
-import { DraftState, Player, Squad, FormationSpot } from './types';
+import { DraftState, Player, Squad, FormationSpot, Position } from './types';
 import { fetchDailySquads } from './api';
 import Pitch from './components/Pitch';
 import PlayerCard from './components/PlayerCard';
@@ -77,28 +77,53 @@ const App: React.FC = () => {
     };
 
     currentSquad.players.forEach(p => {
-      const pos = p.position || 'UNK';
-      if (playersByPos[pos]) {
-        playersByPos[pos].push(p);
+      const pos = p.position || 'MID';
+      if (playersByPos[pos as string]) {
+        playersByPos[pos as string].push(p);
       } else {
         playersByPos['MID'].push(p);
       }
     });
 
-    const formation = [...INITIAL_FORMATION].map(spot => ({ ...spot, player: null }));
+    const formation: FormationSpot[] = [];
+    let idCounter = 100;
 
-    formation.forEach(spot => {
-      const playersForPos = playersByPos[spot.position];
-      if (playersForPos && playersForPos.length > 0) {
-        spot.player = playersForPos.shift() || null;
-      }
-    });
+    const rowConfigs: { pos: Position; top: string }[] = [
+      { pos: 'GK', top: '85%' },
+      { pos: 'DEF', top: '65%' },
+      { pos: 'MID', top: '40%' },
+      { pos: 'FWD', top: '15%' }
+    ];
 
-    const leftoverPlayers = Object.values(playersByPos).flat();
-    formation.forEach(spot => {
-      if (!spot.player && leftoverPlayers.length > 0) {
-        spot.player = leftoverPlayers.shift() || null;
-      }
+    rowConfigs.forEach(({ pos, top }) => {
+      const players = playersByPos[pos];
+      const count = players.length;
+
+      players.forEach((player, i) => {
+        let left = '50%';
+        let spotTop = top;
+
+        if (count === 1) {
+          left = '50%';
+        } else if (count === 2) {
+          left = i === 0 ? '35%' : '65%';
+        } else if (count === 3) {
+          left = i === 0 ? '25%' : (i === 1 ? '50%' : '75%');
+          if (pos === 'FWD' && i === 1) spotTop = '10%';
+        } else if (count === 4) {
+          left = (20 + i * 20) + '%';
+        } else if (count >= 5) {
+          left = (15 + (i * 70) / (count - 1)) + '%';
+        }
+
+        formation.push({
+          id: idCounter++,
+          position: pos,
+          top: spotTop,
+          left,
+          player
+        });
+      });
     });
 
     return formation;
@@ -107,11 +132,7 @@ const App: React.FC = () => {
   const handlePlayerSelect = (player: Player) => {
     if (draft.selectedPlayers.find(p => p.id === player.id)) return;
     setTempPlayer(player);
-    // Automatically focus on first available spot for this position if none selected
-    if (!activeSpotId) {
-      const firstEmpty = draft.formation.find(s => s.player === null && s.position === player.position);
-      if (firstEmpty) setActiveSpotId(firstEmpty.id);
-    }
+    setActiveSpotId(null);
   };
 
   const confirmPlacement = (spotId: number) => {
@@ -238,7 +259,6 @@ const App: React.FC = () => {
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-xl font-bold text-white">{currentSquad.teamName}</h2>
-                    <span className="text-slate-400 text-sm">Current Squad</span>
                   </div>
                   <div className="text-right">
                     <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Pick</span>
