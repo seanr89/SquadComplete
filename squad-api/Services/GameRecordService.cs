@@ -84,7 +84,7 @@ public class GameRecordService
 
         return MapToDto(record, statistics);
     }
-    
+
     /// <summary>
     /// Creates a new game record
     /// </summary>
@@ -97,7 +97,7 @@ public class GameRecordService
 
         _db.GameRecords.Add(record);
         await _db.SaveChangesAsync();
-        
+
         // Fetch it back with tags to map to DTO
         return await GetGameRecordByIdAsync(record.Id) ?? MapToDto(record, new List<PlayerFixtureStatistic>());
     }
@@ -114,8 +114,7 @@ public class GameRecordService
         {
             Id = record.Id,
             GameDate = record.GameDate,
-            //CreatedAt = record.CreatedAt,
-            //UpdatedAt = record.UpdatedAt,
+            Formation = record.Formation,
             Teams = record.Tags.Select(t =>
             {
                 var players = statistics
@@ -157,13 +156,13 @@ public class GameRecordService
     private string MapPosition(string? position)
     {
         if (string.IsNullOrEmpty(position)) return "UNK";
-        
+
         var pos = position.ToUpper();
         if (pos.Contains("GOALKEEPER") || pos == "G" || pos == "GK" || pos == "@P5") return "GK";
         if (pos.Contains("DEFENDER") || pos == "D" || pos == "DEF" || pos == "LB" || pos == "RB" || pos == "CB") return "DEF";
         if (pos.Contains("MIDFIELDER") || pos == "M" || pos == "MID" || pos == "CM" || pos == "DM" || pos == "AM") return "MID";
         if (pos.Contains("FORWARD") || pos == "F" || pos == "FWD" || pos == "ST" || pos == "LW" || pos == "RW") return "FWD";
-        
+
         return pos;
     }
 

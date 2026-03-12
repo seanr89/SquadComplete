@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using squad_api.Models;
 
 namespace squad_api.DTOs;
 
@@ -7,6 +8,7 @@ public class GameRecordDto
 {
     public int Id { get; set; }
     public DateTime GameDate { get; set; }
+    public Formation Formation { get; set; } = new();
     public List<GameRecordTeamDto> Teams { get; set; } = new();
 }
 
