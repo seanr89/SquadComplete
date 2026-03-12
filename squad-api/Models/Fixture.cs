@@ -31,6 +31,12 @@ public class Fixture
     [StringLength(255)]
     public string? AwayTeamName { get; set; }
 
+    [Column("home_goal_count")]
+    public int? HomeGoalCount { get; set; }
+
+    [Column("away_goal_count")]
+    public int? AwayGoalCount { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

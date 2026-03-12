@@ -61,6 +61,8 @@ public static class FixtureEndpoints
             foundModel.HomeTeamName = inputFixture.HomeTeamName;
             foundModel.AwayTeamId = inputFixture.AwayTeamId;
             foundModel.AwayTeamName = inputFixture.AwayTeamName;
+            foundModel.HomeGoalCount = inputFixture.HomeGoalCount;
+            foundModel.AwayGoalCount = inputFixture.AwayGoalCount;
             foundModel.UpdatedAt = DateTime.UtcNow;
 
             await db.SaveChangesAsync();

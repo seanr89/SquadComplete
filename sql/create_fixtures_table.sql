@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS fixtures (
     home_team_name VARCHAR(255),
     away_team_id INTEGER,
     away_team_name VARCHAR(255),
+    home_goal_count INTEGER,
+    away_goal_count INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

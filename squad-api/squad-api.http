@@ -74,7 +74,9 @@ Content-Type: application/json
   "homeTeamId": 10,
   "homeTeamName": "Arsenal",
   "awayTeamId": 11,
-  "awayTeamName": "Chelsea"
+  "awayTeamName": "Chelsea",
+  "homeGoalCount": 2,
+  "awayGoalCount": 1
 }
 
 ###
@@ -88,7 +90,9 @@ Content-Type: application/json
   "homeTeamId": 10,
   "homeTeamName": "Arsenal FC",
   "awayTeamId": 11,
-  "awayTeamName": "Chelsea FC"
+  "awayTeamName": "Chelsea FC",
+  "homeGoalCount": 3,
+  "awayGoalCount": 0
 }
 
 ###
