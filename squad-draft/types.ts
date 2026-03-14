@@ -18,6 +18,19 @@ export interface Squad {
   players: Player[];
 }
 
+export interface FormationModel {
+  id: number;
+  name: string;
+  defence: number;
+  midfield: number;
+  attack: number;
+}
+
+export interface DailyChallenge {
+  squads: Squad[];
+  formation: FormationModel | null;
+}
+
 export interface FormationSpot {
   id: number;
   position: Position;
