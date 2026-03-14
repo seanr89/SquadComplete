@@ -22,6 +22,7 @@ public class GameRecordService
         var records = await _db.GameRecords
             .Include(gr => gr.Tags)
                 .ThenInclude(t => t.Team)
+            .Include(gr => gr.Formation)
             .ToListAsync();
 
         var fixtureIds = records.SelectMany(r => r.Tags).Select(t => t.FixtureId).Distinct().ToList();
@@ -45,6 +46,7 @@ public class GameRecordService
         var record = await _db.GameRecords
             .Include(gr => gr.Tags)
                 .ThenInclude(t => t.Team)
+            .Include(gr => gr.Formation)
             .FirstOrDefaultAsync(gr => gr.Id == id);
 
         if (record == null) return null;
@@ -70,6 +72,7 @@ public class GameRecordService
         var record = await _db.GameRecords
             .Include(gr => gr.Tags)
                 .ThenInclude(t => t.Team)
+            .Include(gr => gr.Formation)
             .FirstOrDefaultAsync(gr => gr.GameDate.ToUniversalTime().Date == date.ToUniversalTime().Date);
 
         if (record == null) return null;
@@ -114,7 +117,7 @@ public class GameRecordService
         {
             Id = record.Id,
             GameDate = record.GameDate,
-            Formation = record.Formation,
+            Formation = record.Formation ?? new Formation { Name = "Unknown", Id = 0, Defence = 4, Midfield = 4, Attack = 2 },
             Teams = record.Tags.Select(t =>
             {
                 var players = statistics

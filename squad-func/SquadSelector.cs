@@ -42,7 +42,7 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             var gameRecord = new GameRecord
             {
                 GameDate = DateTime.UtcNow.Date,
-                FormationId = selectedFormation?.Id
+                Formation = selectedFormation
             };
 
             _context.GameRecords.Add(gameRecord);
@@ -113,9 +113,9 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             _logger.LogError(ex.InnerException?.Message);
         }
 
-        if (myTimer.ScheduleStatus is not null)
-        {
-            _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
-        }
+        // if (myTimer.ScheduleStatus is not null)
+        // {
+        //     _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
+        // }
     }
 }
