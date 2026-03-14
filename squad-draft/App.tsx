@@ -6,9 +6,10 @@ import { fetchDailySquads } from './api';
 import Pitch from './components/Pitch';
 import PlayerCard from './components/PlayerCard';
 import AboutDialog from './components/AboutDialog';
+import Leaderboard from './components/Leaderboard';
 
 const App: React.FC = () => {
-  const [view, setView] = useState<'draft' | 'team'>('draft');
+  const [view, setView] = useState<'draft' | 'team' | 'leaderboard'>('draft');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [squads, setSquads] = useState<Squad[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,6 +222,12 @@ const App: React.FC = () => {
           >
             <i className="fas fa-tshirt mr-2"></i> My Team
           </button>
+          <button
+            onClick={() => setView('leaderboard')}
+            className={`px-4 py-2 rounded-lg font-bold transition-all ${view === 'leaderboard' ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+          >
+            <i className="fas fa-list-ol mr-2"></i> Leaderboard
+          </button>
         </div>
       </header>
 
@@ -233,7 +240,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {!loading && error && (
+        {!loading && error && view !== 'leaderboard' && (
           <div className="flex flex-col items-center justify-center p-12 text-center max-w-lg mx-auto">
             <div className="bg-red-500/10 text-red-400 p-8 rounded-2xl border border-red-500/20 shadow-lg shadow-red-500/10 w-full">
               <i className="fas fa-exclamation-triangle text-5xl mb-6 text-red-500"></i>
@@ -249,6 +256,10 @@ const App: React.FC = () => {
               </button>
             </div>
           </div>
+        )}
+
+        {!loading && view === 'leaderboard' && (
+          <Leaderboard />
         )}
 
         {!loading && !error && currentSquad && view === 'draft' && !draft.completed && (
@@ -389,6 +400,13 @@ const App: React.FC = () => {
           >
             <i className="fas fa-tshirt"></i>
             <span className="text-[10px] font-bold uppercase">Team</span>
+          </button>
+          <button
+            onClick={() => setView('leaderboard')}
+            className={`flex flex-col items-center gap-1 ${view === 'leaderboard' ? 'text-yellow-400' : 'text-slate-500'}`}
+          >
+            <i className="fas fa-list-ol"></i>
+            <span className="text-[10px] font-bold uppercase">Ranks</span>
           </button>
         </div>
       </footer>
