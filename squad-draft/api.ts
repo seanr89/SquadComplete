@@ -1,9 +1,9 @@
-import { Squad } from './types';
+import { Squad, DailyChallenge } from './types';
 
 // @ts-ignore - Vite provides import.meta.env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5212';
 
-export const fetchDailySquads = async (): Promise<Squad[] | null> => {
+export const fetchDailySquads = async (): Promise<DailyChallenge | null> => {
     try {
         console.log('API_BASE_URL', API_BASE_URL);
         const today = new Date().toISOString().split('T')[0];
@@ -18,7 +18,7 @@ export const fetchDailySquads = async (): Promise<Squad[] | null> => {
 
         // Map GameRecordDto to Squad[]
         if (data && data.teams) {
-            return data.teams.map((team: any, index: number) => ({
+            const squads = data.teams.map((team: any, index: number) => ({
                 id: `s${index + 1}`, // Generate a unique ID since GameRecordTeamDto doesn't have one
                 teamName: team.teamName,
                 season: 'Current', // Fallback as Season is not in the DTO
@@ -32,6 +32,11 @@ export const fetchDailySquads = async (): Promise<Squad[] | null> => {
                     image: p.playerPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.playerName)}&background=random`
                 }))
             }));
+            
+            return {
+                squads,
+                formation: data.formation || null
+            };
         }
 
         return null;

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { INITIAL_FORMATION } from './constants';
+import { INITIAL_FORMATION, generateFormationSpots } from './constants';
 import { DraftState, Player, Squad, FormationSpot, Position } from './types';
 import { fetchDailySquads } from './api';
 import Pitch from './components/Pitch';
@@ -36,9 +36,22 @@ const App: React.FC = () => {
     const loadSquads = async () => {
       setLoading(true);
       try {
-        const fetchedSquads = await fetchDailySquads();
-        if (fetchedSquads && fetchedSquads.length > 0) {
-          setSquads(fetchedSquads);
+        const fetchedChallenge = await fetchDailySquads();
+        if (fetchedChallenge && fetchedChallenge.squads.length > 0) {
+          setSquads(fetchedChallenge.squads);
+          
+          // If the draft is new (or empty), initialize the formation from the API
+          setDraft(prev => {
+             if (prev.selectedPlayers.length === 0 && fetchedChallenge.formation) {
+                 const newFormation = generateFormationSpots(
+                     fetchedChallenge.formation.defence,
+                     fetchedChallenge.formation.midfield,
+                     fetchedChallenge.formation.attack
+                 );
+                 return { ...prev, formation: newFormation };
+             }
+             return prev;
+          });
         } else {
           // Fallback to hardcoded squads if API fails or returns no data
           setError('No game records returned from the API. Please try again later.');
@@ -162,12 +175,12 @@ const App: React.FC = () => {
     if (confirm("Reset your draft and start over?")) {
       const today = new Date().toISOString().split('T')[0];
       localStorage.removeItem(`squad-draft-${today}`);
-      setDraft({
+      setDraft(prev => ({
         currentStep: 0,
         selectedPlayers: [],
-        formation: [...INITIAL_FORMATION],
+        formation: prev.formation.map(s => ({ ...s, player: null })),
         completed: false
-      });
+      }));
       setView('draft');
     }
   };
