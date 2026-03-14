@@ -18,3 +18,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/15LFZwVcabgtau-Fo6Bym_W
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Development Guidelines
+
+**Important:** After each successful merge into the main branch, update `CHANGELOG.md` with the new changes and update relevant documentation.
