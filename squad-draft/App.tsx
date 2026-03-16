@@ -1,5 +1,6 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import { INITIAL_FORMATION, generateFormationSpots } from './constants';
 import { DraftState, Player, Squad, FormationSpot, Position } from './types';
 import { fetchDailySquads } from './api';
@@ -9,6 +10,7 @@ import AboutDialog from './components/AboutDialog';
 import Leaderboard from './components/Leaderboard';
 
 const App: React.FC = () => {
+  const teamRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<'draft' | 'team' | 'leaderboard'>('draft');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [squads, setSquads] = useState<Squad[]>([]);
@@ -165,6 +167,26 @@ const App: React.FC = () => {
 
     setTempPlayer(null);
     setActiveSpotId(null);
+  };
+
+  const exportTeamScreenshot = async () => {
+    if (!teamRef.current) return;
+
+    try {
+      const canvas = await html2canvas(teamRef.current, {
+        backgroundColor: '#0f172a', // Tailwind slate-900 to match background
+        scale: 2, // Higher quality
+        useCORS: true, // Required for fetching external player images
+      });
+
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `ultimate-11-team-${new Date().toISOString().split('T')[0]}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Failed to export screenshot', err);
+    }
   };
 
   const cancelSelection = () => {
@@ -337,7 +359,7 @@ const App: React.FC = () => {
         {!loading && !error && (view === 'team' || draft.completed) && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row gap-8">
-              <div className="md:w-2/3">
+              <div ref={teamRef} className="md:w-2/3">
                 <Pitch formation={draft.formation} activeSpotId={null} />
               </div>
 
@@ -361,6 +383,12 @@ const App: React.FC = () => {
                       <p className="text-xs opacity-80">You've built an incredible squad of legends.</p>
                     </div>
                   )}
+                  <button
+                    onClick={exportTeamScreenshot}
+                    className="w-full py-3 px-4 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl font-bold hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center gap-2 mb-4"
+                  >
+                    <i className="fas fa-camera"></i> Export Screenshot
+                  </button>
                   <button
                     onClick={resetDraft}
                     className="w-full py-3 px-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
