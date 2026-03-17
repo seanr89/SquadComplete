@@ -18,7 +18,7 @@ public class FixtureStats
     // add dbservice
     private readonly DatabaseService _databaseService;
 
-    public FixtureStats(ILoggerFactory loggerFactory, SquadContext context, 
+    public FixtureStats(ILoggerFactory loggerFactory, SquadContext context,
     IApiService apiService, DatabaseService databaseService)
     {
         _logger = loggerFactory.CreateLogger<FixtureStats>();
@@ -32,7 +32,7 @@ public class FixtureStats
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("FixtureStats")]
-    public async Task Run([TimerTrigger("0 0 10-19 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 10-18 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 
@@ -45,7 +45,7 @@ public class FixtureStats
                 .Take(8)
                 .ToListAsync();
 
-            if(fixturesWithoutStats.Count == 0)
+            if (fixturesWithoutStats.Count == 0)
             {
                 _logger.LogWarning("No fixtures without player statistics found.");
                 return;
@@ -53,12 +53,12 @@ public class FixtureStats
 
             foreach (var fixture in fixturesWithoutStats)
             {
-                if(fixture.HomeTeamId != null)
+                if (fixture.HomeTeamId != null)
                 {
                     var homeTeamStats = await _apiService.GetPlayerStatsAsync(fixture.Id, fixture.HomeTeamId.Value);
                     await ProcessTeamStatsAsync(fixture.Id, fixture.HomeTeamId.Value, homeTeamStats);
                 }
-                if(fixture.AwayTeamId != null)
+                if (fixture.AwayTeamId != null)
                 {
                     var awayTeamStats = await _apiService.GetPlayerStatsAsync(fixture.Id, fixture.AwayTeamId.Value);
                     await ProcessTeamStatsAsync(fixture.Id, fixture.AwayTeamId.Value, awayTeamStats);
@@ -74,9 +74,9 @@ public class FixtureStats
         var fixturesWithoutStatsUpdated = await _context.Fixtures
             .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
             .CountAsync();
-        
-        _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStatsUpdated);   
-        
+
+        _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStatsUpdated);
+
         // if (myTimer.ScheduleStatus is not null)
         // {
         //     _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
@@ -92,7 +92,7 @@ public class FixtureStats
     private async Task ProcessTeamStatsAsync(int fixtureId, int teamId, List<PlayerStatsResponse>? teamStats)
     {
         if (teamStats == null) return;
-        
+
         foreach (var response in teamStats)
         {
             if (response.Team != null)
@@ -107,11 +107,11 @@ public class FixtureStats
                     if (playerData.Player != null)
                     {
                         await _databaseService.UpsertPlayerAsync(playerData.Player.Id, playerData.Player.Name ?? "", playerData.Player.Photo);
-                        
+
                         var stat = playerData.Statistics?.FirstOrDefault();
                         if (stat != null)
                         {
-                            if(stat.Games?.Substitute == true)
+                            if (stat.Games?.Substitute == true)
                             {
                                 continue;
                             }

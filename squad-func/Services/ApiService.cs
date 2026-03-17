@@ -13,6 +13,7 @@ public interface IApiService
     // Interface ready for future football data API calls
     Task<string> GetAsync(string url);
     Task<List<PlayerStatsResponse>?> GetPlayerStatsAsync(int fixtureId, int teamId);
+    Task GetFixtureDataAsync(int fixtureId);
 }
 
 public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IApiService
@@ -71,6 +72,30 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
             // }
 
             return;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching data from {Url}", url);
+            throw;
+        }
+    }
+
+    public async Task GetFixtureDataAsync(int fixtureId)
+    {
+        var url = $"{BaseUrl}/fixtures?id={fixtureId}";
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-rapidapi-key", ApiKey);
+            request.Headers.Add("x-rapidapi-host", BaseUrl);
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            await System.IO.File.WriteAllTextAsync("fixture.json", content);
+
+            _logger.LogInformation("Successfully downloaded fixture to fixture.json");
         }
         catch (Exception ex)
         {

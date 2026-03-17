@@ -18,7 +18,7 @@ public class DailyFixtures
     // add dbservice
     private readonly DatabaseService _databaseService;
 
-    public DailyFixtures(ILoggerFactory loggerFactory, SquadContext context, 
+    public DailyFixtures(ILoggerFactory loggerFactory, SquadContext context,
     IApiService apiService, DatabaseService databaseService)
     {
         _logger = loggerFactory.CreateLogger<DailyFixtures>();
@@ -30,17 +30,26 @@ public class DailyFixtures
     [Function("DailyFixtures")]
     public async Task Run([TimerTrigger("0 0 5 * * *")] TimerInfo myTimer)
     {
-        _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
+        //_logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 
-        // step 1. get all leagues we allow
-        // var leagues = await _databaseService.GetLeaguesAsync();
-        // var date = DateTime.Now.AddDays(-1);
-        // foreach (var league in leagues)
-        // {
-        //     _logger.LogInformation("Processing league {leagueId}", league.Id);
-        //     //var fixtures = _apiService.GetFixturesForLeague(league.Id, DateTime.Now);
-        // }
-        
+        // step 1. fixure info
+        var setFixturesWithoutScores = await _context.Fixtures
+            .Where(f => f.HomeGoalCount == null && f.AwayGoalCount == null)
+            .Take(10)
+            .ToListAsync();
+
+        if (setFixturesWithoutScores.Count == 0)
+        {
+            _logger.LogInformation("No fixtures without scores found");
+            return;
+        }
+
+        foreach (var fixture in setFixturesWithoutScores)
+        {
+            await _apiService.GetFixtureDataAsync(fixture.Id);
+            //todo: add player stats
+        }
+
         if (myTimer.ScheduleStatus is not null)
         {
             _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
