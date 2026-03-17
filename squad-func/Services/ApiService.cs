@@ -13,7 +13,7 @@ public interface IApiService
     // Interface ready for future football data API calls
     Task<string> GetAsync(string url);
     Task<List<PlayerStatsResponse>?> GetPlayerStatsAsync(int fixtureId, int teamId);
-    Task GetFixtureDataAsync(int fixtureId);
+    Task<FixtureApiResponse?> GetFixtureDataAsync(int fixtureId);
 }
 
 public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IApiService
@@ -80,7 +80,7 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
         }
     }
 
-    public async Task GetFixtureDataAsync(int fixtureId)
+    public async Task<FixtureApiResponse?> GetFixtureDataAsync(int fixtureId)
     {
         var url = $"{BaseUrl}/fixtures?id={fixtureId}";
         try
@@ -93,9 +93,14 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            await System.IO.File.WriteAllTextAsync("fixture.json", content);
+            using var jsonDocument = JsonDocument.Parse(content);
 
-            _logger.LogInformation("Successfully downloaded fixture to fixture.json");
+            if (jsonDocument.RootElement.TryGetProperty("response", out var responseData) && responseData.ValueKind == JsonValueKind.Array && responseData.GetArrayLength() > 0)
+            {
+                return JsonSerializer.Deserialize<FixtureApiResponse>(responseData[0].GetRawText());
+            }
+
+            return null;
         }
         catch (Exception ex)
         {

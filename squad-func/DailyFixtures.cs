@@ -46,7 +46,16 @@ public class DailyFixtures
 
         foreach (var fixture in setFixturesWithoutScores)
         {
-            await _apiService.GetFixtureDataAsync(fixture.Id);
+            var fixtureData = await _apiService.GetFixtureDataAsync(fixture.Id);
+            if (fixtureData == null)
+            {
+                _logger.LogInformation("No fixture data found for fixture {FixtureId}", fixture.Id);
+                continue;
+            }
+
+            fixture.HomeGoalCount = fixtureData.Goals?.Home;
+            fixture.AwayGoalCount = fixtureData.Goals?.Away;
+            await _context.SaveChangesAsync();
             //todo: add player stats
         }
 
