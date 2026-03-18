@@ -13,27 +13,22 @@ public interface IApiService
     // Interface ready for future football data API calls
     Task<string> GetAsync(string url);
     Task<List<PlayerStatsResponse>?> GetPlayerStatsAsync(int fixtureId, int teamId);
+    Task<FixtureApiResponse?> GetFixtureDataAsync(int fixtureId);
 }
 
-public class ApiService : IApiService
+public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IApiService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<ApiService> _logger;
+    private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+    private readonly ILogger<ApiService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    private readonly string ApiKey = Environment.GetEnvironmentVariable("FootballApiKey");
-    private readonly string BaseUrl = Environment.GetEnvironmentVariable("FootballBaseUrl");
-
-    public ApiService(HttpClient httpClient, ILogger<ApiService> logger)
-    {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly string ApiKey = Environment.GetEnvironmentVariable("FootballApiKey") ?? throw new ArgumentNullException("FootballApiKey");
+    private readonly string BaseUrl = Environment.GetEnvironmentVariable("FootballBaseUrl") ?? throw new ArgumentNullException("FootballBaseUrl");
 
     public async Task<string> GetAsync(string url)
     {
         try
         {
-            _logger.LogInformation("Sending GET request to {Url}", url);
+            //_logger.LogInformation("Sending GET request to {Url}", url);
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
@@ -53,8 +48,9 @@ public class ApiService : IApiService
     public async Task GetFixturesForLeague(int leagueid, DateTime date)
     {
         var season = date.Year;
-        var url = $"{BaseUrl}/fixtures?league={leagueid}&season={season}&date={date}&status=ft"; 
-        try{
+        var url = $"{BaseUrl}/fixtures?league={leagueid}&season={season}&date={date}&status=ft";
+        try
+        {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Add("x-rapidapi-key", ApiKey);
             request.Headers.Add("x-rapidapi-host", BaseUrl);
@@ -63,13 +59,13 @@ public class ApiService : IApiService
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("response is no okay for {leagueid} and {date}", leagueid, date);
+                _logger.LogWarning("Response was not successful for league {LeagueId} and date {Date}. Status code: {StatusCode}", leagueid, date, response.StatusCode);
                 throw new HttpRequestException($"HTTP error! status: {(int)response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
             using var jsonDocument = JsonDocument.Parse(content);
-            
+
             // if (jsonDocument.RootElement.TryGetProperty("response", out var responseData))
             // {
             //     return JsonSerializer.Deserialize<List<PlayerStatsResponse>>(responseData.GetRawText());
@@ -77,7 +73,36 @@ public class ApiService : IApiService
 
             return;
         }
-        catch(Exception ex)
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching data from {Url}", url);
+            throw;
+        }
+    }
+
+    public async Task<FixtureApiResponse?> GetFixtureDataAsync(int fixtureId)
+    {
+        var url = $"{BaseUrl}/fixtures?id={fixtureId}";
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-rapidapi-key", ApiKey);
+            request.Headers.Add("x-rapidapi-host", BaseUrl);
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            using var jsonDocument = JsonDocument.Parse(content);
+
+            if (jsonDocument.RootElement.TryGetProperty("response", out var responseData) && responseData.ValueKind == JsonValueKind.Array && responseData.GetArrayLength() > 0)
+            {
+                return JsonSerializer.Deserialize<FixtureApiResponse>(responseData[0].GetRawText());
+            }
+
+            return null;
+        }
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while fetching data from {Url}", url);
             throw;
@@ -97,13 +122,13 @@ public class ApiService : IApiService
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("response is no okay for fixture {FixtureId} and team {TeamId}", fixtureId, teamId);
+                _logger.LogWarning("Response was not successful for fixture {FixtureId} and team {TeamId}. Status code: {StatusCode}", fixtureId, teamId, response.StatusCode);
                 throw new HttpRequestException($"HTTP error! status: {(int)response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
             using var jsonDocument = JsonDocument.Parse(content);
-            
+
             if (jsonDocument.RootElement.TryGetProperty("response", out var responseData))
             {
                 return JsonSerializer.Deserialize<List<PlayerStatsResponse>>(responseData.GetRawText());

@@ -21,6 +21,8 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
 
         try
         {
+            int totalFixtures = await _context.Fixtures.CountAsync();
+            // In future, this will need to limited/paginated for performance reasons
             var fixtures = await _context.Fixtures
                 .Include(f => f.League)
                 .ToListAsync();
@@ -35,7 +37,6 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             if (formations.Count != 0)
             {
                 selectedFormation = formations[random.Next(formations.Count)];
-                //_logger.LogInformation("Selected random Formation with ID: {id} ({name})", selectedFormation.Id, selectedFormation.Name);
             }
 
             // Create a new game record for today
@@ -54,56 +55,40 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
 
             foreach (var fixture in shuffledFixtures)
             {
-                // get player fixture count for home and away teams
+                // get player fixture count for home and away teams to ensure we have enough players
                 var homePlayerFixtureCount = await _context.PlayerFixtureStatistics
                     .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.HomeTeamId);
 
                 var awayPlayerFixtureCount = await _context.PlayerFixtureStatistics
                     .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.AwayTeamId);
 
+                // we need at least 11 players for a team to be selected if they are to be included in the game
                 if (homePlayerFixtureCount == 0 && awayPlayerFixtureCount == 0)
                 {
                     continue;
                 }
 
-                if (fixture.HomeTeamId.HasValue && homePlayerFixtureCount >= 11)
-                {
-                    tagsToAdd.Add(new GameRecordTag
-                    {
-                        GameRecordId = gameRecord.Id,
-                        FixtureId = fixture.Id,
-                        TeamId = fixture.HomeTeamId.Value
-                    });
-                    uniqueTeamIds.Add(fixture.HomeTeamId.Value);
-                }
+                // Convert this to its own function with a try add the unique teams
+                TryAddTeamTag(fixture.HomeTeamId, homePlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
 
                 if (uniqueTeamIds.Count >= 11) break;
 
-                if (fixture.AwayTeamId.HasValue && awayPlayerFixtureCount >= 11)
-                {
-                    tagsToAdd.Add(new GameRecordTag
-                    {
-                        GameRecordId = gameRecord.Id,
-                        FixtureId = fixture.Id,
-                        TeamId = fixture.AwayTeamId.Value
-                    });
-                    uniqueTeamIds.Add(fixture.AwayTeamId.Value);
-                }
+                TryAddTeamTag(fixture.AwayTeamId, awayPlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
 
                 if (uniqueTeamIds.Count >= 11) break;
             }
 
-            if (tagsToAdd.Any())
+            if (tagsToAdd.Count != 0)
             {
                 _context.GameRecordTags.AddRange(tagsToAdd);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}",
-                    tagsToAdd.Count, gameRecord.Id, string.Join(", ", uniqueTeamIds));
+                // _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}",
+                //     tagsToAdd.Count, gameRecord.Id, string.Join(", ", uniqueTeamIds));
             }
 
             if (uniqueTeamIds.Count < 11)
             {
-                _logger.LogWarning("Only found {count} unique team IDs, expected 11.", uniqueTeamIds.Count);
+                //_logger.LogWarning("Only found {count} unique team IDs, expected 11.", uniqueTeamIds.Count);
             }
         }
         catch (Exception ex)
@@ -112,10 +97,30 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             _logger.LogError(ex.Message);
             _logger.LogError(ex.InnerException?.Message);
         }
+    }
 
-        // if (myTimer.ScheduleStatus is not null)
-        // {
-        //     _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
-        // }
+    /// <summary>
+    /// Tries to add a team tag to the list of tags to add if the team has at least 11 players.
+    /// </summary>
+    /// <param name="teamId">The ID of the team to add.</param>
+    /// <param name="playerCount">The number of players for the team.</param>
+    /// <param name="fixtureId">The ID of the fixture the team is part of.</param>
+    /// <param name="gameRecordId">The ID of the game record the team is part of.</param>
+    /// <param name="uniqueTeamIds">The set of unique team IDs.</param>
+    /// <param name="tagsToAdd">The list of tags to add.</param> 
+    private static void TryAddTeamTag(int? teamId, int playerCount, int fixtureId, int gameRecordId, HashSet<int> uniqueTeamIds, List<GameRecordTag> tagsToAdd)
+    {
+        if (teamId.HasValue && playerCount >= 11)
+        {
+            if (uniqueTeamIds.Add(teamId.Value))
+            {
+                tagsToAdd.Add(new GameRecordTag
+                {
+                    GameRecordId = gameRecordId,
+                    FixtureId = fixtureId,
+                    TeamId = teamId.Value
+                });
+            }
+        }
     }
 }

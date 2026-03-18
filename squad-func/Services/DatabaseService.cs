@@ -9,22 +9,16 @@ namespace squad_func.Services;
 /// <summary>
 /// Service responsible for handling database operations related to leagues, teams, players, and their statistics.
 /// </summary>
-public class DatabaseService
+/// <remarks>
+/// Initializes a new instance of the <see cref="DatabaseService"/> class.
+/// </remarks>
+/// <param name="context">The database context.</param>
+/// <param name="loggerFactory">The logger factory used to create a logger for this service.</param>
+/// <exception cref="ArgumentNullException">Thrown if context is null.</exception>
+public class DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
 {
-    private readonly SquadContext _context;
-    private readonly ILogger<DatabaseService> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DatabaseService"/> class.
-    /// </summary>
-    /// <param name="context">The database context.</param>
-    /// <param name="loggerFactory">The logger factory used to create a logger for this service.</param>
-    /// <exception cref="ArgumentNullException">Thrown if context is null.</exception>
-    public DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _logger = loggerFactory.CreateLogger<DatabaseService>();
-    }
+    private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly ILogger<DatabaseService> _logger = loggerFactory.CreateLogger<DatabaseService>();
 
     /// <summary>
     /// Retrieves all leagues from the database.
@@ -33,7 +27,7 @@ public class DatabaseService
     public async Task<List<League>> GetLeaguesAsync()
     {
         return await _context.Leagues.AsNoTracking().ToListAsync();
-    }   
+    }
 
     /// <summary>
     /// Inserts or updates a team record in the database.
@@ -45,10 +39,10 @@ public class DatabaseService
     public async Task UpsertTeamAsync(int id, string name, string? logo, DateTime? lastUpdate)
     {
         string lastUpdateString = lastUpdate.HasValue ? lastUpdate.Value.ToString("yyyy-MM-dd HH:mm:ss") : "NULL";
-        
+
         try
         {
-            await _context.Database.ExecuteSqlRawAsync($@"
+            await _context.Database.ExecuteSqlAsync($@"
                 INSERT INTO teams (id, name, logo, last_update)
                 VALUES ({id}, '{name}', '{logo}', '{lastUpdateString}')
                 ON CONFLICT (id) DO UPDATE SET
@@ -56,7 +50,7 @@ public class DatabaseService
                     logo = EXCLUDED.logo,
                     last_update = EXCLUDED.last_update,
                     updated_at = CURRENT_TIMESTAMP;");
-            
+
             //_logger.LogInformation("Successfully upserted team {TeamId}", id);
         }
         catch (Exception ex)
@@ -86,8 +80,8 @@ public class DatabaseService
                     name = EXCLUDED.name,
                     photo = EXCLUDED.photo,
                     updated_at = CURRENT_TIMESTAMP;");
-            
-            _logger.LogInformation("Successfully upserted player {PlayerId}", id);
+
+            //_logger.LogInformation("Successfully upserted player {PlayerId}", id);
         }
         catch (Exception ex)
         {
@@ -113,7 +107,7 @@ public class DatabaseService
         var mappedPosition = MapPosition(position);
         try
         {
-            await _context.Database.ExecuteSqlRawAsync($@"
+            await _context.Database.ExecuteSqlAsync($@"
                 INSERT INTO player_fixture_statistics 
                 (fixture_id, team_id, player_id, minutes, number, position, rating, is_captain, is_substitute)
                 VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, '{mappedPosition}', {rating}, {isCaptain}, {isSubstitute})
@@ -126,8 +120,8 @@ public class DatabaseService
                     is_captain = EXCLUDED.is_captain,
                     is_substitute = EXCLUDED.is_substitute,
                     updated_at = CURRENT_TIMESTAMP;");
-            
-            _logger.LogInformation("Successfully upserted stats for player {PlayerId} in fixture {FixtureId}", playerId, fixtureId);
+
+            //_logger.LogInformation("Successfully upserted stats for player {PlayerId} in fixture {FixtureId}", playerId, fixtureId);
         }
         catch (Exception ex)
         {
@@ -141,7 +135,7 @@ public class DatabaseService
     /// </summary>
     /// <param name="position">The raw position string from the API response.</param>
     /// <returns>A standardized position string (GK, DEF, MID, FWD, or UNK).</returns>
-    private string MapPosition(string? position)
+    private static string MapPosition(string? position)
     {
         if (string.IsNullOrEmpty(position)) return "UNK";
 
