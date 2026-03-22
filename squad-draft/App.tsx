@@ -3,7 +3,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { INITIAL_FORMATION, generateFormationSpots } from './constants';
 import { DraftState, Player, Squad, FormationSpot, Position } from './types';
-import { fetchDailySquads } from './api';
+import { fetchDailySquads, submitUserSquad } from './api';
 import Pitch from './components/Pitch';
 import PlayerCard from './components/PlayerCard';
 import AboutDialog from './components/AboutDialog';
@@ -45,15 +45,18 @@ const App: React.FC = () => {
           
           // If the draft is new (or empty), initialize the formation from the API
           setDraft(prev => {
+             const updates: Partial<DraftState> = {
+                gameRecordId: fetchedChallenge.id,
+                formationId: fetchedChallenge.formation?.id
+             };
              if (prev.selectedPlayers.length === 0 && fetchedChallenge.formation) {
-                 const newFormation = generateFormationSpots(
+                 updates.formation = generateFormationSpots(
                      fetchedChallenge.formation.defence,
                      fetchedChallenge.formation.midfield,
                      fetchedChallenge.formation.attack
                  );
-                 return { ...prev, formation: newFormation };
              }
-             return prev;
+             return { ...prev, ...updates };
           });
         } else {
           // Fallback to hardcoded squads if API fails or returns no data
@@ -212,6 +215,45 @@ const App: React.FC = () => {
     if (draft.selectedPlayers.length === 0) return 0;
     return (draft.selectedPlayers.reduce((acc, p) => acc + p.rating, 0) / draft.selectedPlayers.length).toFixed(1);
   }, [draft.selectedPlayers]);
+
+  const [userName, setUserName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const getBrowserId = () => {
+    let id = localStorage.getItem('squad-browser-id');
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('squad-browser-id', id);
+    }
+    return id;
+  };
+
+  const handleSubmitTeam = async () => {
+    if (!draft.completed || draft.submitted) return;
+
+    setIsSubmitting(true);
+    const payload = {
+        BrowserIdentifierId: getBrowserId(),
+        UserName: userName.trim() || undefined,
+        GameRecordId: draft.gameRecordId,
+        FormationId: draft.formationId,
+        Players: draft.formation.map(spot => ({
+            PlayerId: parseInt(spot.player?.id || '0', 10),
+            Position: spot.position,
+            IsCaptain: false,
+            IsViceCaptain: false
+        }))
+    };
+
+    const success = await submitUserSquad(payload);
+    if (success) {
+        setDraft(prev => ({ ...prev, submitted: true }));
+        alert('Team submitted successfully!');
+    } else {
+        alert('Failed to submit team. You may have already submitted one for today.');
+    }
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="min-h-screen flex flex-col max-w-5xl mx-auto p-4 md:p-8">
@@ -382,6 +424,35 @@ const App: React.FC = () => {
                       <p className="font-bold">Draft Complete!</p>
                       <p className="text-xs opacity-80">You've built an incredible squad of legends.</p>
                     </div>
+                  )}
+                  {draft.completed && !draft.submitted && (
+                    <div className="mb-6 space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Enter your name (optional)"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-400"
+                        maxLength={50}
+                      />
+                      <button
+                        onClick={handleSubmitTeam}
+                        disabled={isSubmitting}
+                        className="w-full py-3 px-4 bg-yellow-400 text-slate-900 rounded-xl font-bold hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isSubmitting ? (
+                            <><i className="fas fa-spinner fa-spin"></i> Submitting...</>
+                        ) : (
+                            <><i className="fas fa-upload"></i> Submit Team</>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                  {draft.submitted && (
+                     <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg p-4 mb-6">
+                       <p className="font-bold">Team Submitted!</p>
+                       <p className="text-xs opacity-80">Check the leaderboard to see how you rank.</p>
+                     </div>
                   )}
                   <button
                     onClick={exportTeamScreenshot}

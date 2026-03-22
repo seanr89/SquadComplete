@@ -27,6 +27,7 @@ export interface FormationModel {
 }
 
 export interface DailyChallenge {
+  id?: number;
   squads: Squad[];
   formation: FormationModel | null;
 }
@@ -44,4 +45,7 @@ export interface DraftState {
   selectedPlayers: Player[];
   formation: FormationSpot[];
   completed: boolean;
+  gameRecordId?: number;
+  formationId?: number;
+  submitted?: boolean;
 }
