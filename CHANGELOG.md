@@ -1,4 +1,13 @@
-# 0.1.0 (2026-03-18)
+# [0.2.0](https://github.com/seanr89/SquadComplete/compare/v0.1.0...v0.2.0) (2026-03-22)
+
+
+### Features
+
+* add Makefile for project build, cleanup, and git branch trimming automation ([c79ece2](https://github.com/seanr89/SquadComplete/commit/c79ece2b0237912bcecae852eee2076440a8f98d))
+
+
+
+# [0.1.0](https://github.com/seanr89/SquadComplete/compare/6ce9b5a5a441c2d68b23e1c0331b03b68d5cf237...v0.1.0) (2026-03-18)
 
 
 ### Bug Fixes
