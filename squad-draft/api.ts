@@ -34,6 +34,7 @@ export const fetchDailySquads = async (): Promise<DailyChallenge | null> => {
             }));
             
             return {
+                id: data.id,
                 squads,
                 formation: data.formation || null
             };
@@ -43,6 +44,28 @@ export const fetchDailySquads = async (): Promise<DailyChallenge | null> => {
     } catch (error) {
         console.error('Error fetching daily squads:', error);
         return null;
+    }
+};
+
+export const submitUserSquad = async (payload: any): Promise<boolean> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/user-squads`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            console.error('Failed to submit user squad:', response.statusText);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error submitting user squad:', error);
+        return false;
     }
 };
 
