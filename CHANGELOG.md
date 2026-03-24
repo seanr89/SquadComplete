@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/seanr89/SquadComplete/compare/v0.2.0...v0.3.0) (2026-03-24)
+
+
+### Features
+
+* disable leaderboard when draft is incomplete ([#20](https://github.com/seanr89/SquadComplete/issues/20)) ([eef88f3](https://github.com/seanr89/SquadComplete/commit/eef88f33932e367099793d0a38755bb656f227bb))
+
+
+
 # [0.2.0](https://github.com/seanr89/SquadComplete/compare/v0.1.0...v0.2.0) (2026-03-22)
 
 
