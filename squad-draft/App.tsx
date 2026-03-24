@@ -301,7 +301,15 @@ const App: React.FC = () => {
           </button>
           <button
             onClick={() => setView('leaderboard')}
-            className={`px-4 py-2 rounded-lg font-bold transition-all ${view === 'leaderboard' ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+            disabled={!draft.completed}
+            className={`px-4 py-2 rounded-lg font-bold transition-all ${
+              !draft.completed
+                ? 'opacity-50 cursor-not-allowed bg-slate-800 text-slate-500'
+                : view === 'leaderboard'
+                ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+            title={!draft.completed ? 'Complete draft to view leaderboard' : ''}
           >
             <i className="fas fa-list-ol mr-2"></i> Leaderboard
           </button>
@@ -515,7 +523,15 @@ const App: React.FC = () => {
           </button>
           <button
             onClick={() => setView('leaderboard')}
-            className={`flex flex-col items-center gap-1 ${view === 'leaderboard' ? 'text-yellow-400' : 'text-slate-500'}`}
+            disabled={!draft.completed}
+            className={`flex flex-col items-center gap-1 ${
+              !draft.completed
+                ? 'opacity-50 cursor-not-allowed text-slate-600'
+                : view === 'leaderboard'
+                ? 'text-yellow-400'
+                : 'text-slate-500'
+            }`}
+            title={!draft.completed ? 'Complete draft to view leaderboard' : ''}
           >
             <i className="fas fa-list-ol"></i>
             <span className="text-[10px] font-bold uppercase">Ranks</span>
