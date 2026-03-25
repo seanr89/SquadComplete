@@ -15,24 +15,35 @@ namespace Squad.Function;
 public class AgentFixtures
 {
     private readonly ILogger _logger;
-    private readonly SquadContext _context;
-    private readonly IApiService _apiService;
-    // add dbservice
-    private readonly DatabaseService _databaseService;
+    private readonly GeminiService _geminiService;
+    private readonly StorageService _storageService;
 
     public AgentFixtures(ILoggerFactory loggerFactory, SquadContext context,
-    IApiService apiService, DatabaseService databaseService)
+    GeminiService geminiService, StorageService storageService)
     {
-        _logger = loggerFactory.CreateLogger<DailyFixtures>();
-        _context = context;
-        _apiService = apiService;
-        _databaseService = databaseService;
+        _logger = loggerFactory.CreateLogger<AgentFixtures>();
+        _geminiService = geminiService;
+        _storageService = storageService;
     }
 
     [Function("AgentFixtures")]
     public async Task Run([TimerTrigger("0 0 10 * * *")] TimerInfo myTimer)
     {
-        //
+        // set current date -1 day
+        DateTime currentDate = DateTime.Now.AddDays(-1);
+        string formattedDate = currentDate.ToString("yyyy-MM-dd");
+
+        // create prompt message
+        string userPrompt = $"find me English premier league matches for date {formattedDate} in json format";
+
+        // call api service
+        string response = await _geminiService.GenerateContentAsync(userPrompt);
+
+        // convert response to json
+        string jsonResponse = ConvertResponseToJson(response);
+
+        // save json to blob storage
+        await _storageService.UploadToStorage(jsonResponse, $"agent-fixtures-{formattedDate}.json", "agent-fixtures");
     }
 
     private static string ConvertResponseToJson(string aiText)
