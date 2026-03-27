@@ -27,7 +27,7 @@ public class AgentFixtures
     }
 
     [Function("AgentFixtures")]
-    public async Task Run([TimerTrigger("0 0 10 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 6 * * *")] TimerInfo myTimer)
     {
         // set current date -1 day
         DateTime currentDate = DateTime.Now.AddDays(-1);
@@ -40,13 +40,16 @@ public class AgentFixtures
         string response = await _geminiService.GenerateContentAsync(userPrompt);
 
         // convert response to json
-        string jsonResponse = ConvertResponseToJson(response);
+        string? jsonResponse = ConvertResponseToJson(response);
 
-        // save json to blob storage
-        await _storageService.UploadToStorage(jsonResponse, $"agent-fixtures-{formattedDate}.json", "agent-fixtures");
+        if (!string.IsNullOrEmpty(jsonResponse))
+        {
+            // save json to blob storage
+            await _storageService.UploadToStorage(jsonResponse, $"agent-fixtures-{formattedDate}.json", "agent-fixtures");
+        }
     }
 
-    private static string ConvertResponseToJson(string aiText)
+    private static string? ConvertResponseToJson(string aiText)
     {
         // --- Extract and Save JSON ---
         try
@@ -66,13 +69,14 @@ public class AgentFixtures
 
             if (!string.IsNullOrEmpty(jsonContent))
             {
-                using (JsonDocument.Parse(jsonContent)) // Validate JSON
-                {
-                    // string jsonFilename = $"{selectedLeague?.Replace(" ", "-") ?? "unknown-league"}_{previousDate}_{timestamp}.json";
-                    // string jsonFilePath = Path.Combine(responsesDir, jsonFilename);
-                    // await File.WriteAllTextAsync(jsonFilePath, jsonContent);
-                    // Console.WriteLine($"JSON data extracted and saved to {jsonFilePath}");
-                }
+                //return JsonDocument.Parse(jsonContent);
+                // using (JsonDocument.Parse(jsonContent)) // Validate JSON
+                // {
+                //     // string jsonFilename = $"{selectedLeague?.Replace(" ", "-") ?? "unknown-league"}_{previousDate}_{timestamp}.json";
+                //     // string jsonFilePath = Path.Combine(responsesDir, jsonFilename);
+                //     // await File.WriteAllTextAsync(jsonFilePath, jsonContent);
+                //     // Console.WriteLine($"JSON data extracted and saved to {jsonFilePath}");
+                // }
             }
             return jsonContent;
         }

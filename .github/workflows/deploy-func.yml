@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - AgenticFlows
     paths:
       - 'squad-func/**'
   workflow_dispatch:
