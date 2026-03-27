@@ -12,10 +12,10 @@ public class GeminiService
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
 
-    public GeminiService(HttpClient httpClient, string apiKey)
+    public GeminiService(HttpClient httpClient)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _apiKey = apiKey ?? throw new ArgumentNullException(nameof(apiKey));
+        _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
     }
 
     public async Task<string?> GenerateContentAsync(string userPrompt)
