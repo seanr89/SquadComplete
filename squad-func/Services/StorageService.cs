@@ -24,12 +24,12 @@ public class StorageService
         try
         {
             // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
-            string? connectionString = _configuration["AzureWebJobsStorage"]
-                ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            string? connectionString = _configuration["FixtureStorage"]
+                ?? Environment.GetEnvironmentVariable("FixtureStorage");
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                _logger.LogError("Storage connection string is missing. Please set 'AzureWebJobsStorage'.");
+                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
                 throw new InvalidOperationException("Storage connection string is not configured.");
             }
 
