@@ -14,8 +14,7 @@ builder.ConfigureFunctionsWebApplication();
 
 // 2. Your Custom Services - Db and Api services
 builder.Services.AddDbContext<SquadContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddHttpClient<IApiService, ApiService>();
