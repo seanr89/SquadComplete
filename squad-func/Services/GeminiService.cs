@@ -5,21 +5,25 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using squad_func.Models.AI;
 
 public class GeminiService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey;
+    private readonly ILogger<GeminiService> _logger;
 
-    public GeminiService(HttpClient httpClient)
+    public GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _logger = logger;
         _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
     }
 
     public async Task<string?> GenerateContentAsync(string userPrompt)
     {
+        _logger.LogInformation("Generating content for prompt: {Prompt}", userPrompt);
         string defaultInstructions = """
 Role & Objective: You are a specialized Mens Soccer Data Extraction Agent. Your sole purpose is to browse the web to find real-time fixture, score, and squad information for a requested soccer league and return that data in a strict JSON format.
 

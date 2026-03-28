@@ -17,6 +17,7 @@ builder.Services.AddDbContext<SquadContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddHttpClient<GeminiService>();
+builder.Services.AddTransient<StorageService>();
 builder.Services.AddHttpClient<IApiService, ApiService>();
 builder.Services.AddScoped<DatabaseService>();
 

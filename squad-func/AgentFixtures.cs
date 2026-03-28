@@ -18,7 +18,7 @@ public class AgentFixtures
     private readonly GeminiService _geminiService;
     private readonly StorageService _storageService;
 
-    public AgentFixtures(ILoggerFactory loggerFactory, SquadContext context,
+    public AgentFixtures(ILoggerFactory loggerFactory,
     GeminiService geminiService, StorageService storageService)
     {
         _logger = loggerFactory.CreateLogger<AgentFixtures>();
@@ -29,6 +29,7 @@ public class AgentFixtures
     [Function("AgentFixtures")]
     public async Task Run([TimerTrigger("0 0 6 * * *")] TimerInfo myTimer)
     {
+        _logger.LogInformation("AgentFixtures started");
         // set current date -1 day
         DateTime currentDate = DateTime.Now.AddDays(-1);
         string formattedDate = currentDate.ToString("yyyy-MM-dd");
