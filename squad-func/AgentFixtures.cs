@@ -48,8 +48,17 @@ public class AgentFixtures
             // save json to blob storage
             await _storageService.UploadToStorage(jsonResponse, $"agent-fixtures-{formattedDate}.json", "agent-fixtures");
         }
+        else
+        {
+            _logger.LogWarning("No valid json response for Gemini Query was returned");
+        }
     }
 
+    /// <summary>
+    /// Converts the response from Gemini to JSON format
+    /// </summary>
+    /// <param name="aiText">The response from Gemini</param>
+    /// <returns>The JSON response</returns>
     private static string? ConvertResponseToJson(string aiText)
     {
         // --- Extract and Save JSON ---
