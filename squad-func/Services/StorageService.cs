@@ -19,7 +19,7 @@ public class StorageService
         _configuration = configuration;
     }
 
-    public async Task UploadToStorage(string filePath, string fileName, string containerName)
+    public async Task UploadToStorage(string jsonData, string fileName, string containerName)
     {
         try
         {
@@ -41,16 +41,17 @@ public class StorageService
 
             var blobClient = containerClient.GetBlobClient(fileName);
 
-            _logger.LogInformation("Uploading file {FileName} to Azure Storage container '{ContainerName}'...", fileName, containerName);
+            _logger.LogInformation("Uploading data to {FileName} in Azure Storage container '{ContainerName}'...", fileName, containerName);
 
-            using var fileStream = File.OpenRead(filePath);
-            await blobClient.UploadAsync(fileStream, overwrite: true);
+            var content = BinaryData.FromString(jsonData);
+            await blobClient.UploadAsync(content, overwrite: true);
 
             _logger.LogInformation("Successfully uploaded {FileName} to Azure Storage.", fileName);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error uploading {FileName} to Azure Storage.", fileName);
+            _logger.LogError($"Nested error {ex.InnerException?.Message}");
             throw;
         }
     }
