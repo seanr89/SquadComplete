@@ -406,7 +406,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {!loading && !error && (view === 'team' || draft.completed) && (
+        {!loading && !error && view !== 'leaderboard' && (view === 'team' || draft.completed) && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row gap-8">
               <div ref={teamRef} className="md:w-2/3">
