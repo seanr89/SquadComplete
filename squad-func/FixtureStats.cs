@@ -10,22 +10,14 @@ using squad_func.Services;
 
 namespace Squad.Function;
 
-public class FixtureStats
+public class FixtureStats(ILoggerFactory loggerFactory, SquadContext context,
+IApiService apiService, DatabaseService databaseService)
 {
-    private readonly ILogger _logger;
-    private readonly SquadContext _context;
-    private readonly IApiService _apiService;
+    private readonly ILogger _logger = loggerFactory.CreateLogger<FixtureStats>();
+    private readonly SquadContext _context = context;
+    private readonly IApiService _apiService = apiService;
     // add dbservice
-    private readonly DatabaseService _databaseService;
-
-    public FixtureStats(ILoggerFactory loggerFactory, SquadContext context,
-    IApiService apiService, DatabaseService databaseService)
-    {
-        _logger = loggerFactory.CreateLogger<FixtureStats>();
-        _context = context;
-        _apiService = apiService;
-        _databaseService = databaseService;
-    }
+    private readonly DatabaseService _databaseService = databaseService;
 
     /// <summary>
     /// Azure Function trigger that runs on a schedule to fetch player statistics for fixtures that don't have them yet.

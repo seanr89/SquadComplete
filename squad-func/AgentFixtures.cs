@@ -1,30 +1,16 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using squad_func.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
 using squad_func.Services;
-using CsvHelper;
 using System.Text.Json;
 
 namespace Squad.Function;
 
-public class AgentFixtures
+public class AgentFixtures(ILoggerFactory loggerFactory,
+GeminiService geminiService, StorageService storageService)
 {
-    private readonly ILogger _logger;
-    private readonly GeminiService _geminiService;
-    private readonly StorageService _storageService;
-
-    public AgentFixtures(ILoggerFactory loggerFactory,
-    GeminiService geminiService, StorageService storageService)
-    {
-        _logger = loggerFactory.CreateLogger<AgentFixtures>();
-        _geminiService = geminiService;
-        _storageService = storageService;
-    }
+    private readonly ILogger _logger = loggerFactory.CreateLogger<AgentFixtures>();
+    private readonly GeminiService _geminiService = geminiService ?? throw new ArgumentNullException(nameof(geminiService));
+    private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
 
     [Function("AgentFixtures")]
     public async Task Run([TimerTrigger("0 0 6 * * *")] TimerInfo myTimer)
@@ -33,24 +19,35 @@ public class AgentFixtures
         // set current date -1 day
         DateTime currentDate = DateTime.Now.AddDays(-1);
         string formattedDate = currentDate.ToString("yyyy-MM-dd");
-
-        // create prompt message
-        string userPrompt = $"find me English premier league matches for date {formattedDate} in json format";
-
-        // call api service
-        string response = await _geminiService.GenerateContentAsync(userPrompt);
-
-        // convert response to json
-        string? jsonResponse = ConvertResponseToJson(response);
-
-        if (!string.IsNullOrEmpty(jsonResponse))
+        try
         {
-            // save json to blob storage
-            await _storageService.UploadToStorage(jsonResponse, $"agent-fixtures-{formattedDate}.json", "agent-fixtures");
+            // create prompt message
+            string userPrompt = $"find me English premier league matches for date {formattedDate} in json format";
+
+            // call api service
+            string? response = await _geminiService.GenerateContentAsync(userPrompt);
+            if (response == null)
+            {
+                _logger.LogWarning("No response from Gemini Query");
+                return;
+            }
+
+            // convert response to json
+            string? jsonResponse = ConvertResponseToJson(response);
+
+            if (!string.IsNullOrEmpty(jsonResponse))
+            {
+                // save json to blob storage
+                await _storageService.UploadToStorage(jsonResponse, $"agent-fixtures-{formattedDate}.json", "agent-fixtures");
+            }
+            else
+            {
+                _logger.LogWarning("No valid json response for Gemini Query was returned");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogWarning("No valid json response for Gemini Query was returned");
+            _logger.LogError(ex, "Error occurred during fixture stats retrieval.");
         }
     }
 
@@ -65,6 +62,7 @@ public class AgentFixtures
         try
         {
             string jsonContent = string.Empty;
+            //
             var jsonRegex = new System.Text.RegularExpressions.Regex(@"```json\s*([\s\S]*?)\s*```", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             var match = jsonRegex.Match(aiText);
 
@@ -75,18 +73,6 @@ public class AgentFixtures
             else if (aiText.Trim().StartsWith("{") && aiText.Trim().EndsWith("}"))
             {
                 jsonContent = aiText.Trim();
-            }
-
-            if (!string.IsNullOrEmpty(jsonContent))
-            {
-                //return JsonDocument.Parse(jsonContent);
-                // using (JsonDocument.Parse(jsonContent)) // Validate JSON
-                // {
-                //     // string jsonFilename = $"{selectedLeague?.Replace(" ", "-") ?? "unknown-league"}_{previousDate}_{timestamp}.json";
-                //     // string jsonFilePath = Path.Combine(responsesDir, jsonFilename);
-                //     // await File.WriteAllTextAsync(jsonFilePath, jsonContent);
-                //     // Console.WriteLine($"JSON data extracted and saved to {jsonFilePath}");
-                // }
             }
             return jsonContent;
         }

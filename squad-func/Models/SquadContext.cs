@@ -18,7 +18,7 @@ public class SquadContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         // Configuration for decimal precision on Rating
         modelBuilder.Entity<PlayerFixtureStatistic>()
             .Property(p => p.Rating)

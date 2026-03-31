@@ -9,7 +9,7 @@
             "enableLiveMetricsFilters": true
         },
         "logLevel": {
-            "default": "Warning",
+            "default": "Information",
             "Microsoft": "Information",
             "Microsoft.EntityFrameworkCore": "Warning",
             "Microsoft.EntityFrameworkCore.Database.Command": "Warning"

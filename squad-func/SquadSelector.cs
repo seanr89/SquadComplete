@@ -94,8 +94,8 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during game creation.");
-            _logger.LogError(ex.Message);
-            _logger.LogError(ex.InnerException?.Message);
+            _logger.LogError(message: ex.Message);
+            _logger.LogError(message: ex.InnerException?.Message);
         }
     }
 
