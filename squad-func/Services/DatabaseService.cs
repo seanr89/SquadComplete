@@ -40,9 +40,20 @@ public class DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
     {
         try
         {
+            DateTime? utcLastUpdate = null;
+            if (lastUpdate.HasValue)
+            {
+                utcLastUpdate = lastUpdate.Value.Kind switch
+                {
+                    DateTimeKind.Utc => lastUpdate.Value,
+                    DateTimeKind.Local => lastUpdate.Value.ToUniversalTime(),
+                    _ => DateTime.SpecifyKind(lastUpdate.Value, DateTimeKind.Utc)
+                };
+            }
+
             await _context.Database.ExecuteSqlAsync($@"
                 INSERT INTO teams (id, name, logo, last_update)
-                VALUES ({id}, {name}, {logo}, {lastUpdate})
+                VALUES ({id}, {name}, {logo}, {utcLastUpdate})
                 ON CONFLICT (id) DO UPDATE SET
                     name = EXCLUDED.name,
                     logo = EXCLUDED.logo,
