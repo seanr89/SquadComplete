@@ -38,13 +38,11 @@ public class DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
     /// <param name="lastUpdate">The last time the team data was updated.</param>
     public async Task UpsertTeamAsync(int id, string name, string? logo, DateTime? lastUpdate)
     {
-        string lastUpdateString = lastUpdate.HasValue ? lastUpdate.Value.ToString("yyyy-MM-dd HH:mm:ss") : "NULL";
-
         try
         {
             await _context.Database.ExecuteSqlAsync($@"
                 INSERT INTO teams (id, name, logo, last_update)
-                VALUES ({id}, '{name}', '{logo}', '{lastUpdateString}')
+                VALUES ({id}, {name}, {logo}, {lastUpdate})
                 ON CONFLICT (id) DO UPDATE SET
                     name = EXCLUDED.name,
                     logo = EXCLUDED.logo,
@@ -110,7 +108,7 @@ public class DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
             await _context.Database.ExecuteSqlAsync($@"
                 INSERT INTO player_fixture_statistics 
                 (fixture_id, team_id, player_id, minutes, number, position, rating, is_captain, is_substitute)
-                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, '{mappedPosition}', {rating}, {isCaptain}, {isSubstitute})
+                VALUES ({fixtureId}, {teamId}, {playerId}, {minutes}, {number}, {mappedPosition}, {rating}, {isCaptain}, {isSubstitute})
                 ON CONFLICT (fixture_id, player_id) DO UPDATE SET
                     team_id = EXCLUDED.team_id,
                     minutes = EXCLUDED.minutes,
