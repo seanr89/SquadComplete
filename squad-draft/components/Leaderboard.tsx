@@ -8,41 +8,29 @@ interface LeaderboardEntry {
   squad: Player[];
 }
 
-const TEST_DATA: LeaderboardEntry[] = [
-  {
-    id: '1',
-    playerName: 'Alex',
-    teamAverageRating: 92.5,
-    squad: []
-  },
-  {
-    id: '2',
-    playerName: 'Jordan',
-    teamAverageRating: 91.2,
-    squad: []
-  },
-  {
-    id: '3',
-    playerName: 'Taylor',
-    teamAverageRating: 89.8,
-    squad: []
-  },
-  {
-    id: '4',
-    playerName: 'Morgan',
-    teamAverageRating: 88.5,
-    squad: []
-  },
-  {
-    id: '5',
-    playerName: 'Casey',
-    teamAverageRating: 87.9,
-    squad: []
-  }
-];
-
 const Leaderboard: React.FC = () => {
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null);
+
+  React.useEffect(() => {
+    // Simulating API call for now
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // In the future, call api method here
+        // const data = await fetchLeaderboard();
+        // setEntries(data);
+        setEntries([]);
+      } catch (error) {
+        console.error("Failed to load leaderboard", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const closeDialog = () => {
     setSelectedEntry(null);
@@ -67,36 +55,54 @@ const Leaderboard: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {TEST_DATA.map((entry, index) => (
-                <tr
-                  key={entry.id}
-                  className={`border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors ${
-                    index === 0 ? 'bg-yellow-400/5' :
-                    index === 1 ? 'bg-slate-300/5' :
-                    index === 2 ? 'bg-amber-600/5' : ''
-                  }`}
-                >
-                  <td className="p-4">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-600 font-bold text-white shadow-inner">
-                      {index + 1}
-                    </div>
-                  </td>
-                  <td className="p-4 font-bold text-white text-lg">{entry.playerName}</td>
-                  <td className="p-4 text-center">
-                    <span className="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-600 font-black text-yellow-400">
-                      {entry.teamAverageRating.toFixed(1)}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center">
-                    <button
-                      onClick={() => setSelectedEntry(entry)}
-                      className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold transition-all shadow-md hover:shadow-lg text-sm"
-                    >
-                      <i className="fas fa-eye mr-2"></i> View Squad
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-slate-400 font-bold">
+                    <i className="fas fa-spinner fa-spin mr-2"></i> Loading leaderboard...
                   </td>
                 </tr>
-              ))}
+              ) : entries.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center">
+                    <div className="flex flex-col items-center justify-center text-slate-400">
+                      <i className="fas fa-calendar-times text-4xl mb-3 text-slate-500"></i>
+                      <p className="text-lg font-bold">No Entries Today</p>
+                      <p className="text-sm">Be the first to submit your squad!</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                entries.map((entry, index) => (
+                  <tr
+                    key={entry.id}
+                    className={`border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors ${
+                      index === 0 ? 'bg-yellow-400/5' :
+                      index === 1 ? 'bg-slate-300/5' :
+                      index === 2 ? 'bg-amber-600/5' : ''
+                    }`}
+                  >
+                    <td className="p-4">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-600 font-bold text-white shadow-inner">
+                        {index + 1}
+                      </div>
+                    </td>
+                    <td className="p-4 font-bold text-white text-lg">{entry.playerName}</td>
+                    <td className="p-4 text-center">
+                      <span className="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-600 font-black text-yellow-400">
+                        {entry.teamAverageRating.toFixed(1)}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <button
+                        onClick={() => setSelectedEntry(entry)}
+                        className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold transition-all shadow-md hover:shadow-lg text-sm"
+                      >
+                        <i className="fas fa-eye mr-2"></i> View Squad
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

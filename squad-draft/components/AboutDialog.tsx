@@ -7,7 +7,7 @@ interface AboutDialogProps {
 }
 
 const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'about' | 'changelog' | 'contact'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'contact'>('about');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
@@ -72,12 +72,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
           >
             About Us
           </button>
-          <button
-            onClick={() => setActiveTab('changelog')}
-            className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'changelog' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            Changelog
-          </button>
+
           <button
             onClick={() => setActiveTab('contact')}
             className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'contact' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-slate-400 hover:text-slate-300'}`}
@@ -109,30 +104,7 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {activeTab === 'changelog' && (
-            <div className="space-y-6">
-              <div className="relative pl-6 border-l-2 border-slate-700">
-                <div className="absolute w-3 h-3 bg-yellow-400 rounded-full -left-[7px] top-1"></div>
-                <h3 className="text-white font-bold">v1.0.0 - Launch</h3>
-                <p className="text-slate-400 text-sm mb-2">Initial Release</p>
-                <ul className="list-disc pl-4 text-sm text-slate-300 space-y-1">
-                  <li>Daily squad drafting mechanics</li>
-                  <li>Interactive pitch visualization</li>
-                  <li>Local storage saving for drafts</li>
-                  <li>Team rating calculations</li>
-                </ul>
-              </div>
-              <div className="relative pl-6 border-l-2 border-slate-700">
-                <div className="absolute w-3 h-3 bg-slate-600 rounded-full -left-[7px] top-1"></div>
-                <h3 className="text-slate-300 font-bold">v0.9.0 - Beta</h3>
-                <p className="text-slate-500 text-sm mb-2">Early Testing</p>
-                <ul className="list-disc pl-4 text-sm text-slate-400 space-y-1">
-                  <li>Core drafting loop established</li>
-                  <li>Initial player database integration</li>
-                </ul>
-              </div>
-            </div>
-          )}
+
 
           {activeTab === 'contact' && (
             <form onSubmit={handleSubmit} className="space-y-4">
