@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Player } from '../types';
+import { fetchDailySquads, fetchLeaderboard } from '../api';
 
 interface LeaderboardEntry {
   id: string;
@@ -12,25 +13,29 @@ const Leaderboard: React.FC = () => {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  React.useEffect(() => {
-    // Simulating API call for now
+  useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        // In the future, call api method here
-        // const data = await fetchLeaderboard();
-        // setEntries(data);
-        setEntries([]);
+        const challenge = await fetchDailySquads(selectedDate);
+        if (challenge && challenge.id) {
+            const data = await fetchLeaderboard(challenge.id);
+            setEntries(data);
+        } else {
+            setEntries([]);
+        }
       } catch (error) {
         console.error("Failed to load leaderboard", error);
+        setEntries([]);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [selectedDate]);
 
   const closeDialog = () => {
     setSelectedEntry(null);
@@ -39,10 +44,22 @@ const Leaderboard: React.FC = () => {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-4xl mx-auto">
       <div className="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 shadow-xl">
-        <h2 className="text-2xl font-extrabold text-white mb-6 flex items-center gap-3">
-          <i className="fas fa-list-ol text-yellow-400"></i>
-          Daily Leaderboard
-        </h2>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <h2 className="text-2xl font-extrabold text-white flex items-center gap-3">
+            <i className="fas fa-list-ol text-yellow-400"></i>
+            Daily Leaderboard
+          </h2>
+          
+          <div className="flex items-center gap-3 bg-slate-700/50 p-2 px-4 rounded-xl border border-slate-600">
+            <i className="fas fa-calendar-alt text-slate-400 text-sm"></i>
+            <input 
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-transparent text-white text-sm font-bold focus:outline-none [color-scheme:dark]"
+            />
+          </div>
+        </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -135,10 +152,25 @@ const Leaderboard: React.FC = () => {
                  </div>
               </div>
 
-              <div className="bg-slate-700/30 rounded-xl p-8 border border-slate-600 flex flex-col items-center justify-center text-center">
-                 <i className="fas fa-tools text-4xl text-slate-500 mb-4"></i>
-                 <p className="text-slate-300 font-medium">Squad details visualization coming soon.</p>
-                 <p className="text-slate-500 text-sm mt-2">Currently showing placeholder data.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {selectedEntry.squad.map((player) => (
+                  <div key={player.id} className="bg-slate-700/40 rounded-xl p-3 border border-slate-600/50 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {player.image ? (
+                        <img src={player.image} alt={player.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-bold text-slate-500">{player.position}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-white truncate">{player.name}</div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{player.position}</div>
+                    </div>
+                    <div className="text-sm font-black text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">
+                      {player.rating.toFixed(1)}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
