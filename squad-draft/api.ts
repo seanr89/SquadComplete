@@ -3,11 +3,11 @@ import { Squad, DailyChallenge } from './types';
 // @ts-ignore - Vite provides import.meta.env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5212';
 
-export const fetchDailySquads = async (): Promise<DailyChallenge | null> => {
+export const fetchDailySquads = async (date?: string): Promise<DailyChallenge | null> => {
     try {
         console.log('API_BASE_URL', API_BASE_URL);
-        const today = new Date().toISOString().split('T')[0];
-        const response = await fetch(`${API_BASE_URL}/api/game-records/date/${today}`);
+        const targetDate = date || new Date().toISOString().split('T')[0];
+        const response = await fetch(`${API_BASE_URL}/api/game-records/date/${targetDate}`);
 
         if (!response.ok) {
             console.error('Failed to fetch daily squads:', response.statusText);
@@ -44,6 +44,20 @@ export const fetchDailySquads = async (): Promise<DailyChallenge | null> => {
     } catch (error) {
         console.error('Error fetching daily squads:', error);
         return null;
+    }
+};
+
+export const fetchLeaderboard = async (gameRecordId: number): Promise<any[]> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/user-squads/${gameRecordId}/leaderboard`);
+        if (!response.ok) {
+            console.error('Failed to fetch leaderboard:', response.statusText);
+            return [];
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        return [];
     }
 };
 

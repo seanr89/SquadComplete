@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using squad_func.Models;
 using squad_func.Services;
 
@@ -14,7 +15,10 @@ builder.ConfigureFunctionsWebApplication();
 
 // 2. Your Custom Services - Db and Api services
 builder.Services.AddDbContext<SquadContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.CommandExecuted));
+});
 
 builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddTransient<StorageService>();
