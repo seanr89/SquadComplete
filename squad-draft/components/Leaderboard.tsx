@@ -21,10 +21,10 @@ const Leaderboard: React.FC = () => {
       try {
         const challenge = await fetchDailySquads(selectedDate);
         if (challenge && challenge.id) {
-            const data = await fetchLeaderboard(challenge.id);
-            setEntries(data);
+          const data = await fetchLeaderboard(challenge.id);
+          setEntries(data);
         } else {
-            setEntries([]);
+          setEntries([]);
         }
       } catch (error) {
         console.error("Failed to load leaderboard", error);
@@ -49,11 +49,11 @@ const Leaderboard: React.FC = () => {
             <i className="fas fa-list-ol text-yellow-400"></i>
             Daily Leaderboard
           </h2>
-          
+
           <div className="flex items-center gap-3 bg-slate-700/50 p-2 px-4 rounded-xl border border-slate-600">
             <i className="fas fa-calendar-alt text-slate-400 text-sm"></i>
-            <input 
-              type="date" 
+            <input
+              type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               className="bg-transparent text-white text-sm font-bold focus:outline-none [color-scheme:dark]"
@@ -92,11 +92,10 @@ const Leaderboard: React.FC = () => {
                 entries.map((entry, index) => (
                   <tr
                     key={entry.id}
-                    className={`border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors ${
-                      index === 0 ? 'bg-yellow-400/5' :
-                      index === 1 ? 'bg-slate-300/5' :
-                      index === 2 ? 'bg-amber-600/5' : ''
-                    }`}
+                    className={`border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors ${index === 0 ? 'bg-yellow-400/5' :
+                        index === 1 ? 'bg-slate-300/5' :
+                          index === 2 ? 'bg-amber-600/5' : ''
+                      }`}
                   >
                     <td className="p-4">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-600 font-bold text-white shadow-inner">
@@ -146,10 +145,10 @@ const Leaderboard: React.FC = () => {
 
             <div className="p-6 overflow-y-auto">
               <div className="flex justify-center mb-6">
-                 <div className="flex flex-col items-center gap-2">
-                    <div className="text-4xl font-black text-yellow-400">{selectedEntry.teamAverageRating.toFixed(1)}</div>
-                    <div className="text-xs text-slate-400 font-bold uppercase tracking-widest">Team Rating</div>
-                 </div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="text-4xl font-black text-yellow-400">{selectedEntry.teamAverageRating.toFixed(1)}</div>
+                  <div className="text-xs text-slate-400 font-bold uppercase tracking-widest">Team Rating</div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -175,12 +174,12 @@ const Leaderboard: React.FC = () => {
             </div>
 
             <div className="p-4 border-t border-slate-700 bg-slate-800/50 flex justify-end">
-               <button
+              <button
                 onClick={closeDialog}
                 className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-all"
-               >
-                 Close
-               </button>
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
