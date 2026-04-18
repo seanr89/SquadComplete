@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("FixtureStats")]
-    public async Task Run([TimerTrigger("0 0 12-17 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 12-16 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 
@@ -42,6 +42,7 @@ IApiService apiService, DatabaseService databaseService)
                 _logger.LogWarning("No fixtures without player statistics found.");
                 return;
             }
+            _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStats.Count);
 
             foreach (var fixture in fixturesWithoutStats)
             {
@@ -66,13 +67,6 @@ IApiService apiService, DatabaseService databaseService)
         var fixturesWithoutStatsUpdated = await _context.Fixtures
             .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
             .CountAsync();
-
-        _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStatsUpdated);
-
-        // if (myTimer.ScheduleStatus is not null)
-        // {
-        //     _logger.LogInformation("Next timer schedule at: {nextSchedule}", myTimer.ScheduleStatus.Next);
-        // }
     }
 
     /// <summary>

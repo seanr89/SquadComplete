@@ -22,6 +22,13 @@ public class Team
     [Column("last_update")]
     public DateTime? LastUpdate { get; set; }
 
+    [Column("active")]
+    public bool Active { get; set; } = false;
+
+    [Column("source_location")]
+    [StringLength(255)]
+    public string? SourceLocation { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

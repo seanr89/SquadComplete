@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - main
+      - FuncLogginAi
     paths:
       - 'squad-func/**'
   workflow_dispatch:
-
+§
 
 env:
   AZURE_FUNCTIONAPP_NAME: 'sfuncrunners'   

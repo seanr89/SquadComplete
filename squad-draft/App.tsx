@@ -8,11 +8,13 @@ import Pitch from './components/Pitch';
 import PlayerCard from './components/PlayerCard';
 import AboutDialog from './components/AboutDialog';
 import Leaderboard from './components/Leaderboard';
+import AlertDialog from './components/AlertDialog';
 
 const App: React.FC = () => {
   const teamRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<'draft' | 'team' | 'leaderboard'>('draft');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{isOpen: boolean, title: string, message: string, type: 'success' | 'error' | 'info'}>({isOpen: false, title: '', message: '', type: 'info'});
   const [squads, setSquads] = useState<Squad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -248,9 +250,19 @@ const App: React.FC = () => {
     const success = await submitUserSquad(payload);
     if (success) {
         setDraft(prev => ({ ...prev, submitted: true }));
-        alert('Team submitted successfully!');
+        setAlertConfig({
+            isOpen: true,
+            title: 'Success!',
+            message: 'Team submitted successfully!',
+            type: 'success'
+        });
     } else {
-        alert('Failed to submit team. You may have already submitted one for today.');
+        setAlertConfig({
+            isOpen: true,
+            title: 'Submission Failed',
+            message: 'Failed to submit team. You may have already submitted one for today.',
+            type: 'error'
+        });
     }
     setIsSubmitting(false);
   };
@@ -501,6 +513,15 @@ const App: React.FC = () => {
       <div className="md:hidden h-20"></div> {/* Spacer for fixed footer */}
       {/* About Dialog */}
       <AboutDialog isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
+
+      {/* Alert Dialog */}
+      <AlertDialog 
+        isOpen={alertConfig.isOpen} 
+        title={alertConfig.title} 
+        message={alertConfig.message} 
+        type={alertConfig.type} 
+        onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))} 
+      />
 
       <footer className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 md:hidden z-50">
         <div className="flex justify-around items-center max-w-lg mx-auto">
