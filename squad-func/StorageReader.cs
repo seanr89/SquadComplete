@@ -1,15 +1,18 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using squad_func.Models;
 using squad_func.Services;
 using System.Text.Json;
 
 namespace Squad.Function;
 
 public class StorageReader(ILoggerFactory loggerFactory,
-    StorageService storageService)
+    StorageService storageService,
+    IAgentMappingService agentFixtureMapperService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<StorageReader>();
     private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
+    private readonly IAgentMappingService _agentMappingService = agentFixtureMapperService ?? throw new ArgumentNullException(nameof(agentFixtureMapperService));
 
     [Function("StorageReader")]
     public async Task Run([TimerTrigger("0 30 10 * * *")] TimerInfo myTimer)
@@ -25,11 +28,11 @@ public class StorageReader(ILoggerFactory loggerFactory,
                     var data = await _storageService.ReadFromStorage(blob, "agent-fixtures");
                     if (!string.IsNullOrEmpty(data))
                     {
-                        // trim leading and trailing whitespace
-                        data = data.Trim();
-                        // replace multiple spaces with a single space
-                        data = System.Text.RegularExpressions.Regex.Replace(data, @"\s+", " ");
-                        _logger.LogInformation("Data: {Data}", data);
+                        // read data with blob name and and convert data from string/JSON to AgentFixture class
+                        var fixture = JsonSerializer.Deserialize<AgentFixture>(data);
+                        if (fixture == null) continue;
+
+                        //await _agentMappingService.ProcessAgentFixtureAsync(fixture);
                     }
                 }
             }
