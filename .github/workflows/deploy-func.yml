@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - FuncLogginAi
     paths:
       - 'squad-func/**'
   workflow_dispatch:
