@@ -8,9 +8,11 @@ interface PlayerCardProps {
   isSelected?: boolean;
   compact?: boolean;
   disabled?: boolean;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent<HTMLDivElement>, player: Player) => void;
 }
 
-const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, compact, disabled }) => {
+const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, compact, disabled, draggable, onDragStart }) => {
   const getPositionColor = (pos: string) => {
     switch (pos) {
       case 'GK': return 'bg-yellow-500';
@@ -25,6 +27,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, co
     return (
       <div
         onClick={() => !disabled && onClick?.(player)}
+        draggable={draggable && !disabled}
+        onDragStart={(e) => !disabled && onDragStart?.(e, player)}
         className={`relative flex flex-col items-center group cursor-pointer transition-transform hover:scale-110 ${disabled ? 'opacity-50 grayscale' : ''}`}
       >
         <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 overflow-hidden ${isSelected ? 'border-yellow-400 shadow-lg shadow-yellow-400/50' : 'border-slate-400'}`}>
@@ -40,6 +44,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, onClick, isSelected, co
   return (
     <div
       onClick={() => !disabled && onClick?.(player)}
+      draggable={draggable && !disabled}
+      onDragStart={(e) => !disabled && onDragStart?.(e, player)}
       className={`relative w-full p-4 rounded-xl border transition-all cursor-pointer overflow-hidden
         ${isSelected
           ? 'border-yellow-400 bg-slate-800/80 shadow-lg shadow-yellow-400/20'

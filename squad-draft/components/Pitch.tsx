@@ -10,9 +10,16 @@ interface PitchProps {
   activeSpotId: number | null;
   selectedPlayerId?: string | null;
   disabledPlayerIds?: string[];
+  isDroppable?: boolean;
+  onSpotDrop?: (spotId: number) => void;
+  isDraggable?: boolean;
+  onPlayerDragStart?: (player: Player) => void;
 }
 
-const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, activeSpotId, selectedPlayerId, disabledPlayerIds = [] }) => {
+const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, activeSpotId, selectedPlayerId, disabledPlayerIds = [], isDroppable, onSpotDrop, isDraggable, onPlayerDragStart }) => {
+  const [dragOverSpotId, setDragOverSpotId] = React.useState<number | null>(null);
+
+
   return (
     <div className="pitch-bg w-full aspect-[2/3] md:aspect-auto md:h-[600px] rounded-3xl relative overflow-hidden shadow-2xl border-4 border-slate-800">
       {/* Pitch Markings */}
@@ -36,12 +43,36 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, ac
               onClick={onPlayerClick}
               isSelected={selectedPlayerId === spot.player.id}
               disabled={disabledPlayerIds.includes(spot.player.id)}
+              draggable={isDraggable}
+              onDragStart={() => onPlayerDragStart?.(spot.player)}
             />
           ) : (
             <button
               onClick={() => onSpotClick?.(spot)}
+              onDragOver={(e) => {
+                if (isDroppable) {
+                  e.preventDefault();
+                }
+              }}
+              onDragEnter={() => {
+                if (isDroppable) {
+                  setDragOverSpotId(spot.id);
+                }
+              }}
+              onDragLeave={() => {
+                if (isDroppable) {
+                  setDragOverSpotId(null);
+                }
+              }}
+              onDrop={(e) => {
+                if (isDroppable) {
+                  e.preventDefault();
+                  setDragOverSpotId(null);
+                  onSpotDrop?.(spot.id);
+                }
+              }}
               className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-all
-                ${activeSpotId === spot.id
+                ${(activeSpotId === spot.id || dragOverSpotId === spot.id)
                   ? 'border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/30'
                   : 'border-white/20 hover:border-white/40 hover:bg-white/5'
                 }`}

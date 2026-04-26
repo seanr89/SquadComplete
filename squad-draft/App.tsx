@@ -381,6 +381,8 @@ const App: React.FC = () => {
                     onPlayerClick={handlePlayerSelect}
                     selectedPlayerId={tempPlayer?.id}
                     disabledPlayerIds={draft.selectedPlayers.map(p => p.id)}
+                    isDraggable={true}
+                    onPlayerDragStart={handlePlayerSelect}
                   />
                 </div>
               </div>
@@ -411,6 +413,12 @@ const App: React.FC = () => {
                     confirmPlacement(spot.id);
                   } else {
                     setActiveSpotId(spot.id);
+                  }
+                }}
+                isDroppable={true}
+                onSpotDrop={(spotId) => {
+                  if (tempPlayer) {
+                    confirmPlacement(spotId);
                   }
                 }}
               />
