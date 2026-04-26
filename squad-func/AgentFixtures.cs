@@ -13,7 +13,7 @@ GeminiService geminiService, StorageService storageService)
     private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
 
     [Function("AgentFixtures")]
-    public async Task Run([TimerTrigger("0 0 6 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 20 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("AgentFixtures started");
         // set current date -1 day
