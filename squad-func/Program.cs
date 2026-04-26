@@ -24,5 +24,6 @@ builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddTransient<StorageService>();
 builder.Services.AddHttpClient<IApiService, ApiService>();
 builder.Services.AddScoped<DatabaseService>();
+builder.Services.AddScoped<IAgentMappingService, AgentMappingService>();
 
 builder.Build().Run();
