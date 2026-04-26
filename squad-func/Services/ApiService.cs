@@ -15,6 +15,7 @@ public interface IApiService
     Task<List<PlayerStatsResponse>?> GetPlayerStatsAsync(int fixtureId, int teamId);
     Task<FixtureApiResponse?> GetFixtureDataAsync(int fixtureId);
     Task<ApiTeamDetail?> GetTeamDataAsync(int teamId);
+    Task<PlayerStatsPlayerInfo?> GetPlayerProfileAsync(string search);
 }
 
 public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IApiService
@@ -136,6 +137,36 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while fetching team data from {Url}", url);
+            return null;
+        }
+    }
+
+    public async Task<PlayerStatsPlayerInfo?> GetPlayerProfileAsync(string search)
+    {
+        var url = $"{BaseUrl}/players/profiles?search={Uri.EscapeDataString(search)}";
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-rapidapi-key", ApiKey);
+            request.Headers.Add("x-rapidapi-host", BaseUrl);
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            using var jsonDocument = JsonDocument.Parse(content);
+
+            if (jsonDocument.RootElement.TryGetProperty("response", out var responseData) && responseData.ValueKind == JsonValueKind.Array && responseData.GetArrayLength() > 0)
+            {
+                var playerWrapper = JsonSerializer.Deserialize<PlayerProfileApiResponseWrapper>(responseData[0].GetRawText());
+                return playerWrapper?.Player;
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while fetching player profile from {Url}", url);
             return null;
         }
     }

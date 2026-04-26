@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - UIDragging
+      - MatchInfoEnrich
     paths:
       - 'squad-func/**'
   workflow_dispatch:

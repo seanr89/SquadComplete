@@ -28,6 +28,34 @@ IApiService apiService, DatabaseService databaseService)
     {
         _logger.LogInformation("RefreshPlayerInfo started");
 
+        var playersWithoutPhoto = await _context.Players
+            .Where(p => string.IsNullOrEmpty(p.Photo))
+            .Take(20) // to avoid hitting API rate limits too hard
+            .ToListAsync();
 
+        _logger.LogInformation("Found {Count} players without a photo.", playersWithoutPhoto.Count);
+
+        foreach (var player in playersWithoutPhoto)
+        {
+            try
+            {
+                var lastName = player.Name.Split(' ').Last();
+                var playerProfile = await _apiService.GetPlayerProfileAsync(lastName);
+
+                if (playerProfile != null && !string.IsNullOrEmpty(playerProfile.Photo))
+                {
+                    player.Photo = playerProfile.Photo;
+                    await _databaseService.UpsertPlayerAsync(player.Id, player.Name, playerProfile.Photo);
+                    _logger.LogInformation("Updated photo for player {PlayerId} ({PlayerName}).", player.Id, player.Name);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing player {PlayerId} for photo refresh.", player.Id);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("RefreshPlayerInfo completed");
     }
 }
