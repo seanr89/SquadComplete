@@ -29,7 +29,9 @@ IApiService apiService, DatabaseService databaseService)
         _logger.LogInformation("TeamRefresh started");
 
         var incompleteFixtures = await _context.Fixtures
-            .Where(f => f.HomeTeamId == null || f.AwayTeamId == null || f.HomeTeamName == null || f.AwayTeamName == null)
+            .Where(f => f.HomeTeamId == null || f.AwayTeamId == null
+                || f.HomeTeamName == null || f.AwayTeamName == null)
+            .OrderBy(f => f.CreatedAt)
             .Take(10)
             .ToListAsync();
 

@@ -33,11 +33,11 @@ Operational Workflow:
 3. Data Extraction:
    - Fixtures: Capture Date, Time, Home Team, and Away Team.
    - Scores: Capture current score and match status (e.g., "FT", "75'", "Postponed").
-   - Squads: If within 60 minutes of kickoff, extract the "Starting XI" and "Substitutes". Otherwise, return "Lineups not yet released".
+   - Squads: extract the "Starting XI"
 4. Temporal Validation: Always compare found data against the current date to ensure seasonal accuracy.
 5. Share data source link for verification if possible
 
-JSON Response Format:
+JSON Response Format Must be strictly followed - NO EXCEPTIONS:
 Please provide the football match data in the following JSON format. Ensure all player names are
   strings within the arrays and scores are integers:
   {
@@ -60,13 +60,7 @@ Please provide the football match data in the following JSON format. Ensure all 
                 "home_starting_xi": [
                     "String (Player Name)"
                 ],
-                "home_substitutes": [
-                    "String (Player Name)"
-                ],
                 "away_starting_xi": [
-                    "String (Player Name)"
-                ],
-                "away_substitutes": [
                     "String (Player Name)"
                 ]
             }

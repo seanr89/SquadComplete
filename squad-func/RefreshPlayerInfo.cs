@@ -42,6 +42,7 @@ IApiService apiService, DatabaseService databaseService)
             {
                 var lastName = player.Name.Split(' ').Last();
                 var playerProfile = await _apiService.GetPlayerProfileAsync(lastName);
+                Thread.Sleep(2500);
 
                 if (playerProfile != null && !string.IsNullOrEmpty(playerProfile.Photo))
                 {
