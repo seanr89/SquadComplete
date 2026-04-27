@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 16-19 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 04-10 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("TeamRefresh started");
 
@@ -35,7 +35,7 @@ IApiService apiService, DatabaseService databaseService)
             .Take(10)
             .ToListAsync();
 
-        _logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
+        //_logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
 
         foreach (var fixture in incompleteFixtures)
         {

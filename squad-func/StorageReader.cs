@@ -34,7 +34,7 @@ public class StorageReader(ILoggerFactory loggerFactory,
                             var fixture = JsonSerializer.Deserialize<AgentFixture>(data);
                             if (fixture == null) continue;
 
-                            //await _agentMappingService.ProcessAgentFixtureAsync(fixture);
+                            await _agentMappingService.ProcessAgentFixtureAsync(fixture);
                         }
                         catch (JsonException ex)
                         {
@@ -43,6 +43,8 @@ public class StorageReader(ILoggerFactory loggerFactory,
                             await _storageService.MoveBlob(blob, "agent-fixtures", "errors");
                         }
                     }
+                    // take first
+                    return;
                 }
             }
         }

@@ -108,9 +108,9 @@ public class AgentMappingService : IAgentMappingService
                 if (match.Lineups != null)
                 {
                     await ProcessLineupAsync(match.Lineups.HomeStartingXi, homeTeam?.Id, fixture, false, playerCache, ref nextPlayerId);
-                    await ProcessLineupAsync(match.Lineups.HomeSubstitutes, homeTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
+                    //await ProcessLineupAsync(match.Lineups.HomeSubstitutes, homeTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
                     await ProcessLineupAsync(match.Lineups.AwayStartingXi, awayTeam?.Id, fixture, false, playerCache, ref nextPlayerId);
-                    await ProcessLineupAsync(match.Lineups.AwaySubstitutes, awayTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
+                    //await ProcessLineupAsync(match.Lineups.AwaySubstitutes, awayTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
                 }
             }
 
