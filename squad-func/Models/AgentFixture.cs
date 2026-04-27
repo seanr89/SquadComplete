@@ -45,9 +45,11 @@ public class AgentMatchDetails
 public class AgentScore
 {
     [JsonPropertyName("home_score")]
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public int? HomeScore { get; set; }
 
     [JsonPropertyName("away_score")]
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public int? AwayScore { get; set; }
 
     [JsonPropertyName("status")]
@@ -59,12 +61,6 @@ public class AgentLineups
     [JsonPropertyName("home_starting_xi")]
     public List<string>? HomeStartingXi { get; set; }
 
-    [JsonPropertyName("home_substitutes")]
-    public List<string>? HomeSubstitutes { get; set; }
-
     [JsonPropertyName("away_starting_xi")]
     public List<string>? AwayStartingXi { get; set; }
-
-    [JsonPropertyName("away_substitutes")]
-    public List<string>? AwaySubstitutes { get; set; }
 }
