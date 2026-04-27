@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("FixtureStats")]
-    public async Task Run([TimerTrigger("0 0 12-14 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 12 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 

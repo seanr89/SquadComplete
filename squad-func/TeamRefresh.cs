@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 3-6 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 16-19 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("TeamRefresh started");
 
@@ -40,7 +40,7 @@ IApiService apiService, DatabaseService databaseService)
             try
             {
                 var fixtureData = await _apiService.GetFixtureDataAsync(fixture.Id);
-                Thread.Sleep(1500);
+                Thread.Sleep(2500);
                 if (fixtureData?.Teams != null)
                 {
                     if (fixtureData.Teams.Home != null)
@@ -53,7 +53,7 @@ IApiService apiService, DatabaseService databaseService)
                         if (!exists)
                         {
                             var apiTeam = await _apiService.GetTeamDataAsync(homeTeam.Id);
-                            Thread.Sleep(1500);
+                            Thread.Sleep(2500);
                             if (apiTeam != null)
                             {
                                 await _databaseService.UpsertTeamAsync(apiTeam.Id, apiTeam.Name ?? homeTeam.Name ?? "Unknown", apiTeam.Logo ?? homeTeam.Logo, null);
@@ -75,7 +75,7 @@ IApiService apiService, DatabaseService databaseService)
                         if (!exists)
                         {
                             var apiTeam = await _apiService.GetTeamDataAsync(awayTeam.Id);
-                            Thread.Sleep(1500);
+                            Thread.Sleep(2500);
                             if (apiTeam != null)
                             {
                                 await _databaseService.UpsertTeamAsync(apiTeam.Id, apiTeam.Name ?? awayTeam.Name ?? "Unknown", apiTeam.Logo ?? awayTeam.Logo, null);

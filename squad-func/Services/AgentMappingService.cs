@@ -19,9 +19,14 @@ public class AgentMappingService : IAgentMappingService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Processes an AgentFixture and saves it to the database.
+    /// </summary>
+    /// <param name="agentFixture">The AgentFixture to process.</param>
+    /// <returns></returns>
     public async Task ProcessAgentFixtureAsync(AgentFixture agentFixture)
     {
-        if (agentFixture == null || agentFixture.Matches == null || !agentFixture.Matches.Any())
+        if (agentFixture == null || agentFixture.Matches == null || agentFixture.Matches.Count == 0)
         {
             _logger.LogWarning("AgentFixture is null or contains no matches.");
             return;
@@ -121,6 +126,16 @@ public class AgentMappingService : IAgentMappingService
         }
     }
 
+    /// <summary>
+    /// Processes a list of player names and adds them to the database.
+    /// </summary>
+    /// <param name="playerNames">The list of player names to process.</param>
+    /// <param name="teamId">The ID of the team the players belong to.</param>
+    /// <param name="fixture">The fixture the players belong to.</param>
+    /// <param name="isSubstitute">Whether the players are substitutes.</param>
+    /// <param name="playerCache"></param>
+    /// <param name="nextPlayerId"></param>
+    /// <returns></returns>
     private Task ProcessLineupAsync(List<string>? playerNames, int? teamId, Fixture fixture, bool isSubstitute, Dictionary<string, Player> playerCache, ref int nextPlayerId)
     {
         if (playerNames == null || !playerNames.Any()) return Task.CompletedTask;
