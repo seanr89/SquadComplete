@@ -17,8 +17,6 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
     [Function("SquadSelector")]
     public async Task Run([TimerTrigger("0 0 2 * * *")] TimerInfo myTimer)
     {
-        //_logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
-
         try
         {
             int totalFixtures = await _context.Fixtures.CountAsync();
@@ -53,6 +51,8 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             var uniqueTeamIds = new HashSet<int>();
             var tagsToAdd = new List<GameRecordTag>();
 
+            var activeTeamIds = await _context.Teams.Where(t => t.Active == true).Select(t => t.Id).ToListAsync();
+
             foreach (var fixture in shuffledFixtures)
             {
                 // get player fixture count for home and away teams to ensure we have enough players
@@ -68,12 +68,16 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
                     continue;
                 }
 
-                // Convert this to its own function with a try add the unique teams
-                TryAddTeamTag(fixture.HomeTeamId, homePlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
-
+                if (activeTeamIds.Contains(fixture.HomeTeamId ?? 0))
+                {
+                    TryAddTeamTag(fixture.HomeTeamId, homePlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
+                }
                 if (uniqueTeamIds.Count >= 11) break;
 
-                TryAddTeamTag(fixture.AwayTeamId, awayPlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
+                if (activeTeamIds.Contains(fixture.AwayTeamId ?? 0))
+                {
+                    TryAddTeamTag(fixture.AwayTeamId, awayPlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
+                }
 
                 if (uniqueTeamIds.Count >= 11) break;
             }
@@ -82,20 +86,16 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             {
                 _context.GameRecordTags.AddRange(tagsToAdd);
                 await _context.SaveChangesAsync();
-                // _logger.LogInformation("Added {count} tags to GameRecord {id}. Teams: {ids}",
-                //     tagsToAdd.Count, gameRecord.Id, string.Join(", ", uniqueTeamIds));
-            }
-
-            if (uniqueTeamIds.Count < 11)
-            {
-                //_logger.LogWarning("Only found {count} unique team IDs, expected 11.", uniqueTeamIds.Count);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred during game creation.");
-            _logger.LogError(message: ex.Message);
-            _logger.LogError(message: ex.InnerException?.Message);
+            _logger.LogError("Error message: {Message}", ex.Message);
+            if (ex.InnerException != null)
+            {
+                _logger.LogError("Inner exception message: {InnerMessage}", ex.InnerException.Message);
+            }
         }
     }
 

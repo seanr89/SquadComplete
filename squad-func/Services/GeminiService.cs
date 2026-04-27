@@ -109,13 +109,13 @@ Constraints & Guardrails:
 
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        Console.WriteLine("Sending request to Gemini API...");
+        _logger.LogInformation("Sending request to Gemini API...");
         HttpResponseMessage response = await _httpClient.PostAsync(url, content);
 
         if (!response.IsSuccessStatusCode)
         {
             string errorContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"Error HTTP {(int)response.StatusCode}: {errorContent}");
+            _logger.LogError("Error HTTP {StatusCode}: {ErrorContent}", (int)response.StatusCode, errorContent);
             return null;
         }
 
@@ -127,7 +127,7 @@ Constraints & Guardrails:
 
     public async Task ReportAvailableModelsAsync()
     {
-        Console.WriteLine("Querying available models...");
+        _logger.LogInformation("Querying available models...");
         string modelsUrl = $"https://generativelanguage.googleapis.com/v1beta/models?key={_apiKey}";
         try
         {
@@ -136,21 +136,20 @@ Constraints & Guardrails:
             {
                 string modelsJson = await modelsResponse.Content.ReadAsStringAsync();
                 var modelList = JsonSerializer.Deserialize<ModelListResponse>(modelsJson);
-                Console.WriteLine("\n--- Available Models ---");
+                _logger.LogInformation("--- Available Models ---");
                 foreach (var model in modelList?.Models ?? new())
                 {
-                    Console.WriteLine($"- {model.DisplayName} ({model.Name})");
+                    _logger.LogInformation("- {DisplayName} ({Name})", model.DisplayName, model.Name);
                 }
-                Console.WriteLine("------------------------\n");
             }
             else
             {
-                Console.WriteLine($"Warning: Could not retrieve models list. HTTP {(int)modelsResponse.StatusCode}");
+                _logger.LogWarning("Could not retrieve models list. HTTP {StatusCode}", (int)modelsResponse.StatusCode);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Warning: Error querying models: {ex.Message}");
+            _logger.LogWarning(ex, "Error querying models: {Message}", ex.Message);
         }
     }
 }

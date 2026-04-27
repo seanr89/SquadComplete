@@ -30,6 +30,7 @@ IApiService apiService, DatabaseService databaseService)
 
         var playersWithoutPhoto = await _context.Players
             .Where(p => string.IsNullOrEmpty(p.Photo))
+            .OrderBy(p => p.CreatedAt)
             .Take(20) // to avoid hitting API rate limits too hard
             .ToListAsync();
 

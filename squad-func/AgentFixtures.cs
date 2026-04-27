@@ -56,7 +56,7 @@ GeminiService geminiService, StorageService storageService)
     /// </summary>
     /// <param name="aiText">The response from Gemini</param>
     /// <returns>The JSON response</returns>
-    private static string? ConvertResponseToJson(string aiText)
+    private string? ConvertResponseToJson(string aiText)
     {
         // --- Extract and Save JSON ---
         try
@@ -78,11 +78,11 @@ GeminiService geminiService, StorageService storageService)
         }
         catch (JsonException)
         {
-            Console.WriteLine("Note: A JSON-like block was found but it contains invalid JSON.");
+            _logger.LogWarning("Note: A JSON-like block was found but it contains invalid JSON.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Note: Could not extract JSON: {ex.Message}");
+            _logger.LogError(ex, "Note: Could not extract JSON: {Message}", ex.Message);
         }
 
         return string.Empty;

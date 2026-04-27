@@ -10,8 +10,9 @@
         },
         "logLevel": {
             "default": "Information",
-            "Microsoft": "Information",
+            "Microsoft": "Warning",
             "Microsoft.Extensions.Http": "Warning",
+            "System.Net.Http": "Warning",
             "System.Net.Http.HttpClient": "Warning",
             "Microsoft.EntityFrameworkCore": "Warning",
             "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
