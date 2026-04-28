@@ -59,36 +59,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         }
 
         string responseJson = await response.Content.ReadAsStringAsync();
-        var geminiResponse = JsonSerializer.Deserialize<GeminiResponse>(responseJson);
-
-        return geminiResponse?.Candidates?.FirstOrDefault()?.Content?.Parts?.FirstOrDefault()?.Text;
-    }
-
-    public async Task ReportAvailableModelsAsync()
-    {
-        _logger.LogInformation("Querying available models...");
-        string modelsUrl = $"https://generativelanguage.googleapis.com/v1beta/models?key={_apiKey}";
-        try
-        {
-            var modelsResponse = await _httpClient.GetAsync(modelsUrl);
-            if (modelsResponse.IsSuccessStatusCode)
-            {
-                string modelsJson = await modelsResponse.Content.ReadAsStringAsync();
-                var modelList = JsonSerializer.Deserialize<ModelListResponse>(modelsJson);
-                _logger.LogInformation("--- Available Models ---");
-                foreach (var model in modelList?.Models ?? new())
-                {
-                    _logger.LogInformation("- {DisplayName} ({Name})", model.DisplayName, model.Name);
-                }
-            }
-            else
-            {
-                _logger.LogWarning("Could not retrieve models list. HTTP {StatusCode}", (int)modelsResponse.StatusCode);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error querying models: {Message}", ex.Message);
-        }
+        //_logger.LogInformation("Gemini API Response: {ResponseJson}", responseJson);
+        return responseJson;
     }
 }
