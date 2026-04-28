@@ -13,10 +13,10 @@ GeminiService geminiService, StorageService storageService)
     private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
 
     [Function("AgentFixtures")]
-    public async Task Run([TimerTrigger("0 0 23 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 22 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("AgentFixtures started");
-        // set current date -1 day
+
         DateTime currentDate = DateTime.Now.AddDays(-1);
         string formattedDate = currentDate.ToString("yyyy-MM-dd");
         try

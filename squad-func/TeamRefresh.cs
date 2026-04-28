@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 04-10 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 4-10 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("TeamRefresh started");
 
@@ -65,6 +65,17 @@ IApiService apiService, DatabaseService databaseService)
                                 await _databaseService.UpsertTeamAsync(homeTeam.Id, homeTeam.Name ?? "Unknown", homeTeam.Logo, null);
                             }
                         }
+
+                        // Ensure that fixture goals have also been updated
+                        var dbFixture = await _context.Fixtures.FindAsync(fixture.Id);
+                        if (dbFixture != null)
+                        {
+                            dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
+                            dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
+                            dbFixture.UpdatedAt = DateTime.UtcNow;
+
+                            await _context.SaveChangesAsync();
+                        }
                     }
 
                     if (fixtureData.Teams.Away != null)
@@ -86,6 +97,17 @@ IApiService apiService, DatabaseService databaseService)
                             {
                                 await _databaseService.UpsertTeamAsync(awayTeam.Id, awayTeam.Name ?? "Unknown", awayTeam.Logo, null);
                             }
+                        }
+
+                        // Ensure that fixture goals have also been updated
+                        var dbFixture = await _context.Fixtures.FindAsync(fixture.Id);
+                        if (dbFixture != null)
+                        {
+                            dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
+                            dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
+                            dbFixture.UpdatedAt = DateTime.UtcNow;
+
+                            await _context.SaveChangesAsync();
                         }
                     }
 
