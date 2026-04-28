@@ -25,7 +25,7 @@ GeminiService geminiService, StorageService storageService)
             string userPrompt = $"find me English premier league matches for date {formattedDate} in json format";
 
             // call api service
-            string? response = await _geminiService.GenerateContentAsync(userPrompt);
+            string? response = await _geminiService.GenerateContentAsync("English Premier Leage", formattedDate);
             if (response == null)
             {
                 _logger.LogWarning("No response from Gemini Query");
