@@ -14,6 +14,8 @@ public class SquadContext : DbContext
     public DbSet<GameRecord> GameRecords { get; set; }
     public DbSet<GameRecordTag> GameRecordTags { get; set; }
     public DbSet<Formation> Formations { get; set; }
+    public DbSet<Season> Seasons { get; set; }
+    public DbSet<TeamSeason> TeamSeasons { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +29,11 @@ public class SquadContext : DbContext
         // Unique constraint for GameRecordTag
         modelBuilder.Entity<GameRecordTag>()
             .HasIndex(t => new { t.GameRecordId, t.FixtureId, t.TeamId })
+            .IsUnique();
+
+        // Unique constraint for TeamSeason
+        modelBuilder.Entity<TeamSeason>()
+            .HasIndex(t => new { t.TeamId, t.SeasonYear })
             .IsUnique();
     }
 }

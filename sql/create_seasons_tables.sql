@@ -1,6 +1,8 @@
 -- Create seasons table
 CREATE TABLE IF NOT EXISTS seasons (
-    year INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    name TEXT,
+    prefix TEXT,
     start_date DATE,
     end_date DATE,
     is_current BOOLEAN DEFAULT false,
@@ -12,16 +14,16 @@ CREATE TABLE IF NOT EXISTS seasons (
 CREATE TABLE IF NOT EXISTS team_seasons (
     id SERIAL PRIMARY KEY,
     team_id INTEGER NOT NULL,
-    season_year INTEGER REFERENCES seasons(year),
+    season_id INTEGER REFERENCES seasons(id),
     data_requested BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(team_id, season_year)
+    UNIQUE(team_id, season_id)
 );
 
 -- Indices for faster lookups
 CREATE INDEX IF NOT EXISTS idx_team_seasons_team_id ON team_seasons(team_id);
-CREATE INDEX IF NOT EXISTS idx_team_seasons_season_year ON team_seasons(season_year);
+CREATE INDEX IF NOT EXISTS idx_team_seasons_season_year ON team_seasons(season_id);
 
 -- Triggers to automatically update updated_at
 -- (Assuming the function update_updated_at_column already exists)

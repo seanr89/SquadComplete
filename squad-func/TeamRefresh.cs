@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 4-10 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 4-12 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("TeamRefresh started");
 

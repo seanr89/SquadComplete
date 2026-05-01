@@ -62,4 +62,49 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         //_logger.LogInformation("Gemini API Response: {ResponseJson}", responseJson);
         return responseJson;
     }
+
+    public async Task<string> GetHistoryAsync(string team, string season)
+    {
+        string promptFilePath = Path.Combine(AppContext.BaseDirectory, "history.md");
+        string template = await File.ReadAllTextAsync(promptFilePath);
+        string userPrompt = template.Replace("{TEAM}", team).Replace("{SEASON}", season);
+
+        var requestBody = new
+        {
+            contents = new[]
+            {
+                new
+                {
+                    parts = new[]
+                    {
+                        new { text = userPrompt }
+                    }
+                }
+            },
+            generationConfig = new
+            {
+                temperature = 0.2
+            }
+        };
+
+        string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
+
+        string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        _logger.LogInformation("Sending request to Gemini API...");
+        HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Error HTTP {StatusCode}: {ErrorContent}", (int)response.StatusCode, errorContent);
+            return null;
+        }
+
+        string responseJson = await response.Content.ReadAsStringAsync();
+        //_logger.LogInformation("Gemini API Response: {ResponseJson}", responseJson);
+        return responseJson;
+    }
 }

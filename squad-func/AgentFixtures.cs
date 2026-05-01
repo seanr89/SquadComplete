@@ -21,9 +21,6 @@ GeminiService geminiService, StorageService storageService)
         string formattedDate = currentDate.ToString("yyyy-MM-dd");
         try
         {
-            // create prompt message
-            //string userPrompt = $"find me English premier league matches for date {formattedDate} in json format";
-
             // call api service
             string? response = await _geminiService.GenerateContentAsync("English Premier Leage", formattedDate);
             if (response == null)
