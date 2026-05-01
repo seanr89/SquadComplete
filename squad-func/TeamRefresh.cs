@@ -32,7 +32,7 @@ IApiService apiService, DatabaseService databaseService)
             .Where(f => f.HomeTeamId == null || f.AwayTeamId == null
                 || f.HomeTeamName == null || f.AwayTeamName == null)
             .OrderBy(f => f.CreatedAt)
-            .Take(10)
+            .Take(8)
             .ToListAsync();
 
         //_logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);

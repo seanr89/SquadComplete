@@ -34,7 +34,7 @@ IApiService apiService, DatabaseService databaseService)
             var fixturesWithoutStats = await _context.Fixtures
                 .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
                 .OrderBy(f => f.Id)
-                .Take(8)
+                .Take(6)
                 .ToListAsync();
 
             if (fixturesWithoutStats.Count == 0)
