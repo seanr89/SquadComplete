@@ -93,8 +93,9 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
 
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+        using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(120));
         _logger.LogInformation("Sending request to Gemini API...");
-        HttpResponseMessage response = await _httpClient.PostAsync(url, content);
+        HttpResponseMessage response = await _httpClient.PostAsync(url, content, cts.Token);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -104,7 +105,6 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         }
 
         string responseJson = await response.Content.ReadAsStringAsync();
-        //_logger.LogInformation("Gemini API Response: {ResponseJson}", responseJson);
         return responseJson;
     }
 }

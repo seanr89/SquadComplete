@@ -1,8 +1,6 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using squad_func.Services;
-using System.Text.Json;
-using squad_func.Models.Database;
 using squad_func.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,11 +33,19 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
             var team = season.First().Team;
             var seasonInfo = season.First().Season;
 
-            _logger.LogInformation("HistoricalAi started for {Team} {Season}", team.Name, seasonInfo.StartDate);
+            _logger.LogInformation("HistoricalAi started for {Team} {Season}", team.Name, seasonInfo.Name);
 
+            var geminiData = await _geminiService.GetHistoryAsync(team.Name, seasonInfo.Name);
 
-
-            var geminiData = await _geminiService.GetHistoryAsync(team.Name, seasonInfo.StartDate);
+            if (geminiData != null)
+            {
+                var blobName = $"{team.Name}_{seasonInfo.Name}_history.json";
+                await _storageService.UploadToStorage(geminiData, blobName, "squad-history");
+            }
+            else
+            {
+                _logger.LogError("HistoricalAi failed for {Team} {Season}", team.Name, seasonInfo.Name);
+            }
         }
     }
 }
