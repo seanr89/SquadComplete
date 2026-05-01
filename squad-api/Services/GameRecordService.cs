@@ -140,8 +140,8 @@ public class GameRecordService
 
                 return new GameRecordTeamDto
                 {
-                    //FixtureId = t.FixtureId,
-                    //TeamId = t.TeamId,
+                    FixtureId = t.FixtureId,
+                    TeamId = t.TeamId,
                     TeamName = t.Team?.Name ?? string.Empty,
                     TeamLogo = t.Team?.Logo,
                     Formation = CalculateFormation(players),

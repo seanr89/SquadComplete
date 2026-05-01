@@ -14,6 +14,8 @@ public class GameRecordDto
 
 public class GameRecordTeamDto
 {
+    public int? FixtureId { get; set; }
+    public int? TeamId { get; set; }
     public string TeamName { get; set; } = string.Empty;
     public string? TeamLogo { get; set; }
     public string Formation { get; set; } = string.Empty;

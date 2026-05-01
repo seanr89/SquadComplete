@@ -22,6 +22,7 @@ export const fetchDailySquads = async (date?: string): Promise<DailyChallenge | 
                 id: `s${index + 1}`, // Generate a unique ID since GameRecordTeamDto doesn't have one
                 teamName: team.teamName,
                 season: 'Current', // Fallback as Season is not in the DTO
+                fixtureId: team.fixtureId,
                 players: team.players.map((p: any) => ({
                     id: p.playerId.toString(),
                     name: p.playerName,
@@ -58,6 +59,20 @@ export const fetchLeaderboard = async (gameRecordId: number): Promise<any[]> => 
     } catch (error) {
         console.error('Error fetching leaderboard:', error);
         return [];
+    }
+};
+
+export const fetchFixture = async (fixtureId: number): Promise<any> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/fixtures/${fixtureId}`);
+        if (!response.ok) {
+            console.error('Failed to fetch fixture:', response.statusText);
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching fixture:', error);
+        return null;
     }
 };
 
