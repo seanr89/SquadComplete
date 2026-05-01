@@ -8,16 +8,10 @@ using squad_func.Models;
 
 namespace squad_func.Services;
 
-public class AgentMappingService : IAgentMappingService
+public class AgentMappingService(SquadContext context, ILogger<AgentMappingService> logger)
 {
-    private readonly SquadContext _context;
-    private readonly ILogger<AgentMappingService> _logger;
-
-    public AgentMappingService(SquadContext context, ILogger<AgentMappingService> logger)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly ILogger<AgentMappingService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
     /// Processes an AgentFixture and saves it to the database.

@@ -8,11 +8,11 @@ namespace Squad.Function;
 
 public class StorageReader(ILoggerFactory loggerFactory,
     StorageService storageService,
-    IAgentMappingService agentFixtureMapperService)
+    AgentMappingService agentFixtureMapperService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<StorageReader>();
     private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
-    private readonly IAgentMappingService _agentMappingService = agentFixtureMapperService ?? throw new ArgumentNullException(nameof(agentFixtureMapperService));
+    private readonly AgentMappingService _agentMappingService = agentFixtureMapperService ?? throw new ArgumentNullException(nameof(agentFixtureMapperService));
 
     [Function("StorageReader")]
     public async Task Run([TimerTrigger("0 30 12 * * *")] TimerInfo myTimer)
