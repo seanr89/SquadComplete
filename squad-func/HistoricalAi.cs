@@ -40,17 +40,21 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
             if (geminiData != null)
             {
                 var blobName = $"{team.Name}_{seasonInfo.Name}_history.json";
-                await _storageService.UploadToStorage(geminiData, blobName, "squad-history");
-
-                // update the data requested flag
-                var teamSeason = await _context.TeamSeasons
-                    .Where(ts => ts.TeamId == team.Id && ts.SeasonId == seasonInfo.Id)
-                    .FirstOrDefaultAsync();
-
-                if (teamSeason != null)
+                var jsonFormatted = SeasonDataProcessor.ProcessAndRemoveLosses(geminiData, team.Name);
+                if (jsonFormatted != null)
                 {
-                    teamSeason.DataRequested = true;
-                    await _context.SaveChangesAsync();
+                    await _storageService.UploadToStorage(jsonFormatted, blobName, "squad-history");
+
+                    // update the data requested flag
+                    var teamSeason = await _context.TeamSeasons
+                        .Where(ts => ts.TeamId == team.Id && ts.SeasonId == seasonInfo.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (teamSeason != null)
+                    {
+                        teamSeason.DataRequested = true;
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
             else
