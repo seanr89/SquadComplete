@@ -8,17 +8,17 @@ using System.Threading.Tasks;
 
 namespace squad_func.Services;
 
-public class StorageService
+public class StorageService(ILogger<StorageService> logger, IConfiguration configuration)
 {
-    private readonly ILogger<StorageService> _logger;
-    private readonly IConfiguration _configuration;
+    private readonly ILogger<StorageService> _logger = logger;
+    private readonly IConfiguration _configuration = configuration;
 
-    public StorageService(ILogger<StorageService> logger, IConfiguration configuration)
-    {
-        _logger = logger;
-        _configuration = configuration;
-    }
-
+    /// <summary>
+    /// Uploads data to Azure Storage.
+    /// </summary>
+    /// <param name="jsonData">The data to upload.</param>
+    /// <param name="fileName">The name of the file to upload.</param>
+    /// <param name="containerName">The name of the container to upload to.</param>
     public async Task UploadToStorage(string jsonData, string fileName, string containerName)
     {
         try
@@ -148,7 +148,12 @@ public class StorageService
         }
     }
 
-    // TODO implement this method -  Move a blob from one container to another
+    /// <summary>
+    /// Moves a blob from one container to another in Azure Storage.
+    /// </summary>
+    /// <param name="blob">The name of the blob to move.</param>
+    /// <param name="sourceContainerName">The name of the container to move the blob from.</param>
+    /// <param name="destinationContainerName">The name of the container to move the blob to.</param>   
     public async Task MoveBlob(string blob, string sourceContainerName, string destinationContainerName)
     {
         try

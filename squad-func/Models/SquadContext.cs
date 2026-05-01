@@ -33,7 +33,7 @@ public class SquadContext : DbContext
 
         // Unique constraint for TeamSeason
         modelBuilder.Entity<TeamSeason>()
-            .HasIndex(t => new { t.TeamId, t.SeasonYear })
+            .HasIndex(t => new { t.TeamId, t.SeasonId })
             .IsUnique();
     }
 }

@@ -15,7 +15,7 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     [Function("HistoricalAi")]
-    public async Task Run([TimerTrigger("0 0 10 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 21 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("HistoricalAi started");
 
@@ -41,6 +41,17 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
             {
                 var blobName = $"{team.Name}_{seasonInfo.Name}_history.json";
                 await _storageService.UploadToStorage(geminiData, blobName, "squad-history");
+
+                // update the data requested flag
+                var teamSeason = await _context.TeamSeasons
+                    .Where(ts => ts.TeamId == team.Id && ts.SeasonId == seasonInfo.Id)
+                    .FirstOrDefaultAsync();
+
+                if (teamSeason != null)
+                {
+                    teamSeason.DataRequested = true;
+                    await _context.SaveChangesAsync();
+                }
             }
             else
             {
