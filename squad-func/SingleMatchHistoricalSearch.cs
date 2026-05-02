@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using squad_func.Services;
+using System.Text.Json;
 
 namespace Squad.Function;
 
@@ -28,8 +29,27 @@ GeminiService geminiService, StorageService storageService)
         _logger.LogInformation("SingleMatchHistoricalSearch started");
 
         // step 1. lets run and see if there is a historical record/file to search
+        if (await _storageService.IsContainerEmpty("ai-team"))
+        {
+            _logger.LogInformation("Team container is empty, nothing to do");
+            return;
+        }
 
         // Step 2. read down file from storage
+        var blobs = await _storageService.GetBlobs("ai-team");
+        var blob = blobs.First();
+        var blobData = await _storageService.ReadFromStorage(blob, "ai-team");
+
+        try
+        {
+            var seasonMatchData = JsonSerializer.Deserialize<SeasonData>(blobData);
+            // Proceed with logic
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Error deserializing blob data");
+            throw;
+        }
 
         // Step 3. read next record for a historical match
 
