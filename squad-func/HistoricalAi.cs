@@ -23,6 +23,8 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
         .Include(x => x.Team)
         .Include(x => x.Season)
         .Where(ts => !ts.DataRequested)
+        .Where(ts => ts.Team.Active)
+        .OrderBy(x => x.Team.CreatedAt)
         .AsNoTracking()
         .Take(1)
         .ToListAsync();
@@ -36,7 +38,6 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
             _logger.LogInformation("HistoricalAi started for {Team} {Season}", team.Name, seasonInfo.Name);
 
             var geminiData = await _geminiService.GetHistoryAsync(team.Name, seasonInfo.Name);
-
             if (geminiData != null)
             {
                 var blobName = $"{team.Name}_{seasonInfo.Name}_history.json";
