@@ -15,7 +15,7 @@ public class StorageReader(ILoggerFactory loggerFactory,
     private readonly AgentMappingService _agentMappingService = agentFixtureMapperService ?? throw new ArgumentNullException(nameof(agentFixtureMapperService));
 
     [Function("StorageReader")]
-    public async Task Run([TimerTrigger("0 30 12 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 30 14 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("StorageReader started");
         try

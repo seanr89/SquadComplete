@@ -72,6 +72,10 @@ IApiService apiService, DatabaseService databaseService)
                         {
                             dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
                             dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
+                            dbFixture.HomeTeamId = fixtureData.Teams.Home?.Id;
+                            dbFixture.AwayTeamId = fixtureData.Teams.Away?.Id;
+                            dbFixture.HomeTeamName = fixtureData.Teams.Home?.Name;
+                            dbFixture.AwayTeamName = fixtureData.Teams.Away?.Name;
                             dbFixture.UpdatedAt = DateTime.UtcNow;
 
                             await _context.SaveChangesAsync();
@@ -105,6 +109,10 @@ IApiService apiService, DatabaseService databaseService)
                         {
                             dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
                             dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
+                            dbFixture.HomeTeamId = fixtureData.Teams?.Home?.Id;
+                            dbFixture.AwayTeamId = fixtureData.Teams?.Away?.Id;
+                            dbFixture.HomeTeamName = fixtureData.Teams?.Home?.Name;
+                            dbFixture.AwayTeamName = fixtureData.Teams?.Away?.Name;
                             dbFixture.UpdatedAt = DateTime.UtcNow;
 
                             await _context.SaveChangesAsync();
