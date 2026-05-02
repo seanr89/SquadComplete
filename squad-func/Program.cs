@@ -20,9 +20,9 @@ builder.Services.AddDbContext<SquadContext>(options =>
     options.ConfigureWarnings(w => w.Ignore(RelationalEventId.CommandExecuted));
 });
 
-builder.Services.AddHttpClient<GeminiService>(client => client.Timeout = TimeSpan.FromSeconds(160));
+builder.Services.AddHttpClient<GeminiService>(client => client.Timeout = TimeSpan.FromSeconds(240));
 builder.Services.AddTransient<StorageService>();
-builder.Services.AddHttpClient<IApiService, ApiService>(client => client.Timeout = TimeSpan.FromSeconds(160));
+builder.Services.AddHttpClient<IApiService, ApiService>(client => client.Timeout = TimeSpan.FromSeconds(240));
 builder.Services.AddScoped<DatabaseService>();
 builder.Services.AddScoped<AgentMappingService>();
 

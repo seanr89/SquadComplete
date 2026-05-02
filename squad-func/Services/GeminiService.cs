@@ -18,6 +18,12 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
+    /// <summary>
+    /// Generates content for a given league and formatted date.
+    /// </summary>
+    /// <param name="league">The name of the league.</param>
+    /// <param name="formattedDate">The formatted date.</param>
+    /// <returns>A string containing the generated content.</returns>
     public async Task<string?> GenerateContentAsync(string league, string formattedDate)
     {
         string promptFilePath = Path.Combine(AppContext.BaseDirectory, "prompts/agent-prompt.md");
@@ -44,7 +50,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
 
         string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
 
-        string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+        string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
 
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -63,6 +69,12 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         return responseJson;
     }
 
+    /// <summary>
+    /// Gets the history of a team for a given season.
+    /// </summary>
+    /// <param name="team">The name of the team.</param>
+    /// <param name="season">The season, in the format "yyyy/yyyy".</param>
+    /// <returns>A string containing the history of the team for the given season.</returns>
     public async Task<string> GetHistoryAsync(string team, string season)
     {
         _logger.LogInformation("Getting history for {Team} {Season}", team, season);
@@ -89,17 +101,21 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
             },
                 generationConfig = new
                 {
-                    temperature = 0.2
+                    temperature = 0.2,
+                    // Latency is directly proportional to the number of tokens generated.
+                    // Use the max_output_tokens parameter to restrict the length of the response
+                    // double the output tokens does not seem to have an impact on the response time
+                    maxOutputTokens = 12288
                 }
             };
 
             string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
 
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={_apiKey}";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(160));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
             _logger.LogInformation("Sending request to Gemini API...");
             HttpResponseMessage response = await _httpClient.PostAsync(url, content, cts.Token);
 
