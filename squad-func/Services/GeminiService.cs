@@ -20,7 +20,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
 
     public async Task<string?> GenerateContentAsync(string league, string formattedDate)
     {
-        string promptFilePath = Path.Combine(AppContext.BaseDirectory, "agent-prompt.md");
+        string promptFilePath = Path.Combine(AppContext.BaseDirectory, "prompts/agent-prompt.md");
         string template = await File.ReadAllTextAsync(promptFilePath);
         string userPrompt = template.Replace("{LEAGUE}", league).Replace("{FORMATTED_DATE}", formattedDate);
 
@@ -71,7 +71,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         try
         {
 
-            string promptFilePath = Path.Combine(AppContext.BaseDirectory, "history.md");
+            string promptFilePath = Path.Combine(AppContext.BaseDirectory, "prompts/history.md");
             string template = await File.ReadAllTextAsync(promptFilePath);
             string userPrompt = template.Replace("{TEAM}", team).Replace("{SEASON}", season);
 
