@@ -15,7 +15,7 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     [Function("HistoricalAi")]
-    public async Task Run([TimerTrigger("0 0 21 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 30 14-22 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("HistoricalAi started");
 
@@ -40,7 +40,8 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
             var geminiData = await _geminiService.GetHistoryAsync(team.Name, seasonInfo.Name);
             if (geminiData != null)
             {
-                var blobName = $"{team.Name}_{seasonInfo.Name}_history.json";
+                string seasonInfoName = seasonInfo.Name.Replace("/", "-");
+                var blobName = $"{team.Name}_{seasonInfoName}_history.json";
                 var jsonFormatted = SeasonDataProcessor.ProcessAndRemoveLosses(geminiData, team.Name);
                 if (jsonFormatted != null)
                 {
