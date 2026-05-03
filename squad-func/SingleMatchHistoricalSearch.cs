@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using squad_func.Services;
 using System.Text.Json;
+using Squad.Function.Models.AI;
 
 namespace Squad.Function;
 
@@ -40,9 +41,15 @@ GeminiService geminiService, StorageService storageService)
         var blob = blobs.First();
         var blobData = await _storageService.ReadFromStorage(blob, "ai-team");
 
+        //Get the Name of the team Searched
+        var teamName = blob.Split("_")[0];
+        var seasonDate = blob.Split("_")[1];
+        seasonDate = seasonDate.Replace("-", "/");
+
+        SeasonData? seasonMatchData = null;
         try
         {
-            var seasonMatchData = JsonSerializer.Deserialize<SeasonData>(blobData);
+            seasonMatchData = JsonSerializer.Deserialize<SeasonData>(blobData);
             // Proceed with logic
         }
         catch (JsonException ex)
@@ -52,16 +59,36 @@ GeminiService geminiService, StorageService storageService)
         }
 
         // Step 3. read next record for a historical match
+        var seasonMatch = seasonMatchData?.Fixtures.FirstOrDefault();
 
         // Step 4. Run a gemini search via prompt, passing it the match info (this is)
+        string matchDate = seasonMatch?.Date;
+        var geminiResponse = await _geminiService.GetSingleMatchHistoryAsync(teamName, seasonDate, matchDate);
 
-        // Step 5. Validate response format etc...
+        if (string.IsNullOrEmpty(geminiResponse))
+        {
+            _logger.LogError("HistoricalAi failed for {Team} {Season}", teamName, seasonDate);
+            return;
+        }
+        // Step 5. Validate response format etc... using the matchmetatdata
+        MatchDetails matchMetaData;
+        try
+        {
+            matchMetaData = JsonSerializer.Deserialize<MatchDetails>(geminiResponse);
 
-        // Step 6 build object model from stored data for Player, Team data etc...
+            //Todo - lets save the record to storage
+            var filename = $"{teamName}_{matchDate}.json";
+            await _storageService.UploadToStorage(geminiResponse, filename, "ai-team-single");
 
-        // Step 7. Use DbContext to update each of the record's teams, and players to include their respective photos etc... 
-
-        // Step 8. Remove from the historical file and save back to storage for next time
+            // now we need to update the historical search
+            seasonMatchData.Fixtures.Remove(seasonMatch);
+            await _storageService.UploadToStorage(JsonSerializer.Serialize(seasonMatchData), blob, "ai-team");
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Error deserializing blob data");
+            throw;
+        }
 
     }
 }

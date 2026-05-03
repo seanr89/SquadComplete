@@ -12,6 +12,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
 {
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly string _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? string.Empty;
+    private const string _agentModel = "gemini-3.1-flash-lite-preview";
     private readonly ILogger<GeminiService> _logger = logger;
     private static readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
@@ -30,27 +31,10 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         string template = await File.ReadAllTextAsync(promptFilePath);
         string userPrompt = template.Replace("{LEAGUE}", league).Replace("{FORMATTED_DATE}", formattedDate);
 
-        var requestBody = new
-        {
-            contents = new[]
-            {
-                new
-                {
-                    parts = new[]
-                    {
-                        new { text = userPrompt }
-                    }
-                }
-            },
-            generationConfig = new
-            {
-                temperature = 0.2
-            }
-        };
-
+        var requestBody = BuildBaseRequestBody(userPrompt);
         string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
 
-        string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
+        string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_agentModel}:generateContent?key={_apiKey}";
 
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -87,31 +71,11 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
             string template = await File.ReadAllTextAsync(promptFilePath);
             string userPrompt = template.Replace("{TEAM}", team).Replace("{SEASON}", season);
 
-            var requestBody = new
-            {
-                contents = new[]
-                {
-                new
-                {
-                    parts = new[]
-                    {
-                        new { text = userPrompt }
-                    }
-                }
-            },
-                generationConfig = new
-                {
-                    temperature = 0.2,
-                    // Latency is directly proportional to the number of tokens generated.
-                    // Use the max_output_tokens parameter to restrict the length of the response
-                    // double the output tokens does not seem to have an impact on the response time
-                    maxOutputTokens = 12288
-                }
-            };
+            var requestBody = BuildBaseRequestBody(userPrompt);
 
             string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
 
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key={_apiKey}";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_agentModel}:generateContent?key={_apiKey}";
 
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -134,5 +98,75 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
             _logger.LogError("Error getting history for {Team} {Season}: {Error}", team, season, ex.Message);
             return null;
         }
+    }
+
+    public async Task<string?> GetSingleMatchHistoryAsync(string team, string season, string matchDate)
+    {
+        _logger.LogInformation("Getting history for {Team} {Season} {MatchDate}", team, season, matchDate);
+
+        // Add a try/catch flow
+        try
+        {
+            string promptFilePath = Path.Combine(AppContext.BaseDirectory, "prompts/team_fixture_prompt.md");
+            string template = await File.ReadAllTextAsync(promptFilePath);
+
+            string finalPrompt = template
+            .Replace("[INSERT TEAM NAME]", team)
+            .Replace("[INSERT LEAGUE/SEASON, e.g., 2024/25 Premier League]", season)
+            .Replace("[INSERT DATE, e.g., November 12, 2024]", matchDate);
+
+            var requestBody = BuildBaseRequestBody(finalPrompt);
+
+            string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
+
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_agentModel}:generateContent?key={_apiKey}";
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
+            _logger.LogInformation("Sending request to Gemini API...");
+            HttpResponseMessage response = await _httpClient.PostAsync(url, content, cts.Token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Error HTTP {StatusCode}: {ErrorContent}", (int)response.StatusCode, errorContent);
+                return null;
+            }
+
+            string responseJson = await response.Content.ReadAsStringAsync();
+            return responseJson;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error getting history for {Team} {MatchDate}: {Error}", team, matchDate, ex.Message);
+            return null;
+        }
+    }
+
+    private static global::System.Object BuildBaseRequestBody(string userPrompt)
+    {
+        var requestBody = new
+        {
+            contents = new[]
+            {
+                new
+                {
+                    parts = new[]
+                    {
+                        new { text = userPrompt }
+                    }
+                }
+            },
+            generationConfig = new
+            {
+                temperature = 0.2,
+                // Latency is directly proportional to the number of tokens generated.
+                // Use the max_output_tokens parameter to restrict the length of the response
+                // double the output tokens does not seem to have an impact on the response time
+                maxOutputTokens = 12288
+            }
+        };
+        return requestBody;
     }
 }
