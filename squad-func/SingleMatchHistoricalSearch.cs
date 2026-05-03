@@ -46,11 +46,10 @@ GeminiService geminiService, StorageService storageService)
         var seasonDate = blob.Split("_")[1];
         seasonDate = seasonDate.Replace("-", "/");
 
-        SeasonData? seasonMatchData = null;
+        SeasonData seasonMatchData;
         try
         {
             seasonMatchData = JsonSerializer.Deserialize<SeasonData>(blobData);
-            // Proceed with logic
         }
         catch (JsonException ex)
         {
