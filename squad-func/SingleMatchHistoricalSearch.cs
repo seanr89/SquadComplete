@@ -27,8 +27,6 @@ GeminiService geminiService, StorageService storageService)
     [Function("SingleMatchHistoricalSearch")]
     public async Task Run([TimerTrigger("0 15,45 10-16 * * *")] TimerInfo myTimer)
     {
-        _logger.LogInformation("SingleMatchHistoricalSearch started");
-
         // step 1. lets run and see if there is a historical record/file to search
         if (await _storageService.IsContainerEmpty("ai-team") == true)
         {
@@ -53,8 +51,8 @@ GeminiService geminiService, StorageService storageService)
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Error deserializing blob data with error {Error}", ex.Message);
-            _logger.LogError("Blob data: {BlobData}", blobData);
+            //_logger.LogError(ex, "Error deserializing blob data with error {Error}", ex.Message);
+            //_logger.LogError("Blob data: {BlobData}", blobData);
             throw;
         }
 
