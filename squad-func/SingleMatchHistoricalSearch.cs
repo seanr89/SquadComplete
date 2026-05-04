@@ -74,6 +74,7 @@ GeminiService geminiService, StorageService storageService)
         try
         {
             matchMetaData = JsonSerializer.Deserialize<MatchDetails>(geminiResponse);
+            _logger.LogInformation("Match details for {Team} {Season} {Match}", teamName, seasonDate, matchDate);
 
             //Todo - lets save the record to storage
             var filename = $"{teamName}_{matchDate}.json";
@@ -85,7 +86,7 @@ GeminiService geminiService, StorageService storageService)
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Error deserializing blob data");
+            _logger.LogError(ex, "Error deserializing blob data with error {Error}", ex.Message);
             throw;
         }
 

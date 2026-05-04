@@ -21,6 +21,7 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
     /// <param name="containerName">The name of the container to upload to.</param>
     public async Task UploadToStorage(string jsonData, string fileName, string containerName)
     {
+        _logger.LogInformation("Uploading data to {FileName} in Azure Storage container '{ContainerName}'...", fileName, containerName);
         try
         {
             // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
