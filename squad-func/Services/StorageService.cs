@@ -131,8 +131,10 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
             _logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", blobList.Count, containerName);
             if (blobList.Count > 0)
             {
+                // container is not empty, we have work to do
                 return false;
             }
+            // container is empty, nothing to do
             return true;
         }
         catch (Exception ex)
