@@ -46,7 +46,7 @@ GeminiService geminiService, StorageService storageService)
         var seasonDate = blob.Split("_")[1];
         seasonDate = seasonDate.Replace("-", "/");
 
-        SeasonData seasonMatchData;
+        SeasonData? seasonMatchData;
         try
         {
             seasonMatchData = JsonSerializer.Deserialize<SeasonData>(blobData);
@@ -71,7 +71,7 @@ GeminiService geminiService, StorageService storageService)
             return;
         }
         // Step 5. Validate response format etc... using the matchmetatdata
-        MatchDetails matchMetaData;
+        MatchDetails? matchMetaData;
         try
         {
             matchMetaData = JsonSerializer.Deserialize<MatchDetails>(geminiResponse);
@@ -87,7 +87,7 @@ GeminiService geminiService, StorageService storageService)
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Error deserializing blob data with error {Error}", ex.Message);
+            _logger.LogError(ex, "Error processing SingleMatchLogic {Error}", ex.Message);
             throw;
         }
 

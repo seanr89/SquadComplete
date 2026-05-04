@@ -129,7 +129,7 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
                 blobList.Add(blob.Name);
             }
 
-            _logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", blobList.Count, containerName);
+            //_logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", blobList.Count, containerName);
             if (blobList.Count > 0)
             {
                 // container is not empty, we have work to do
@@ -182,7 +182,7 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
             var content = await blobClient.DownloadContentAsync();
 
             _logger.LogInformation("Successfully read {FileName} from Azure Storage.", fileName);
-            return content.Value.ToString();
+            return content.Value.Content.ToString();
         }
         catch (Exception ex)
         {
