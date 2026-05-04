@@ -53,7 +53,8 @@ GeminiService geminiService, StorageService storageService)
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Error deserializing blob data");
+            _logger.LogError(ex, "Error deserializing blob data with error {Error}", ex.Message);
+            _logger.LogError("Blob data: {BlobData}", blobData);
             throw;
         }
 
