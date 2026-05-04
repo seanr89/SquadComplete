@@ -25,7 +25,7 @@ GeminiService geminiService, StorageService storageService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("SingleMatchHistoricalSearch")]
-    public async Task Run([TimerTrigger("0 15-45 11-16 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 15,45 10-16 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("SingleMatchHistoricalSearch started");
 
