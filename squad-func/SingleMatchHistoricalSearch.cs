@@ -30,7 +30,7 @@ GeminiService geminiService, StorageService storageService)
         _logger.LogInformation("SingleMatchHistoricalSearch started");
 
         // step 1. lets run and see if there is a historical record/file to search
-        if (!await _storageService.IsContainerEmpty("ai-team"))
+        if (await _storageService.IsContainerEmpty("ai-team") == true)
         {
             _logger.LogInformation("Team container is empty, nothing to do");
             return;
