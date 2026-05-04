@@ -1,7 +1,7 @@
 name: SPA - Deploy
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "MatchInfoEnrich" ]
     paths:
       - 'squad-draft/**'
   pull_request:

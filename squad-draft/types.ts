@@ -16,6 +16,7 @@ export interface Squad {
   teamName: string;
   season: string;
   players: Player[];
+  fixtureId?: number;
 }
 
 export interface FormationModel {

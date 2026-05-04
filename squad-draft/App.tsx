@@ -9,6 +9,7 @@ import PlayerCard from './components/PlayerCard';
 import AboutDialog from './components/AboutDialog';
 import Leaderboard from './components/Leaderboard';
 import AlertDialog from './components/AlertDialog';
+import FixtureInfo from './components/FixtureInfo';
 
 const App: React.FC = () => {
   const teamRef = useRef<HTMLDivElement>(null);
@@ -367,6 +368,9 @@ const App: React.FC = () => {
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-xl font-bold text-white">{currentSquad.teamName}</h2>
+                    {currentSquad.fixtureId && (
+                      <FixtureInfo fixtureId={currentSquad.fixtureId} />
+                    )}
                   </div>
                   <div className="text-right">
                     <span className="block text-xs font-bold text-slate-500 uppercase tracking-widest">Pick</span>

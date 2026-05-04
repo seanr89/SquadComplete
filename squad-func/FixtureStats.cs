@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("FixtureStats")]
-    public async Task Run([TimerTrigger("0 0 12-16 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 12 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("C# Timer trigger function executed at: {executionTime}", DateTime.Now);
 
@@ -34,7 +34,7 @@ IApiService apiService, DatabaseService databaseService)
             var fixturesWithoutStats = await _context.Fixtures
                 .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
                 .OrderBy(f => f.Id)
-                .Take(8)
+                .Take(6)
                 .ToListAsync();
 
             if (fixturesWithoutStats.Count == 0)
@@ -44,19 +44,7 @@ IApiService apiService, DatabaseService databaseService)
             }
             _logger.LogInformation("Found {count} fixtures without player statistics.", fixturesWithoutStats.Count);
 
-            foreach (var fixture in fixturesWithoutStats)
-            {
-                if (fixture.HomeTeamId != null)
-                {
-                    var homeTeamStats = await _apiService.GetPlayerStatsAsync(fixture.Id, fixture.HomeTeamId.Value);
-                    await ProcessTeamStatsAsync(fixture.Id, fixture.HomeTeamId.Value, homeTeamStats);
-                }
-                if (fixture.AwayTeamId != null)
-                {
-                    var awayTeamStats = await _apiService.GetPlayerStatsAsync(fixture.Id, fixture.AwayTeamId.Value);
-                    await ProcessTeamStatsAsync(fixture.Id, fixture.AwayTeamId.Value, awayTeamStats);
-                }
-            }
+            await FetchAndProcessFixtureStatsAsync(fixturesWithoutStats);
         }
         catch (Exception ex)
         {
@@ -68,6 +56,23 @@ IApiService apiService, DatabaseService databaseService)
             .Where(f => !_context.PlayerFixtureStatistics.Any(pfs => pfs.FixtureId == f.Id))
             .CountAsync();
     }
+    private async Task FetchAndProcessFixtureStatsAsync(List<Fixture> fixtures)
+    {
+        foreach (var fixture in fixtures)
+        {
+            if (fixture.HomeTeamId != null)
+            {
+                var homeTeamStats = await _apiService.GetPlayerStatsAsync(fixture.Id, fixture.HomeTeamId.Value);
+                await ProcessTeamStatsAsync(fixture.Id, fixture.HomeTeamId.Value, homeTeamStats);
+            }
+            if (fixture.AwayTeamId != null)
+            {
+                var awayTeamStats = await _apiService.GetPlayerStatsAsync(fixture.Id, fixture.AwayTeamId.Value);
+                await ProcessTeamStatsAsync(fixture.Id, fixture.AwayTeamId.Value, awayTeamStats);
+            }
+        }
+    }
+
 
     /// <summary>
     /// Processes and persists team, player, and statistical data from the API response to the database.

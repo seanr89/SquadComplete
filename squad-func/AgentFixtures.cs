@@ -13,19 +13,16 @@ GeminiService geminiService, StorageService storageService)
     private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
 
     [Function("AgentFixtures")]
-    public async Task Run([TimerTrigger("0 0 6 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 22 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("AgentFixtures started");
-        // set current date -1 day
+
         DateTime currentDate = DateTime.Now.AddDays(-1);
         string formattedDate = currentDate.ToString("yyyy-MM-dd");
         try
         {
-            // create prompt message
-            string userPrompt = $"find me English premier league matches for date {formattedDate} in json format";
-
             // call api service
-            string? response = await _geminiService.GenerateContentAsync(userPrompt);
+            string? response = await _geminiService.GenerateContentAsync("English Premier Leage", formattedDate);
             if (response == null)
             {
                 _logger.LogWarning("No response from Gemini Query");
@@ -56,7 +53,7 @@ GeminiService geminiService, StorageService storageService)
     /// </summary>
     /// <param name="aiText">The response from Gemini</param>
     /// <returns>The JSON response</returns>
-    private static string? ConvertResponseToJson(string aiText)
+    private string? ConvertResponseToJson(string aiText)
     {
         // --- Extract and Save JSON ---
         try
@@ -78,11 +75,11 @@ GeminiService geminiService, StorageService storageService)
         }
         catch (JsonException)
         {
-            Console.WriteLine("Note: A JSON-like block was found but it contains invalid JSON.");
+            _logger.LogWarning("Note: A JSON-like block was found but it contains invalid JSON.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Note: Could not extract JSON: {ex.Message}");
+            _logger.LogError(ex, "Note: Could not extract JSON: {Message}", ex.Message);
         }
 
         return string.Empty;

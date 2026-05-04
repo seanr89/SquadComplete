@@ -8,20 +8,19 @@ using squad_func.Models;
 
 namespace squad_func.Services;
 
-public class AgentMappingService : IAgentMappingService
+public class AgentMappingService(SquadContext context, ILogger<AgentMappingService> logger)
 {
-    private readonly SquadContext _context;
-    private readonly ILogger<AgentMappingService> _logger;
+    private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly ILogger<AgentMappingService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public AgentMappingService(SquadContext context, ILogger<AgentMappingService> logger)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
+    /// <summary>
+    /// Processes an AgentFixture and saves it to the database.
+    /// </summary>
+    /// <param name="agentFixture">The AgentFixture to process.</param>
+    /// <returns></returns>
     public async Task ProcessAgentFixtureAsync(AgentFixture agentFixture)
     {
-        if (agentFixture == null || agentFixture.Matches == null || !agentFixture.Matches.Any())
+        if (agentFixture == null || agentFixture.Matches == null || agentFixture.Matches.Count == 0)
         {
             _logger.LogWarning("AgentFixture is null or contains no matches.");
             return;
@@ -103,9 +102,9 @@ public class AgentMappingService : IAgentMappingService
                 if (match.Lineups != null)
                 {
                     await ProcessLineupAsync(match.Lineups.HomeStartingXi, homeTeam?.Id, fixture, false, playerCache, ref nextPlayerId);
-                    await ProcessLineupAsync(match.Lineups.HomeSubstitutes, homeTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
+                    //await ProcessLineupAsync(match.Lineups.HomeSubstitutes, homeTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
                     await ProcessLineupAsync(match.Lineups.AwayStartingXi, awayTeam?.Id, fixture, false, playerCache, ref nextPlayerId);
-                    await ProcessLineupAsync(match.Lineups.AwaySubstitutes, awayTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
+                    //await ProcessLineupAsync(match.Lineups.AwaySubstitutes, awayTeam?.Id, fixture, true, playerCache, ref nextPlayerId);
                 }
             }
 
@@ -121,6 +120,16 @@ public class AgentMappingService : IAgentMappingService
         }
     }
 
+    /// <summary>
+    /// Processes a list of player names and adds them to the database.
+    /// </summary>
+    /// <param name="playerNames">The list of player names to process.</param>
+    /// <param name="teamId">The ID of the team the players belong to.</param>
+    /// <param name="fixture">The fixture the players belong to.</param>
+    /// <param name="isSubstitute">Whether the players are substitutes.</param>
+    /// <param name="playerCache"></param>
+    /// <param name="nextPlayerId"></param>
+    /// <returns></returns>
     private Task ProcessLineupAsync(List<string>? playerNames, int? teamId, Fixture fixture, bool isSubstitute, Dictionary<string, Player> playerCache, ref int nextPlayerId)
     {
         if (playerNames == null || !playerNames.Any()) return Task.CompletedTask;
