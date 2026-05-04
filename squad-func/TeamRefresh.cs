@@ -66,20 +66,7 @@ IApiService apiService, DatabaseService databaseService)
                             }
                         }
 
-                        // Ensure that fixture goals have also been updated
-                        var dbFixture = await _context.Fixtures.FindAsync(fixture.Id);
-                        if (dbFixture != null)
-                        {
-                            dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
-                            dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
-                            dbFixture.HomeTeamId = fixtureData.Teams.Home?.Id;
-                            dbFixture.AwayTeamId = fixtureData.Teams.Away?.Id;
-                            dbFixture.HomeTeamName = fixtureData.Teams.Home?.Name;
-                            dbFixture.AwayTeamName = fixtureData.Teams.Away?.Name;
-                            dbFixture.UpdatedAt = DateTime.UtcNow;
-
-                            await _context.SaveChangesAsync();
-                        }
+                        await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     }
 
                     if (fixtureData.Teams.Away != null)
@@ -103,20 +90,7 @@ IApiService apiService, DatabaseService databaseService)
                             }
                         }
 
-                        // Ensure that fixture goals have also been updated
-                        var dbFixture = await _context.Fixtures.FindAsync(fixture.Id);
-                        if (dbFixture != null)
-                        {
-                            dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
-                            dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
-                            dbFixture.HomeTeamId = fixtureData.Teams?.Home?.Id;
-                            dbFixture.AwayTeamId = fixtureData.Teams?.Away?.Id;
-                            dbFixture.HomeTeamName = fixtureData.Teams?.Home?.Name;
-                            dbFixture.AwayTeamName = fixtureData.Teams?.Away?.Name;
-                            dbFixture.UpdatedAt = DateTime.UtcNow;
-
-                            await _context.SaveChangesAsync();
-                        }
+                        await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     }
 
                     _logger.LogInformation("Updated team information for fixture {FixtureId}.", fixture.Id);
@@ -130,5 +104,21 @@ IApiService apiService, DatabaseService databaseService)
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("TeamRefresh completed");
+    }
+    private async Task UpdateFixtureDetailsAsync(int fixtureId, FixtureApiResponse fixtureData)
+    {
+        var dbFixture = await _context.Fixtures.FindAsync(fixtureId);
+        if (dbFixture != null)
+        {
+            dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
+            dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
+            dbFixture.HomeTeamId = fixtureData.Teams?.Home?.Id;
+            dbFixture.AwayTeamId = fixtureData.Teams?.Away?.Id;
+            dbFixture.HomeTeamName = fixtureData.Teams?.Home?.Name;
+            dbFixture.AwayTeamName = fixtureData.Teams?.Away?.Name;
+            dbFixture.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

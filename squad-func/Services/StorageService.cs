@@ -129,7 +129,11 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
             }
 
             _logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", blobList.Count, containerName);
-            return blobList.Count > 0;
+            if (blobList.Count > 0)
+            {
+                return false;
+            }
+            return true;
         }
         catch (Exception ex)
         {

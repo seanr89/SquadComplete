@@ -25,12 +25,12 @@ GeminiService geminiService, StorageService storageService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("SingleMatchHistoricalSearch")]
-    public async Task Run([TimerTrigger("0 30 6 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 15-45 11-16 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("SingleMatchHistoricalSearch started");
 
         // step 1. lets run and see if there is a historical record/file to search
-        if (await _storageService.IsContainerEmpty("ai-team"))
+        if (!await _storageService.IsContainerEmpty("ai-team"))
         {
             _logger.LogInformation("Team container is empty, nothing to do");
             return;
