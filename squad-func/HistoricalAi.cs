@@ -15,7 +15,7 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     [Function("HistoricalAi")]
-    public async Task Run([TimerTrigger("0 30 14-22 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 15,45 11-16 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("HistoricalAi started");
 
