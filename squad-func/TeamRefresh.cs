@@ -26,7 +26,7 @@ IApiService apiService, DatabaseService databaseService)
     [Function("TeamRefresh")]
     public async Task Run([TimerTrigger("0 0 4-12 * * *")] TimerInfo myTimer)
     {
-        _logger.LogInformation("TeamRefresh started");
+        //_logger.LogInformation("TeamRefresh started");
 
         var incompleteFixtures = await _context.Fixtures
             .Where(f => f.HomeTeamId == null || f.AwayTeamId == null
@@ -35,7 +35,7 @@ IApiService apiService, DatabaseService databaseService)
             .Take(8)
             .ToListAsync();
 
-        //_logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
+        _logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
 
         foreach (var fixture in incompleteFixtures)
         {
@@ -103,7 +103,7 @@ IApiService apiService, DatabaseService databaseService)
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("TeamRefresh completed");
+        //_logger.LogInformation("TeamRefresh completed");
     }
     private async Task UpdateFixtureDetailsAsync(int fixtureId, FixtureApiResponse fixtureData)
     {

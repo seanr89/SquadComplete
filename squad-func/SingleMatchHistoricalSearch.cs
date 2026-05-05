@@ -58,6 +58,13 @@ GeminiService geminiService, StorageService storageService)
 
         // Step 3. read next record for a historical match
         var seasonMatch = seasonMatchData?.Fixtures.FirstOrDefault();
+        if (seasonMatch == null)
+        {
+            _logger.LogInformation("No more historical matches for {Team} {Season}", teamName, seasonDate);
+            //we can remove the blob at this point from storage as it has been processed
+            await _storageService.MoveBlob(blob, "ai-team", "history-completed");
+            return;
+        }
 
         // Step 4. Run a gemini search via prompt, passing it the match info (this is)
         string matchDate = seasonMatch?.Date;
