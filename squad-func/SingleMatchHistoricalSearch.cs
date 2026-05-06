@@ -25,7 +25,7 @@ GeminiService geminiService, StorageService storageService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("SingleMatchHistoricalSearch")]
-    public async Task Run([TimerTrigger("0 15,45 10-16 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 15,45 19-23 * * *")] TimerInfo myTimer)
     {
         // step 1. lets run and see if there is a historical record/file to search
         if (await _storageService.IsContainerEmpty("ai-team") == true)
@@ -51,8 +51,7 @@ GeminiService geminiService, StorageService storageService)
         }
         catch (JsonException ex)
         {
-            //_logger.LogError(ex, "Error deserializing blob data with error {Error}", ex.Message);
-            //_logger.LogError("Blob data: {BlobData}", blobData);
+            _logger.LogError(ex, "Error deserializing blob data with error {Error}", ex.Message);
             throw;
         }
 
@@ -84,7 +83,7 @@ GeminiService geminiService, StorageService storageService)
 
             //Todo - lets save the record to storage
             var filename = $"{teamName}_{matchDate}.json";
-            await _storageService.UploadToStorage(geminiResponse, filename, "ai-team-single");
+            await _storageService.UploadToStorage(JsonSerializer.Serialize(matchMetaData), filename, "ai-team-single");
 
             // now we need to update the historical search
             seasonMatchData.Fixtures.Remove(seasonMatch);
