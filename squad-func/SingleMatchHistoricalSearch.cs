@@ -78,7 +78,36 @@ GeminiService geminiService, StorageService storageService)
         MatchDetails? matchMetaData;
         try
         {
-            matchMetaData = JsonSerializer.Deserialize<MatchDetails>(geminiResponse);
+            using JsonDocument doc = JsonDocument.Parse(geminiResponse);
+            var root = doc.RootElement;
+            var textResponse = root
+                .GetProperty("candidates")[0]
+                .GetProperty("content")
+                .GetProperty("parts")[0]
+                .GetProperty("text")
+                .GetString();
+
+            if (textResponse != null)
+            {
+                textResponse = textResponse.Trim();
+                if (textResponse.StartsWith("```json", StringComparison.OrdinalIgnoreCase))
+                {
+                    textResponse = textResponse.Substring(7);
+                }
+                else if (textResponse.StartsWith("```"))
+                {
+                    textResponse = textResponse.Substring(3);
+                }
+
+                if (textResponse.EndsWith("```"))
+                {
+                    textResponse = textResponse.Substring(0, textResponse.Length - 3);
+                }
+
+                textResponse = textResponse.Trim();
+            }
+
+            matchMetaData = JsonSerializer.Deserialize<MatchDetails>(textResponse ?? string.Empty);
             _logger.LogInformation("Match details for {Team} {Season} {Match}", teamName, seasonDate, matchDate);
 
             //Todo - lets save the record to storage
