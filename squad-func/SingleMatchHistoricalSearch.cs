@@ -25,7 +25,7 @@ GeminiService geminiService, StorageService storageService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("SingleMatchHistoricalSearch")]
-    public async Task Run([TimerTrigger("0 15,45 19-23 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 15,45 19 * * *")] TimerInfo myTimer)
     {
         // step 1. lets run and see if there is a historical record/file to search
         if (await _storageService.IsContainerEmpty("ai-team") == true)
@@ -83,6 +83,7 @@ GeminiService geminiService, StorageService storageService)
 
             //Todo - lets save the record to storage
             var filename = $"{teamName}_{matchDate}.json";
+            await _storageService.UploadToStorage(geminiResponse, $"{filename}-raw.json", "ai-team-single-raw");
             await _storageService.UploadToStorage(JsonSerializer.Serialize(matchMetaData), filename, "ai-team-single");
 
             // now we need to update the historical search
