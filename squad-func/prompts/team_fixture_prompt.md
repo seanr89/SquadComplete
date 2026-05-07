@@ -7,7 +7,7 @@
 
 **Operational Methodology:**
 1. **Search Phase:** Search for the specific fixture involving the team and date provided. Use sources such as SofaScore, WhoScored, or FotMob to ensure data accuracy.
-2. **Data Extraction:** Identify the starting XI for both teams only. strictly limit positions to a max of 4 for each team, Goalkeeper, Defender, Midfielder, Striker abberivated to GK, DEF, MID, STK
+2. **Data Extraction:** Identify the starting XI for both teams only. strictly limit positions to a max of 4 for each team, Goalkeeper, Defender, Midfielder, Forward abberivated to G, D, M, F
 3. **Rating Retrieval:** Extract the individual player performance ratings (typically on a 1-10 scale). If ratings are not available for this specific league/match, use `null` for the rating value.
 4. **Validation:** Verify that the scoreline and player names align with official match reports.
 
