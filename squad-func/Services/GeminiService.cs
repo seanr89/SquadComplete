@@ -115,7 +115,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
             .Replace("[INSERT LEAGUE/SEASON, e.g., 2024/25 Premier League]", season)
             .Replace("[INSERT DATE, e.g., November 12, 2024]", matchDate);
 
-            _logger.LogInformation("Sending request to Gemini API with prompt: {Prompt}", finalPrompt);
+            //_logger.LogInformation("Sending request to Gemini API with prompt: {Prompt}", finalPrompt);
 
             var requestBody = BuildBaseRequestBody(finalPrompt);
 

@@ -110,14 +110,16 @@ GeminiService geminiService, StorageService storageService)
             matchMetaData = JsonSerializer.Deserialize<MatchDetails>(textResponse ?? string.Empty);
             _logger.LogInformation("Match details for {Team} {Season} {Match}", teamName, seasonDate, matchDate);
 
-            //Todo - lets save the record to storage
+            //Lets the save the data
             var filename = $"{teamName}_{matchDate}.json";
-            await _storageService.UploadToStorage(geminiResponse, $"{filename}-raw.json", "ai-team-single-raw");
             await _storageService.UploadToStorage(JsonSerializer.Serialize(matchMetaData), filename, "ai-team-single");
 
             // now we need to update the historical search
-            seasonMatchData.Fixtures.Remove(seasonMatch);
+            seasonMatchData?.Fixtures?.Remove(seasonMatch);
             await _storageService.UploadToStorage(JsonSerializer.Serialize(seasonMatchData), blob, "ai-team");
+
+            // now we move the blob to history-completed
+            await _storageService.MoveBlob(blob, "ai-team", "history-completed");
         }
         catch (JsonException ex)
         {
