@@ -24,7 +24,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 4-12 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 4-11 * * *")] TimerInfo myTimer)
     {
         //_logger.LogInformation("TeamRefresh started");
 
@@ -50,6 +50,7 @@ IApiService apiService, DatabaseService databaseService)
                         var homeTeam = fixtureData.Teams.Home;
                         fixture.HomeTeamId = homeTeam.Id;
                         fixture.HomeTeamName = homeTeam.Name;
+                        //fixture.FixtureDate = fixtureData?.Fixture?.Date;
 
                         var exists = await _context.Teams.AnyAsync(t => t.Id == homeTeam.Id);
                         if (!exists)
@@ -74,6 +75,7 @@ IApiService apiService, DatabaseService databaseService)
                         var awayTeam = fixtureData.Teams.Away;
                         fixture.AwayTeamId = awayTeam.Id;
                         fixture.AwayTeamName = awayTeam.Name;
+                        //fixture.FixtureDate = fixtureData?.Fixture?.Date;
 
                         var exists = await _context.Teams.AnyAsync(t => t.Id == awayTeam.Id);
                         if (!exists)
@@ -117,6 +119,7 @@ IApiService apiService, DatabaseService databaseService)
             dbFixture.HomeTeamName = fixtureData.Teams?.Home?.Name;
             dbFixture.AwayTeamName = fixtureData.Teams?.Away?.Name;
             dbFixture.UpdatedAt = DateTime.UtcNow;
+            dbFixture.FixtureDate = fixtureData?.Fixture?.Date;
 
             await _context.SaveChangesAsync();
         }

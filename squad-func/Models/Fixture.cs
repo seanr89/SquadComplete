@@ -36,6 +36,8 @@ public class Fixture
 
     [Column("away_goal_count")]
     public int? AwayGoalCount { get; set; }
+    [Column("fixture_date")]
+    public DateTime? FixtureDate { get; set; }
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
