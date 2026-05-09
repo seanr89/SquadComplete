@@ -39,6 +39,10 @@ public class Fixture
     [Column("fixture_date")]
     public DateTime? FixtureDate { get; set; }
 
+    [Column("fixture_source")]
+    [StringLength(255)]
+    public string? FixtureSource { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
