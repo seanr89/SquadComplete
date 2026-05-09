@@ -75,7 +75,7 @@ IApiService apiService, DatabaseService databaseService)
                         var awayTeam = fixtureData.Teams.Away;
                         fixture.AwayTeamId = awayTeam.Id;
                         fixture.AwayTeamName = awayTeam.Name;
-                        //fixture.FixtureDate = fixtureData?.Fixture?.Date;
+
 
                         var exists = await _context.Teams.AnyAsync(t => t.Id == awayTeam.Id);
                         if (!exists)
@@ -119,7 +119,9 @@ IApiService apiService, DatabaseService databaseService)
             dbFixture.HomeTeamName = fixtureData.Teams?.Home?.Name;
             dbFixture.AwayTeamName = fixtureData.Teams?.Away?.Name;
             dbFixture.UpdatedAt = DateTime.UtcNow;
-            dbFixture.FixtureDate = fixtureData?.Fixture?.Date;
+            dbFixture.FixtureDate = fixtureData?.Fixture?.Date != null
+                ? DateTime.SpecifyKind(fixtureData.Fixture.Date.Value, DateTimeKind.Utc)
+                : null;
 
             await _context.SaveChangesAsync();
         }
