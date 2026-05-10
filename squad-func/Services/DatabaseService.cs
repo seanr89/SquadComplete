@@ -83,9 +83,9 @@ public class DatabaseService(SquadContext context, ILoggerFactory loggerFactory)
         try
         {
             await _context.Database.ExecuteSqlInterpolatedAsync($@"
-                INSERT INTO players (id, name, photo)
+                INSERT INTO players (api_id, name, photo)
                 VALUES ({id}, {name}, {photo})
-                ON CONFLICT (id) DO UPDATE SET
+                ON CONFLICT (api_id) DO UPDATE SET
                     name = EXCLUDED.name,
                     photo = EXCLUDED.photo,
                     updated_at = CURRENT_TIMESTAMP;");
