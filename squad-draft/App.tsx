@@ -10,6 +10,7 @@ import AboutDialog from './components/AboutDialog';
 import Leaderboard from './components/Leaderboard';
 import AlertDialog from './components/AlertDialog';
 import FixtureInfo from './components/FixtureInfo';
+import CookieConsent from './components/CookieConsent';
 
 const App: React.FC = () => {
   const teamRef = useRef<HTMLDivElement>(null);
@@ -534,6 +535,8 @@ const App: React.FC = () => {
         type={alertConfig.type} 
         onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))} 
       />
+
+      <CookieConsent />
 
       <footer className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 md:hidden z-50">
         <div className="flex justify-around items-center max-w-lg mx-auto">
