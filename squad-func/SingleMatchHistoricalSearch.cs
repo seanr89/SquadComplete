@@ -21,7 +21,8 @@ GeminiService geminiService, StorageService storageService)
     private readonly StorageService _storageService = storageService;
 
     /// <summary>
-    /// Function to refresh player and team info
+    /// Function to refresh player and team info for a single historical match using Gemini AI 
+    /// This is run for the previous days fixtures in a given season
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("SingleMatchHistoricalSearch")]

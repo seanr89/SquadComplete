@@ -146,6 +146,11 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         }
     }
 
+    /// <summary>
+    /// Builds the base request body for the Gemini API.
+    /// </summary>
+    /// <param name="userPrompt">The user prompt.</param>
+    /// <returns>The request body.</returns>
     private static global::System.Object BuildBaseRequestBody(string userPrompt)
     {
         var requestBody = new

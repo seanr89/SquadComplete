@@ -24,15 +24,13 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 4-11 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 5-7 * * *")] TimerInfo myTimer)
     {
-        //_logger.LogInformation("TeamRefresh started");
-
+        // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
-            .Where(f => f.HomeTeamId == null || f.AwayTeamId == null
-                || f.HomeTeamName == null || f.AwayTeamName == null)
+            .Where(f => f.FixtureDate == null)
             .OrderBy(f => f.CreatedAt)
-            .Take(8)
+            .Take(4)
             .ToListAsync();
 
         _logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
@@ -45,56 +43,7 @@ IApiService apiService, DatabaseService databaseService)
                 Thread.Sleep(2500);
                 if (fixtureData?.Teams != null)
                 {
-                    if (fixtureData.Teams.Home != null)
-                    {
-                        var homeTeam = fixtureData.Teams.Home;
-                        fixture.HomeTeamId = homeTeam.Id;
-                        fixture.HomeTeamName = homeTeam.Name;
-                        //fixture.FixtureDate = fixtureData?.Fixture?.Date;
-
-                        var exists = await _context.Teams.AnyAsync(t => t.Id == homeTeam.Id);
-                        if (!exists)
-                        {
-                            var apiTeam = await _apiService.GetTeamDataAsync(homeTeam.Id);
-                            Thread.Sleep(2500);
-                            if (apiTeam != null)
-                            {
-                                await _databaseService.UpsertTeamAsync(apiTeam.Id, apiTeam.Name ?? homeTeam.Name ?? "Unknown", apiTeam.Logo ?? homeTeam.Logo, null);
-                            }
-                            else
-                            {
-                                await _databaseService.UpsertTeamAsync(homeTeam.Id, homeTeam.Name ?? "Unknown", homeTeam.Logo, null);
-                            }
-                        }
-
-                        await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
-                    }
-
-                    if (fixtureData.Teams.Away != null)
-                    {
-                        var awayTeam = fixtureData.Teams.Away;
-                        fixture.AwayTeamId = awayTeam.Id;
-                        fixture.AwayTeamName = awayTeam.Name;
-
-
-                        var exists = await _context.Teams.AnyAsync(t => t.Id == awayTeam.Id);
-                        if (!exists)
-                        {
-                            var apiTeam = await _apiService.GetTeamDataAsync(awayTeam.Id);
-                            Thread.Sleep(2500);
-                            if (apiTeam != null)
-                            {
-                                await _databaseService.UpsertTeamAsync(apiTeam.Id, apiTeam.Name ?? awayTeam.Name ?? "Unknown", apiTeam.Logo ?? awayTeam.Logo, null);
-                            }
-                            else
-                            {
-                                await _databaseService.UpsertTeamAsync(awayTeam.Id, awayTeam.Name ?? "Unknown", awayTeam.Logo, null);
-                            }
-                        }
-
-                        await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
-                    }
-
+                    await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     _logger.LogInformation("Updated team information for fixture {FixtureId}.", fixture.Id);
                 }
             }
@@ -105,8 +54,13 @@ IApiService apiService, DatabaseService databaseService)
         }
 
         await _context.SaveChangesAsync();
-        //_logger.LogInformation("TeamRefresh completed");
     }
+
+    /// <summary>
+    /// Updates the fixture with the team information.
+    /// </summary>
+    /// <param name="fixtureId">The ID of the fixture.</param>
+    /// <param name="fixtureData">The fixture data from the API.</param>
     private async Task UpdateFixtureDetailsAsync(int fixtureId, FixtureApiResponse fixtureData)
     {
         var dbFixture = await _context.Fixtures.FindAsync(fixtureId);

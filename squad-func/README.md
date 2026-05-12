@@ -12,3 +12,29 @@ For a `TimerTrigger` to work, you provide a schedule in the form of a [cron expr
 ## Development Guidelines
 
 **Important:** After each successful merge into the main branch, update `CHANGELOG.md` with the new changes and update relevant documentation.
+
+## Current Functions
+
+- **FullSeasonAISearch**: 
+  - **Trigger**: `0 0 16 * * *` (Daily at 16:00)
+  - **Description**: Fetches historical team season data using the Gemini AI service. It picks one unrequested active `TeamSeason`, queries the history, sanitizes the response (removes losses), uploads the JSON to the `squad-history` blob container, and updates the database record.
+
+- **MapHistoricalMatchFromAI**: 
+  - **Trigger**: `0 0 23 * * *` (Daily at 23:00)
+  - **Description**: Processes downloaded historical match files from the `ai-team-single` storage container. It deserializes the match details and maps them into database fixture entities, extracting performance analytics and basic match stats.
+
+- **SingleMatchHistoricalSearch**: 
+  - **Trigger**: `0 15,45 15-19 * * *` (Daily at minute 15 and 45 between 15:00 and 19:59)
+  - **Description**: Iterates through the list of fixtures within the `ai-team` container blobs. For each match, it queries detailed Gemini AI analytics for the single match, deserializes the clean response, saves it into the `ai-team-single` container, and handles the iteration logic by updating/removing source fixtures.
+
+- **SquadSelector**: 
+  - **Trigger**: `0 0 2 * * *` (Daily at 02:00)
+  - **Description**: Responsible for automated creation of daily Game Records. It randomizes a formation, shuffles historical fixtures, and attempts to assemble 11 unique active teams that contain sufficient historical player data to form a complete squad assignment for the day's trivia or activity.
+
+- **StorageReader**: 
+  - **Trigger**: `0 30 14 * * *` (Daily at 14:30)
+  - **Description**: Periodically scans the `agent-fixtures` storage container. Processes one JSON file per run by deserializing it into an `AgentFixture` object and handing it off to the `AgentMappingService` for relational DB ingestion.
+
+- **TeamRefresh**: 
+  - **Trigger**: `0 0 5-7 * * *` (Daily at 05:00, 06:00, and 07:00)
+  - **Description**: Discovers fixtures in the database that lack specific date and lineup information. It communicates with the External Sports API to obtain accurate final scores, team IDs, and precise kickoff timestamps, limiting the rate to 4 updates per run with deliberate rate-limiting delay.
