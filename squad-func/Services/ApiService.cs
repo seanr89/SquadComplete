@@ -168,6 +168,8 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
         Thread.Sleep(2500);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.Add("x-rapidapi-key", ApiKey);
+        request.Headers.Add("x-rapidapi-host", BaseUrl);
 
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
@@ -185,10 +187,12 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
             return string.Empty;
         var encodedName = Uri.EscapeDataString(name);
         var requestUrl = $"{BaseUrl}/teams?name={encodedName}";
-        Console.WriteLine($"Getting team by name: {requestUrl}");
         Thread.Sleep(2500);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.Add("x-rapidapi-key", ApiKey);
+        request.Headers.Add("x-rapidapi-host", BaseUrl);
+
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
@@ -204,6 +208,9 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
         var encodedName = Uri.EscapeDataString(name);
         var requestUrl = $"{BaseUrl}/leagues?name={encodedName}";
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.Add("x-rapidapi-key", ApiKey);
+        request.Headers.Add("x-rapidapi-host", BaseUrl);
+
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 

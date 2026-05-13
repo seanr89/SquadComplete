@@ -281,11 +281,10 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             _context.SaveChanges();
             dbHomeTeam = newHomeTeam;
         }
-        else
-        {
-            _logger.LogInformation("Could not find home team: {TeamName}", homeTeamName);
-            //continue;
-        }
+        // else
+        // {
+        //     _logger.LogInformation("Could not find home team: {TeamName}", homeTeamName);
+        // }
 
         return dbHomeTeam;
     }
