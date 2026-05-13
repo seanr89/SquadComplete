@@ -218,6 +218,7 @@ GeminiService geminiService, StorageService storageService, ApiService apiServic
                 var playerResponse = await _apiService.GetPlayerByNameAsync(player.Name);
                 try
                 {
+                    Thread.Sleep(2000);
                     var foundPlayer = JsonSerializer.Deserialize<PlayerAPIModel>(playerResponse);
                     var matchedResponseItem = foundPlayer?.Response?.FirstOrDefault(r =>
                         r.Player != null && (
