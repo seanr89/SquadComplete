@@ -12,7 +12,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
 {
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly string _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? string.Empty;
-    private const string _agentModel = "gemini-3.1-flash-lite-preview";
+    private const string _agentModel = "gemini-3.1-flash-lite";
     private readonly ILogger<GeminiService> _logger = logger;
     private static readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {

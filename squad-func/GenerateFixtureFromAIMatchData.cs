@@ -14,11 +14,10 @@ using Squad.Function.Models.API;
 namespace Squad.Function;
 
 public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadContext context,
-GeminiService geminiService, StorageService storageService, ApiService apiService)
+    StorageService storageService, ApiService apiService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<GenerateFixtureFromAIMatchData>();
     private readonly SquadContext _context = context;
-    private readonly GeminiService _geminiService = geminiService;
     private readonly StorageService _storageService = storageService;
     private readonly ApiService _apiService = apiService;
 
@@ -32,12 +31,13 @@ GeminiService geminiService, StorageService storageService, ApiService apiServic
     [Function("GenerateFixtureFromAIMatchData")]
     public async Task Run([TimerTrigger("0 30 20 * * *")] TimerInfo myTimer)
     {
+        _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
         {
             var blobs = await _storageService.GetBlobs("ai-team-single");
             if (blobs.Count <= 0)
             {
-                _logger.LogInformation("No blobs found in ai-team-single storage. This is expected if no ai team single data has been recorded.");
+                _logger.LogWarning("No blobs found in ai-team-single storage. This is expected if no ai team single data has been recorded.");
                 return;
             }
             var blob = blobs.First();
@@ -49,25 +49,16 @@ GeminiService geminiService, StorageService storageService, ApiService apiServic
 
             string? competitionName = matchData?.MatchMetadata?.Competition;
             var dbLeague = _context.Leagues.FirstOrDefault(l => l.Name == competitionName);
-            if (dbLeague == null)
-            {
-                dbLeague = await HandleNewLeagueRequest(matchData, competitionName, dbLeague);
-            }
+            dbLeague ??= await HandleNewLeagueRequest(matchData, competitionName, dbLeague);
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
             string? awayTeamName = matchData?.AwayTeam?.Name;
             var dbAwayTeam = _context.Teams.FirstOrDefault(t => t.Name == awayTeamName);
 
-            if (dbHomeTeam == null)
-            {
-                dbHomeTeam = await FindAndCreateTeamIfNotExists(matchData, homeTeamName, dbHomeTeam);
-            }
+            dbHomeTeam ??= await FindAndCreateTeamIfNotExists(matchData, homeTeamName, dbHomeTeam);
 
-            if (dbAwayTeam == null)
-            {
-                dbAwayTeam = await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
-            }
+            dbAwayTeam ??= await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
 
             DateTime? matchDate = null;
             if (DateTime.TryParse(matchData?.MatchMetadata?.Date, out var parsedDate))
@@ -92,16 +83,16 @@ GeminiService geminiService, StorageService storageService, ApiService apiServic
             var awayPlayers = matchData?.AwayTeam?.Players;
 
             // API based query data from API Calls
-            List<PlayerAPIModel> homePlayersFound = new List<PlayerAPIModel>();
-            List<PlayerAPIModel> awayPlayersFound = new List<PlayerAPIModel>();
+            List<PlayerAPIModel> homePlayersFound = [];
+            List<PlayerAPIModel> awayPlayersFound = [];
 
             // Database based players  
-            List<Player> dbHomePlayers = new List<Player>();
-            List<Player> dbAwayPlayers = new List<Player>();
+            List<Player> dbHomePlayers = [];
+            List<Player> dbAwayPlayers = [];
 
             // Players for mapping to a player fixture mapping db
-            List<MappedPlayer> mappedHomePlayers = new List<MappedPlayer>();
-            List<MappedPlayer> mappedAwayPlayers = new List<MappedPlayer>();
+            List<MappedPlayer> mappedHomePlayers = [];
+            List<MappedPlayer> mappedAwayPlayers = [];
 
             if (homePlayers != null && dbHomeTeam.Active == true)
             {
@@ -161,6 +152,9 @@ GeminiService geminiService, StorageService storageService, ApiService apiServic
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating fixture from MatchData");
+            _logger.LogError("AI error is : {ex.Message}", ex.Message);
+            _logger.LogError("AI error is : {ex.Source}", ex.Source);
+            _logger.LogError("AI error is : {ex.StackTrace}", ex.StackTrace);
             throw;
         }
     }
