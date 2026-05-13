@@ -16,6 +16,10 @@ public interface IApiService
     Task<FixtureApiResponse?> GetFixtureDataAsync(int fixtureId);
     Task<ApiTeamDetail?> GetTeamDataAsync(int teamId);
     Task<PlayerStatsPlayerInfo?> GetPlayerProfileAsync(string search);
+    Task GetFixturesForLeague(int leagueid, DateTime date);
+    Task<string> GetPlayerByNameAsync(string? name);
+    Task<string> GetTeamByNameAsync(string? name);
+    Task<string> GetLeagueByNameAsync(string name);
 }
 
 public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IApiService

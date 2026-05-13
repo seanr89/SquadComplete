@@ -14,12 +14,12 @@ using Squad.Function.Models.API;
 namespace Squad.Function;
 
 public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadContext context,
-    StorageService storageService, ApiService apiService)
+    StorageService storageService, IApiService apiService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<GenerateFixtureFromAIMatchData>();
     private readonly SquadContext _context = context;
     private readonly StorageService _storageService = storageService;
-    private readonly ApiService _apiService = apiService;
+    private readonly IApiService _apiService = apiService;
 
     /// <summary>
     /// Function to generate a fixture for a single historical match using Gemini AI 
