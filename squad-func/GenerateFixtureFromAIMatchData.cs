@@ -315,7 +315,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             // lets make a new league record
             var newLeague = new League
             {
-                Id = league?.Response?.First()?.League?.Id ?? 0,
+                ApiId = league?.Response?.First()?.League?.Id ?? 0,
                 Name = league?.Response?.First()?.League?.Name ?? "N/A",
                 Logo = league?.Response?.First()?.League?.Logo ?? "N/A"
             };
