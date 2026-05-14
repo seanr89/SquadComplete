@@ -278,13 +278,13 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         var homeTeamResponse = await _apiService.GetTeamByNameAsync(homeTeamName);
         var homeTeam = JsonSerializer.Deserialize<TeamAPIModel>(homeTeamResponse);
 
-        if (homeTeam != null)
+        if (homeTeam != null && homeTeam?.Response?.Count > 0)
         {
             //_logger.LogInformation($"Found home team: {homeTeam?.Response?.First()?.Team?.Name}");
             // lets make a new team record
             var newHomeTeam = new Team
             {
-                Id = homeTeam?.Response?.First()?.Team?.Id ?? 0,
+                ApiId = homeTeam?.Response?.First()?.Team?.Id ?? 0,
                 Name = homeTeam?.Response?.First()?.Team?.Name ?? "N/A",
                 Logo = homeTeam?.Response?.First()?.Team?.Logo ?? "N/A"
             };
@@ -292,10 +292,6 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             _context.SaveChanges();
             dbHomeTeam = newHomeTeam;
         }
-        // else
-        // {
-        //     _logger.LogInformation("Could not find home team: {TeamName}", homeTeamName);
-        // }
 
         return dbHomeTeam;
     }
@@ -313,7 +309,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         // step2. I want to get the league id from the competition name
         var leagueResponse = await _apiService.GetLeagueByNameAsync(matchData?.MatchMetadata?.Competition);
         var league = JsonSerializer.Deserialize<LeagueAPIModel>(leagueResponse);
-        if (league != null && league.Response.Count > 0)
+        if (league != null && league?.Response?.Count > 0)
         {
             _logger.LogInformation("Found league: {LeagueName}", league?.Response?.First()?.League?.Name);
             // lets make a new league record

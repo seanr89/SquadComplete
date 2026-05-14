@@ -28,7 +28,7 @@ IApiService apiService, DatabaseService databaseService)
     {
         // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
-            .Where(f => f.FixtureDate == null)
+            .Where(f => f.FixtureDate == null && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
             .Take(4)
             .ToListAsync();
@@ -39,7 +39,7 @@ IApiService apiService, DatabaseService databaseService)
         {
             try
             {
-                var fixtureData = await _apiService.GetFixtureDataAsync(fixture.Id);
+                var fixtureData = await _apiService.GetFixtureDataAsync(fixture.ApiId ?? 0);
                 Thread.Sleep(2500);
                 if (fixtureData?.Teams != null)
                 {
