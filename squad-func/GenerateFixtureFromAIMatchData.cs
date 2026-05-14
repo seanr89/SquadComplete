@@ -26,10 +26,12 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// This will attempt to ingest a file from AzureStorage, grab and process the match
     /// Use the FootballData API to get the player and team info to fill out the fixture if possible
     /// else just build a dummy match record
+    /// Schedule - 20:30 every day
+    /// 0 30 20 * * *
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
-    public async Task Run([TimerTrigger("0 30 20 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 30 19 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
@@ -50,6 +52,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             string? competitionName = matchData?.MatchMetadata?.Competition;
             var dbLeague = _context.Leagues.FirstOrDefault(l => l.Name == competitionName);
             dbLeague ??= await HandleNewLeagueRequest(matchData, competitionName, dbLeague);
+            _logger.LogInformation("Got league: {LeagueId}", dbLeague.Name);
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
@@ -57,9 +60,9 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             var dbAwayTeam = _context.Teams.FirstOrDefault(t => t.Name == awayTeamName);
 
             dbHomeTeam ??= await FindAndCreateTeamIfNotExists(matchData, homeTeamName, dbHomeTeam);
-
+            Thread.Sleep(2500);
             dbAwayTeam ??= await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
-
+            Thread.Sleep(2500);
             DateTime? matchDate = null;
             if (DateTime.TryParse(matchData?.MatchMetadata?.Date, out var parsedDate))
             {
@@ -151,10 +154,10 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating fixture from MatchData");
-            _logger.LogError("AI error is : {ex.Message}", ex.Message);
-            _logger.LogError("AI error is : {ex.Source}", ex.Source);
-            _logger.LogError("AI error is : {ex.StackTrace}", ex.StackTrace);
+            //_logger.LogError(ex, "Error Caught");
+            _logger.LogError("GenerateFixtureFromAIMatchData error msg : {ex.Message}", ex.Message);
+            _logger.LogError("GenerateFixtureFromAIMatchData error src : {ex.Source}", ex.Source);
+            _logger.LogError("GenerateFixtureFromAIMatchData error stktrc : {ex.StackTrace}", ex.StackTrace);
             throw;
         }
     }
@@ -262,14 +265,22 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         }
     }
 
+    /// <summary>
+    /// Finds and creates a team if it doesn't exist
+    /// </summary>
+    /// <param name="matchData">The match data</param>
+    /// <param name="homeTeamName">The name of the home team</param>
+    /// <param name="dbHomeTeam">The database home team</param>
+    /// <returns></returns>
     private async Task<Team> FindAndCreateTeamIfNotExists(MatchDetails? matchData, string? homeTeamName, Team dbHomeTeam)
     {
-        var homeTeamResponse = await _apiService.GetTeamByNameAsync(matchData?.HomeTeam?.Name);
+        _logger.LogInformation("Getting team by name for: {TeamName}", homeTeamName);
+        var homeTeamResponse = await _apiService.GetTeamByNameAsync(homeTeamName);
         var homeTeam = JsonSerializer.Deserialize<TeamAPIModel>(homeTeamResponse);
 
         if (homeTeam != null)
         {
-            Console.WriteLine($"Found home team: {homeTeam?.Response?.First()?.Team?.Name}");
+            //_logger.LogInformation($"Found home team: {homeTeam?.Response?.First()?.Team?.Name}");
             // lets make a new team record
             var newHomeTeam = new Team
             {
@@ -289,6 +300,13 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         return dbHomeTeam;
     }
 
+    /// <summary>
+    /// Handles new league requests
+    /// </summary>
+    /// <param name="matchData">The match data</param>
+    /// <param name="competitionName">The name of the competition</param>
+    /// <param name="dbLeague">The database league</param>
+    /// <returns></returns>
     private async Task<League> HandleNewLeagueRequest(MatchDetails? matchData, string? competitionName, League dbLeague)
     {
         _logger.LogInformation("Could not find league: {CompetitionName}", competitionName);

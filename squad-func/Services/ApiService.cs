@@ -187,6 +187,7 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
             return string.Empty;
         var encodedName = Uri.EscapeDataString(name);
         var requestUrl = $"{BaseUrl}/teams?name={encodedName}";
+        _logger.LogInformation("Getting team by name for url: {RequestUrl}", requestUrl);
         Thread.Sleep(2500);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
