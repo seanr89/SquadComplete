@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using squad_func.Services;
+using System.Text.Json;
 
 namespace Squad.Function;
 
@@ -24,13 +25,13 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 15-19 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 15-17 * * *")] TimerInfo myTimer)
     {
         // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
             .Where(f => f.FixtureDate == null && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(6)
+            .Take(3)
             .ToListAsync();
 
         _logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
@@ -43,6 +44,7 @@ IApiService apiService, DatabaseService databaseService)
                 Thread.Sleep(2500);
                 if (fixtureData?.Teams != null)
                 {
+                    _logger.LogInformation("Fixture data for {FixtureId}. {fixture}", fixture.Id, JsonSerializer.Serialize(fixtureData));
                     await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     _logger.LogInformation("Updated team information for fixture {FixtureId}.", fixture.Id);
                 }
@@ -53,7 +55,7 @@ IApiService apiService, DatabaseService databaseService)
             }
         }
 
-        await _context.SaveChangesAsync();
+        //await _context.SaveChangesAsync();
     }
 
     /// <summary>
