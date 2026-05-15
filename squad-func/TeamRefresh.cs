@@ -77,6 +77,7 @@ IApiService apiService, DatabaseService databaseService)
             dbFixture.HomeTeamName = fixtureData.Teams?.Home?.Name;
             dbFixture.AwayTeamName = fixtureData.Teams?.Away?.Name;
             dbFixture.UpdatedAt = DateTime.UtcNow;
+            dbFixture.FixtureSource = "API";
             dbFixture.FixtureDate = fixtureData?.Fixture?.Date != null
                 ? DateTime.SpecifyKind(fixtureData.Fixture.Date.Value, DateTimeKind.Utc)
                 : null;
