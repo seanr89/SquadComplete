@@ -29,7 +29,9 @@ IApiService apiService, DatabaseService databaseService)
     {
         // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
-            .Where(f => f.FixtureDate == null && f.ApiId != null)
+            .Where(f => (f.FixtureDate == null
+            && (f.HomeTeamName == null || f.AwayTeamName == null))
+            && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
             .Take(3)
             .ToListAsync();
@@ -44,7 +46,7 @@ IApiService apiService, DatabaseService databaseService)
                 Thread.Sleep(2500);
                 if (fixtureData?.Teams != null)
                 {
-                    _logger.LogInformation("Fixture data for {FixtureId}. {fixture}", fixture.Id, JsonSerializer.Serialize(fixtureData));
+                    //_logger.LogInformation("Fixture data for {FixtureId}. {fixture}", fixture.Id, JsonSerializer.Serialize(fixtureData));
                     await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     _logger.LogInformation("Updated team information for fixture {FixtureId}.", fixture.Id);
                 }
