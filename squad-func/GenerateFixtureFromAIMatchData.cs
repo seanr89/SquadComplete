@@ -289,9 +289,19 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 Logo = homeTeam?.Response?.First()?.Team?.Logo ?? "N/A"
             };
             _context.Teams.Add(newHomeTeam);
-            _context.SaveChanges();
             dbHomeTeam = newHomeTeam;
         }
+        else
+        {
+            _logger.LogInformation("Could not find team: {TeamName}", homeTeamName);
+            var newHomeTeam = new Team
+            {
+                Name = homeTeamName ?? "N/A"
+            };
+            _context.Teams.Add(newHomeTeam);
+            dbHomeTeam = newHomeTeam;
+        }
+        await _context.SaveChangesAsync();
 
         return dbHomeTeam;
     }
