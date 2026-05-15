@@ -24,13 +24,13 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 5-9 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 5-10 * * *")] TimerInfo myTimer)
     {
         // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
             .Where(f => f.FixtureDate == null && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(4)
+            .Take(5)
             .ToListAsync();
 
         _logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
