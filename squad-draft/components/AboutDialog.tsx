@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { submitFeedback } from '../api';
+import React, { useState, useEffect } from 'react';
+import { submitFeedback, fetchStatistics } from '../api';
 
 interface AboutDialogProps {
   isOpen: boolean;
@@ -7,9 +7,21 @@ interface AboutDialogProps {
 }
 
 const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'about' | 'contact'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'contact' | 'stats'>('about');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [stats, setStats] = useState<any | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'stats' && !stats && !loadingStats) {
+      setLoadingStats(true);
+      fetchStatistics().then(data => {
+        setStats(data);
+        setLoadingStats(false);
+      });
+    }
+  }, [activeTab, stats, loadingStats]);
 
   if (!isOpen) return null;
 
@@ -74,6 +86,13 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
           </button>
 
           <button
+            onClick={() => setActiveTab('stats')}
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'stats' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-slate-400 hover:text-slate-300'}`}
+          >
+            Stats
+          </button>
+
+          <button
             onClick={() => setActiveTab('contact')}
             className={`flex-1 py-3 text-sm font-bold transition-colors ${activeTab === 'contact' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-slate-400 hover:text-slate-300'}`}
           >
@@ -104,7 +123,45 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-
+          {activeTab === 'stats' && (
+            <div className="space-y-4">
+              <p className="text-sm text-slate-300 mb-4">
+                Current platform statistics from our database.
+              </p>
+              {loadingStats ? (
+                <div className="flex justify-center p-8">
+                  <i className="fas fa-spinner fa-spin text-2xl text-yellow-400"></i>
+                </div>
+              ) : stats ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
+                    <div className="text-2xl font-black text-white">{stats.leagues || stats.leaguesCount || stats.leagueCount || 0}</div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Leagues</div>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
+                    <div className="text-2xl font-black text-white">{stats.teams || stats.teamsCount || stats.teamCount || 0}</div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Teams</div>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
+                    <div className="text-2xl font-black text-white">{stats.players || stats.playersCount || stats.playerCount || 0}</div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Players</div>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
+                    <div className="text-2xl font-black text-white">{stats.fixtures || stats.fixturesCount || stats.fixtureCount || 0}</div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Fixtures</div>
+                  </div>
+                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center col-span-2">
+                    <div className="text-2xl font-black text-yellow-400">{stats.games || stats.gamesCount || stats.gameRecordsCount || stats.gameRecordCount || 0}</div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Games Played</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-slate-400 p-4">
+                  Failed to load statistics.
+                </div>
+              )}
+            </div>
+          )}
 
           {activeTab === 'contact' && (
             <form onSubmit={handleSubmit} className="space-y-4">
