@@ -52,7 +52,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             string? competitionName = matchData?.MatchMetadata?.Competition;
             var dbLeague = _context.Leagues.FirstOrDefault(l => l.Name == competitionName);
             dbLeague ??= await HandleNewLeagueRequest(matchData, competitionName, dbLeague);
-            _logger.LogInformation("Got league: {LeagueId}", dbLeague.Name);
+            //_logger.LogInformation("Got league: {LeagueId}", dbLeague.Name);
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);

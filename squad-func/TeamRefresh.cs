@@ -25,7 +25,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 15-18 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 10-14 * * *")] TimerInfo myTimer)
     {
         // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
