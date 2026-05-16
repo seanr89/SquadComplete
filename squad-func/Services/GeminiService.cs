@@ -12,7 +12,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
 {
     private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     private readonly string _apiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? string.Empty;
-    private const string _agentModel = "gemini-3.1-flash-lite-preview";
+    private const string _agentModel = "gemini-3.1-flash-lite";
     private readonly ILogger<GeminiService> _logger = logger;
     private static readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
     {
@@ -115,6 +115,8 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
             .Replace("[INSERT LEAGUE/SEASON, e.g., 2024/25 Premier League]", season)
             .Replace("[INSERT DATE, e.g., November 12, 2024]", matchDate);
 
+            //_logger.LogInformation("Sending request to Gemini API with prompt: {Prompt}", finalPrompt);
+
             var requestBody = BuildBaseRequestBody(finalPrompt);
 
             string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
@@ -144,6 +146,11 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         }
     }
 
+    /// <summary>
+    /// Builds the base request body for the Gemini API.
+    /// </summary>
+    /// <param name="userPrompt">The user prompt.</param>
+    /// <returns>The request body.</returns>
     private static global::System.Object BuildBaseRequestBody(string userPrompt)
     {
         var requestBody = new

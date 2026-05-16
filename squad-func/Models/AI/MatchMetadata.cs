@@ -48,7 +48,7 @@ namespace Squad.Function.Models.AI
         public string Position { get; set; }
 
         [JsonPropertyName("rating")]
-        public double Rating { get; set; }
+        public double? Rating { get; set; }
 
         [JsonPropertyName("is_starter")]
         public bool IsStarter { get; set; }

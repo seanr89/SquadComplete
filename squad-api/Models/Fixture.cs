@@ -8,7 +8,7 @@ public class Fixture
 {
     [Key]
     [Column("id")]
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
 
     [Column("league_id")]
@@ -37,9 +37,19 @@ public class Fixture
     [Column("away_goal_count")]
     public int? AwayGoalCount { get; set; }
 
+    [Column("fixture_date")]
+    public DateTime? FixtureDate { get; set; }
+
+    [Column("fixture_source")]
+    [StringLength(255)]
+    public string? FixtureSource { get; set; }
+
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [Column("api_id")]
+    public int? ApiId { get; set; }
 }

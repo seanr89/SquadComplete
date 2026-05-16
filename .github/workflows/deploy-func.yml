@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - MatchInfoEnrich
+      - function-cleanup
     paths:
       - 'squad-func/**'
   workflow_dispatch:

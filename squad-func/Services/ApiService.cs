@@ -16,6 +16,10 @@ public interface IApiService
     Task<FixtureApiResponse?> GetFixtureDataAsync(int fixtureId);
     Task<ApiTeamDetail?> GetTeamDataAsync(int teamId);
     Task<PlayerStatsPlayerInfo?> GetPlayerProfileAsync(string search);
+    Task GetFixturesForLeague(int leagueid, DateTime date);
+    Task<string> GetPlayerByNameAsync(string? name);
+    Task<string> GetTeamByNameAsync(string? name);
+    Task<string> GetLeagueByNameAsync(string name);
 }
 
 public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IApiService
@@ -140,6 +144,81 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
             return null;
         }
     }
+
+    #region Football Data API - AI Search
+
+    /// <summary>
+    /// Gets player information by name or other criteria.
+    /// </summary>
+    public async Task<string> GetPlayerByNameAsync(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return string.Empty;
+
+        var searchName = name.Trim();
+        var nameParts = searchName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (nameParts.Length > 0)
+        {
+            searchName = nameParts.Last();
+        }
+
+        var encodedName = Uri.EscapeDataString(searchName);
+        var requestUrl = $"{BaseUrl}/players/profiles?search={encodedName}";
+        Console.WriteLine($"Getting player by name for url: {requestUrl}");
+        Thread.Sleep(2500);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.Add("x-rapidapi-key", ApiKey);
+        request.Headers.Add("x-rapidapi-host", BaseUrl);
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    /// <summary>
+    /// Gets team information by team name.
+    /// Example: "manchester united"
+    /// </summary>
+    public async Task<string> GetTeamByNameAsync(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return string.Empty;
+        var encodedName = Uri.EscapeDataString(name);
+        var requestUrl = $"{BaseUrl}/teams?name={encodedName}";
+        _logger.LogInformation("Getting team by name for url: {RequestUrl}", requestUrl);
+        Thread.Sleep(2500);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.Add("x-rapidapi-key", ApiKey);
+        request.Headers.Add("x-rapidapi-host", BaseUrl);
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    /// <summary>
+    /// Gets league information by league name.
+    /// Example: "premier league"
+    /// </summary>
+    public async Task<string> GetLeagueByNameAsync(string name)
+    {
+        var encodedName = Uri.EscapeDataString(name);
+        var requestUrl = $"{BaseUrl}/leagues?name={encodedName}";
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.Add("x-rapidapi-key", ApiKey);
+        request.Headers.Add("x-rapidapi-host", BaseUrl);
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
+    }
+
+    #endregion
 
     public async Task<PlayerStatsPlayerInfo?> GetPlayerProfileAsync(string search)
     {

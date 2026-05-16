@@ -6,18 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Squad.Function;
 
-public class HistoricalAi(ILoggerFactory loggerFactory,
+public class FullSeasonAISearch(ILoggerFactory loggerFactory,
     GeminiService geminiService, StorageService storageService, SquadContext context)
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<HistoricalAi>();
+    private readonly ILogger _logger = loggerFactory.CreateLogger<FullSeasonAISearch>();
     private readonly GeminiService _geminiService = geminiService ?? throw new ArgumentNullException(nameof(geminiService));
     private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    [Function("HistoricalAi")]
+    [Function("FullSeasonAISearch")]
     public async Task Run([TimerTrigger("0 0 16 * * *")] TimerInfo myTimer)
     {
-        _logger.LogInformation("HistoricalAi started");
+        _logger.LogInformation("FullSeasonAISearch started");
 
         var season = await _context.TeamSeasons
         .Include(x => x.Team)
@@ -35,7 +35,7 @@ public class HistoricalAi(ILoggerFactory loggerFactory,
             var team = season.First().Team;
             var seasonInfo = season.First().Season;
 
-            _logger.LogInformation("HistoricalAi started for {Team} {Season}", team.Name, seasonInfo.Name);
+            //_logger.LogInformation("HistoricalAi started for {Team} {Season}", team.Name, seasonInfo.Name);
 
             var geminiData = await _geminiService.GetHistoryAsync(team.Name, seasonInfo.Name);
             if (geminiData != null)

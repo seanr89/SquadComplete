@@ -24,6 +24,5 @@ builder.Services.AddHttpClient<GeminiService>(client => client.Timeout = TimeSpa
 builder.Services.AddTransient<StorageService>();
 builder.Services.AddHttpClient<IApiService, ApiService>(client => client.Timeout = TimeSpan.FromSeconds(240));
 builder.Services.AddScoped<DatabaseService>();
-builder.Services.AddScoped<AgentMappingService>();
 
 builder.Build().Run();
