@@ -164,7 +164,7 @@ public class ApiService(HttpClient httpClient, ILogger<ApiService> logger) : IAp
 
         var encodedName = Uri.EscapeDataString(searchName);
         var requestUrl = $"{BaseUrl}/players/profiles?search={encodedName}";
-        Console.WriteLine($"Getting player by name for url: {requestUrl}");
+        _logger.LogInformation($"Getting player by name for url: {requestUrl}");
         Thread.Sleep(2500);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);

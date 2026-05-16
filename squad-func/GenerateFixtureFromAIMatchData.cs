@@ -77,8 +77,6 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 && f.FixtureDate == matchDate);
             if (dbFixture != null)
             {
-                Console.WriteLine($"Found fixture: {dbFixture.Id} - we may need to scrape this match, but we have the record for now");
-                //continue;
                 return;
             }
 
@@ -204,47 +202,55 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             var dbPlayer = _context.Players.FirstOrDefault(p => p.Name == player.Name);
             if (dbPlayer != null)
             {
-                Console.WriteLine($"Found DB Player: {dbPlayer.Name} {dbPlayer.Id}");
                 dbHomePlayers.Add(dbPlayer);
                 mappedHomePlayers.Add(new MappedPlayer(dbPlayer, null, player));
-                //continue;
             }
             else
             {
-                Console.WriteLine($"Could not find DB Player: {player.Name} - make call to API");
                 var playerResponse = await _apiService.GetPlayerByNameAsync(player.Name);
                 try
                 {
-                    Thread.Sleep(2000);
                     var foundPlayer = JsonSerializer.Deserialize<PlayerAPIModel>(playerResponse);
-                    var matchedResponseItem = foundPlayer?.Response?.FirstOrDefault(r =>
+                    if (foundPlayer != null && foundPlayer.Response?.Count > 0)
+                    {
+                        var matchedResponseItem = foundPlayer?.Response?.FirstOrDefault(r =>
                         r.Player != null && (
                             string.Equals(r.Player.Name, player.Name, StringComparison.OrdinalIgnoreCase) ||
                             string.Equals($"{r.Player.Firstname} {r.Player.Lastname}", player.Name, StringComparison.OrdinalIgnoreCase)
                         ));
 
-                    if (matchedResponseItem != null && matchedResponseItem.Player != null)
-                    {
-                        var matchedPlayerModel = foundPlayer! with { Response = new List<PlayerResponseItem> { matchedResponseItem } };
-                        Console.WriteLine($"Found player: {matchedResponseItem.Player.Name} {matchedResponseItem.Player.Id}");
-                        homePlayersFound.Add(matchedPlayerModel);
-                        // now need to add to the db
-                        var newPlayer = new Player
+                        if (matchedResponseItem != null && matchedResponseItem.Player != null)
                         {
-                            ApiId = matchedResponseItem.Player.Id,
-                            Name = matchedResponseItem.Player.Name ?? "N/A",
-                            Photo = matchedResponseItem.Player.Photo ?? "N/A"
-                        };
-                        _context.Players.Add(newPlayer);
-                        _context.SaveChanges();
-                        dbHomePlayers.Add(newPlayer);
-                        mappedHomePlayers.Add(new MappedPlayer(newPlayer, matchedPlayerModel, player));
+                            var matchedPlayerModel = foundPlayer! with { Response = new List<PlayerResponseItem> { matchedResponseItem } };
+                            homePlayersFound.Add(matchedPlayerModel);
+                            // now need to add to the db
+                            var newPlayer = new Player
+                            {
+                                ApiId = matchedResponseItem.Player.Id,
+                                Name = matchedResponseItem.Player.Name ?? "N/A",
+                                Photo = matchedResponseItem.Player.Photo ?? "N/A"
+                            };
+                            _context.Players.Add(newPlayer);
+                            _context.SaveChanges();
+                            dbHomePlayers.Add(newPlayer);
+                            mappedHomePlayers.Add(new MappedPlayer(newPlayer, matchedPlayerModel, player));
 
+                        }
+                        else
+                        {
+                            // so if no find, then we just make one up for now
+                            var bespokePlayer = new Player
+                            {
+                                Name = player.Name
+                            };
+                            _context.Players.Add(bespokePlayer);
+                            _context.SaveChanges();
+                            dbHomePlayers.Add(bespokePlayer);
+                            mappedHomePlayers.Add(new MappedPlayer(bespokePlayer, null, player));
+                        }
                     }
                     else
                     {
-                        Console.WriteLine($"Could not find player: {player.Name} - WARNING - need to handle");
-                        // so if no find, then we just make one up for now
                         var bespokePlayer = new Player
                         {
                             Name = player.Name
@@ -254,10 +260,10 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                         dbHomePlayers.Add(bespokePlayer);
                         mappedHomePlayers.Add(new MappedPlayer(bespokePlayer, null, player));
                     }
+
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error finding player: {player.Name} {ex.Message}");
                     throw;
                 }
                 Thread.Sleep(2500);
