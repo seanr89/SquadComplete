@@ -36,10 +36,20 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
         {
+            /* Steps here
+            1. Check for any files and grab 1 if available
+            2. Identifiy competition and TryGet/Create League
+            3. Identify teams and TryGet/Create teams
+            4. Create a fixture record
+            5. Create all player records and add to match then create all the playerfixturemappings
+            6. Delete the blob
+            7. Check if there are more blobs to process
+            */
+
             var blobs = await _storageService.GetBlobs("ai-team-single");
             if (blobs.Count <= 0)
             {
-                _logger.LogWarning("No blobs found in ai-team-single storage. This is expected if no ai team single data has been recorded.");
+                _logger.LogWarning("No blobs found in ai-team-single storage.");
                 return;
             }
             var blob = blobs.First();
@@ -49,10 +59,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
 
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
-            string? competitionName = matchData?.MatchMetadata?.Competition;
-            var dbLeague = _context.Leagues.FirstOrDefault(l => l.Name == competitionName);
-            dbLeague ??= await HandleNewLeagueRequest(matchData, competitionName, dbLeague);
-            //_logger.LogInformation("Got league: {LeagueId}", dbLeague.Name);
+            League? dbLeague = await GetOrCreateLeague(matchData);
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
@@ -60,18 +67,17 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             var dbAwayTeam = _context.Teams.FirstOrDefault(t => t.Name == awayTeamName);
 
             dbHomeTeam ??= await FindAndCreateTeamIfNotExists(matchData, homeTeamName, dbHomeTeam);
-            Thread.Sleep(2500);
             dbAwayTeam ??= await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
-            Thread.Sleep(2500);
-            DateTime? matchDate = null;
-            if (DateTime.TryParse(matchData?.MatchMetadata?.Date, out var parsedDate))
+            //Sleep added as a precaution to allow the API to catch up with the requests
+            Thread.Sleep(5000);
+            DateTime? matchDate = GetMatchDate(matchData);
+            if (matchDate == null)
             {
-                matchDate = parsedDate;
+                _logger.LogError("Could not parse match date");
+                return;
             }
-            // update matchdate to resolve issue: Cannot write DateTime with Kind=Unspecified to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
-            matchDate = DateTime.SpecifyKind(matchDate ?? DateTime.MinValue, DateTimeKind.Utc);
 
-            // lets try and find the fixture in the database
+            // lets try and find the fixture in the database that matches team id etc...
             var dbFixture = _context.Fixtures.FirstOrDefault(
                 f => f.LeagueId == dbLeague.Id && f.HomeTeamId == dbHomeTeam.Id && f.AwayTeamId == dbAwayTeam.Id
                 && f.FixtureDate == matchDate);
@@ -105,20 +111,22 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 await AddPlayersToMappedPlayerList(awayPlayers, awayPlayersFound, dbAwayPlayers, mappedAwayPlayers);
             }
 
+            // check that there are at least 11 players from each team else the data set was wrong
             if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
             {
                 // Not enough players for the fixture - skip
                 Console.WriteLine($"Not enough players for fixture: {dbHomeTeam.Name} vs {dbAwayTeam.Name}");
                 return;
             }
+
             // Parse score
             int homeGoalCount = 0;
             int awayGoalCount = 0;
             var scoreParts = matchData?.MatchMetadata?.FinalScore?.Split("-");
             if (scoreParts != null && scoreParts.Length >= 2)
             {
-                int.TryParse(scoreParts[0], out homeGoalCount);
-                int.TryParse(scoreParts[1], out awayGoalCount);
+                _ = int.TryParse(scoreParts[0], out homeGoalCount);
+                _ = int.TryParse(scoreParts[1], out awayGoalCount);
             }
 
             var newFixture = new Fixture
@@ -158,6 +166,26 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             _logger.LogError("GenerateFixtureFromAIMatchData error stktrc : {ex.StackTrace}", ex.StackTrace);
             throw;
         }
+    }
+
+    private static DateTime? GetMatchDate(MatchDetails? matchData)
+    {
+        DateTime? matchDate = null;
+        if (DateTime.TryParse(matchData?.MatchMetadata?.Date, out var parsedDate))
+        {
+            matchDate = parsedDate;
+        }
+        // update matchdate to resolve issue: Cannot write DateTime with Kind=Unspecified to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
+        matchDate = DateTime.SpecifyKind(matchDate ?? DateTime.MinValue, DateTimeKind.Utc);
+        return matchDate;
+    }
+
+    private async Task<League?> GetOrCreateLeague(MatchDetails? matchData)
+    {
+        string? competitionName = matchData?.MatchMetadata?.Competition;
+        var dbLeague = _context.Leagues.FirstOrDefault(l => l.Name == competitionName);
+        dbLeague ??= await HandleNewLeagueRequest(matchData, competitionName, dbLeague);
+        return dbLeague;
     }
 
     /// <summary>
