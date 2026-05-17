@@ -15,5 +15,6 @@ public static class EndpointExtensions
         app.MapGameRecordEndpoints();
         app.MapFeedbackEndpoints();
         app.MapUserSquadEndpoints();
+        app.MapStatisticsEndpoints();
     }
 }

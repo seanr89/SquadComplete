@@ -119,3 +119,18 @@ export const submitFeedback = async (name: string, email: string, message: strin
         return false;
     }
 };
+
+export const fetchStatistics = async (): Promise<any | null> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/statistics`);
+        if (!response.ok) {
+            console.error('Failed to fetch statistics:', response.statusText);
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching statistics:', error);
+        return null;
+    }
+};
+
