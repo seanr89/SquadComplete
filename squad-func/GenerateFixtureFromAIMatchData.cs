@@ -10,6 +10,7 @@ using squad_func.Services;
 using System.Text.Json;
 using Squad.Function.Models.AI;
 using Squad.Function.Models.API;
+using Squad.Function.Utils;
 
 namespace Squad.Function;
 
@@ -70,7 +71,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             dbAwayTeam ??= await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
             //Sleep added as a precaution to allow the API to catch up with the requests
             Thread.Sleep(5000);
-            DateTime? matchDate = GetMatchDate(matchData);
+            DateTime? matchDate = MatchDataUtils.GetMatchDate(matchData);
             if (matchDate == null)
             {
                 _logger.LogError("Could not parse match date");
@@ -160,24 +161,9 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         }
         catch (Exception ex)
         {
-            //_logger.LogError(ex, "Error Caught");
             _logger.LogError("GenerateFixtureFromAIMatchData error msg : {ex.Message}", ex.Message);
-            _logger.LogError("GenerateFixtureFromAIMatchData error src : {ex.Source}", ex.Source);
-            _logger.LogError("GenerateFixtureFromAIMatchData error stktrc : {ex.StackTrace}", ex.StackTrace);
             throw;
         }
-    }
-
-    private static DateTime? GetMatchDate(MatchDetails? matchData)
-    {
-        DateTime? matchDate = null;
-        if (DateTime.TryParse(matchData?.MatchMetadata?.Date, out var parsedDate))
-        {
-            matchDate = parsedDate;
-        }
-        // update matchdate to resolve issue: Cannot write DateTime with Kind=Unspecified to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
-        matchDate = DateTime.SpecifyKind(matchDate ?? DateTime.MinValue, DateTimeKind.Utc);
-        return matchDate;
     }
 
     private async Task<League?> GetOrCreateLeague(MatchDetails? matchData)
