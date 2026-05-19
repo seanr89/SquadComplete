@@ -231,10 +231,11 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             else
             {
                 var playerResponse = await _apiService.GetPlayerByNameAsync(player.Name);
+                Thread.Sleep(2500);
                 try
                 {
                     var foundPlayer = JsonSerializer.Deserialize<PlayerAPIModel>(playerResponse);
-                    if (foundPlayer != null && foundPlayer.Response?.Count > 0)
+                    if (foundPlayer != null && foundPlayer.Results > 0)
                     {
                         var matchedResponseItem = foundPlayer?.Response?.FirstOrDefault(r =>
                         r.Player != null && (
@@ -290,7 +291,6 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                     _logger.LogError("GenerateFixtureFromAIMatchData error msg : {ex.Message}", ex.Message);
                     throw;
                 }
-                Thread.Sleep(2500);
             }
         }
     }

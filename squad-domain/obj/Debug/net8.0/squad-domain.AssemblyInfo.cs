@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("squad-domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4038517841732f5a1de1588f6151cc31c460bc58")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7eb634c7d1614d5b5583cd1ac4191beb0c172180")]
 [assembly: System.Reflection.AssemblyProductAttribute("squad-domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("squad-domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
