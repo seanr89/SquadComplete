@@ -6,7 +6,7 @@ namespace Squad.Function.Models.API;
 public record TeamAPIModel(
     [property: JsonPropertyName("get")] string? Get,
     [property: JsonPropertyName("parameters")] Dictionary<string, string>? Parameters,
-    [property: JsonPropertyName("errors")] List<object>? Errors,
+    [property: JsonPropertyName("errors")] object? Errors,
     [property: JsonPropertyName("results")] int Results,
     [property: JsonPropertyName("paging")] PagingData? Paging,
     [property: JsonPropertyName("response")] List<TeamResponseItem>? Response
