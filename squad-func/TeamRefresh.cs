@@ -25,7 +25,7 @@ IApiService apiService, DatabaseService databaseService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 9-17 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 9-18 * * *")] TimerInfo myTimer)
     {
         // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
@@ -33,7 +33,7 @@ IApiService apiService, DatabaseService databaseService)
             && (f.HomeTeamName == null || f.AwayTeamName == null))
             && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(6)
+            .Take(7)
             .ToListAsync();
 
         _logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
@@ -46,7 +46,6 @@ IApiService apiService, DatabaseService databaseService)
                 Thread.Sleep(2500);
                 if (fixtureData?.Teams != null)
                 {
-                    //_logger.LogInformation("Fixture data for {FixtureId}. {fixture}", fixture.Id, JsonSerializer.Serialize(fixtureData));
                     await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     _logger.LogInformation("Updated team information for fixture {FixtureId}.", fixture.Id);
                 }

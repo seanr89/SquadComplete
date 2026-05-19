@@ -112,6 +112,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 await AddPlayersToMappedPlayerList(awayPlayers, awayPlayersFound, dbAwayPlayers, mappedAwayPlayers);
             }
 
+            _logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
+
             // check that there are at least 11 players from each team else the data set was wrong
             if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
             {
@@ -129,6 +131,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 _ = int.TryParse(scoreParts[0], out homeGoalCount);
                 _ = int.TryParse(scoreParts[1], out awayGoalCount);
             }
+
+            _logger.LogInformation("Got Scores now create fixture!");
 
             var newFixture = new Fixture
             {
@@ -166,6 +170,11 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         }
     }
 
+    /// <summary>
+    /// Gets or creates a league in the database
+    /// </summary>
+    /// <param name="matchData">The match data</param>
+    /// <returns>The league</returns>
     private async Task<League?> GetOrCreateLeague(MatchDetails? matchData)
     {
         string? competitionName = matchData?.MatchMetadata?.Competition;
@@ -278,6 +287,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError("GenerateFixtureFromAIMatchData error msg : {ex.Message}", ex.Message);
                     throw;
                 }
                 Thread.Sleep(2500);
