@@ -12,13 +12,11 @@ using System.Text.Json;
 namespace Squad.Function;
 
 public class TeamRefresh(ILoggerFactory loggerFactory, SquadContext context,
-IApiService apiService, DatabaseService databaseService)
+IApiService apiService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<TeamRefresh>();
     private readonly SquadContext _context = context;
     private readonly IApiService _apiService = apiService;
-    // add dbservice
-    private readonly DatabaseService _databaseService = databaseService;
 
     /// <summary>
     /// Function to refresh player and team info

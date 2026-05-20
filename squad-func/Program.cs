@@ -32,6 +32,4 @@ builder.Services.AddHttpClient<IApiService, ApiService>(client => client.Timeout
     .RemoveAllLoggers()
     .AddHttpMessageHandler<LoggingHandler>();
 
-builder.Services.AddScoped<DatabaseService>();
-
 builder.Build().Run();

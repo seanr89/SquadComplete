@@ -35,8 +35,6 @@ public class FullSeasonAISearch(ILoggerFactory loggerFactory,
             var team = season.First().Team;
             var seasonInfo = season.First().Season;
 
-            //_logger.LogInformation("HistoricalAi started for {Team} {Season}", team.Name, seasonInfo.Name);
-
             var geminiData = await _geminiService.GetHistoryAsync(team.Name, seasonInfo.Name);
             if (geminiData != null)
             {
