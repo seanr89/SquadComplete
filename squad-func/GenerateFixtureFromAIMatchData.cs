@@ -27,8 +27,9 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// This will attempt to ingest a file from AzureStorage, grab and process the match
     /// Use the FootballData API to get the player and team info to fill out the fixture if possible
     /// else just build a dummy match record
-    /// Schedule - 20:30 every day
-    /// 0 30 20 * * *
+    /// Schedule - 20:30 every day (19:30 UTC) - 
+    /// this is to allow the function to run after the Gemini function that generates the match data file runs at 19:00 UTC
+    /// 0 30 19 * * *
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
@@ -60,7 +61,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
 
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
-            League? dbLeague = await GetOrCreateLeague(matchData);
+            League dbLeague = await GetOrCreateLeague(matchData);
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
@@ -175,7 +176,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// </summary>
     /// <param name="matchData">The match data</param>
     /// <returns>The league</returns>
-    private async Task<League?> GetOrCreateLeague(MatchDetails? matchData)
+    private async Task<League> GetOrCreateLeague(MatchDetails? matchData)
     {
         string? competitionName = matchData?.MatchMetadata?.Competition;
         var dbLeague = _context.Leagues.FirstOrDefault(l => l.Name == competitionName);
@@ -302,7 +303,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// <param name="homeTeamName">The name of the home team</param>
     /// <param name="dbHomeTeam">The database home team</param>
     /// <returns></returns>
-    private async Task<Team> FindAndCreateTeamIfNotExists(MatchDetails? matchData, string? homeTeamName, Team dbHomeTeam)
+    private async Task<Team> FindAndCreateTeamIfNotExists(MatchDetails? matchData, string? homeTeamName, Team? dbHomeTeam)
     {
         _logger.LogInformation("Getting team by name for: {TeamName}", homeTeamName);
         var homeTeamResponse = await _apiService.GetTeamByNameAsync(homeTeamName);
