@@ -45,4 +45,11 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\squad-domain\squad-domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="squad_domain.Models" />
+  </ItemGroup>
 </Project>

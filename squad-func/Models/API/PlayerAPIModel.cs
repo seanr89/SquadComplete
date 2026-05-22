@@ -9,7 +9,7 @@ public record MappedPlayer(Player dbPlayer, PlayerAPIModel? apiPlayer, Squad.Fun
 public record PlayerAPIModel(
     [property: JsonPropertyName("get")] string? Get,
     [property: JsonPropertyName("parameters")] Dictionary<string, string>? Parameters,
-    [property: JsonPropertyName("errors")] List<object>? Errors,
+    [property: JsonPropertyName("errors")] object? Errors,
     [property: JsonPropertyName("results")] int Results,
     [property: JsonPropertyName("paging")] PagingData? Paging,
     [property: JsonPropertyName("response")] List<PlayerResponseItem>? Response

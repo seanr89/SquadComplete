@@ -36,11 +36,12 @@ const FixtureInfo: React.FC<FixtureInfoProps> = ({ fixtureId }) => {
   }
 
   const { homeTeamName, awayTeamName, homeGoalCount, awayGoalCount } = fixture;
+  const fixtureDate = fixture.fixtureDate || fixture.fixture_date;
 
   const hasScore = homeGoalCount !== null && awayGoalCount !== null;
 
   return (
-    <div className="bg-slate-900/50 rounded-lg p-3 mt-3 border border-slate-700/50 inline-block w-full md:w-auto">
+    <div className="bg-slate-900/50 rounded-lg p-3 mt-3 border border-slate-700/50 inline-flex flex-col gap-2 w-full md:w-auto">
       <div className="flex items-center gap-3 text-sm">
         <div className="font-semibold text-slate-300 flex-1 text-right">
           {homeTeamName}
@@ -60,6 +61,22 @@ const FixtureInfo: React.FC<FixtureInfoProps> = ({ fixtureId }) => {
           {awayTeamName}
         </div>
       </div>
+
+      {fixtureDate && (
+        <div className="text-[10px] text-slate-400 font-semibold tracking-wider text-center flex items-center justify-center gap-1.5 border-t border-slate-800/80 pt-2 mt-1">
+          <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <span>
+            {new Date(fixtureDate).toLocaleDateString(undefined, {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

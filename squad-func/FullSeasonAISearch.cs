@@ -15,7 +15,7 @@ public class FullSeasonAISearch(ILoggerFactory loggerFactory,
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     [Function("FullSeasonAISearch")]
-    public async Task Run([TimerTrigger("0 0 16 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 21 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("FullSeasonAISearch started");
 
@@ -34,8 +34,6 @@ public class FullSeasonAISearch(ILoggerFactory loggerFactory,
         {
             var team = season.First().Team;
             var seasonInfo = season.First().Season;
-
-            //_logger.LogInformation("HistoricalAi started for {Team} {Season}", team.Name, seasonInfo.Name);
 
             var geminiData = await _geminiService.GetHistoryAsync(team.Name, seasonInfo.Name);
             if (geminiData != null)

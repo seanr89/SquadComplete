@@ -12,20 +12,18 @@ using System.Text.Json;
 namespace Squad.Function;
 
 public class TeamRefresh(ILoggerFactory loggerFactory, SquadContext context,
-IApiService apiService, DatabaseService databaseService)
+IApiService apiService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<TeamRefresh>();
     private readonly SquadContext _context = context;
     private readonly IApiService _apiService = apiService;
-    // add dbservice
-    private readonly DatabaseService _databaseService = databaseService;
 
     /// <summary>
     /// Function to refresh player and team info
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 9-16 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 9-18 * * *")] TimerInfo myTimer)
     {
         // re-working logic flow here to check via fixture date is not null
         var incompleteFixtures = await _context.Fixtures
@@ -33,7 +31,7 @@ IApiService apiService, DatabaseService databaseService)
             && (f.HomeTeamName == null || f.AwayTeamName == null))
             && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(6)
+            .Take(7)
             .ToListAsync();
 
         _logger.LogInformation("Found {Count} fixtures with missing team information.", incompleteFixtures.Count);
@@ -46,7 +44,6 @@ IApiService apiService, DatabaseService databaseService)
                 Thread.Sleep(2500);
                 if (fixtureData?.Teams != null)
                 {
-                    //_logger.LogInformation("Fixture data for {FixtureId}. {fixture}", fixture.Id, JsonSerializer.Serialize(fixtureData));
                     await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     _logger.LogInformation("Updated team information for fixture {FixtureId}.", fixture.Id);
                 }

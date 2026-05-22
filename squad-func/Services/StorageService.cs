@@ -102,6 +102,11 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
         }
     }
 
+    /// <summary>
+    /// Checks if a container in Azure Storage is empty.
+    /// </summary>
+    /// <param name="containerName">The name of the container to check.</param>
+    /// <returns>true if the container is empty, false otherwise.</returns>
     public async Task<bool> IsContainerEmpty(string containerName)
     {
         try
@@ -122,19 +127,12 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
             await containerClient.CreateIfNotExistsAsync();
 
             var blobs = containerClient.GetBlobsAsync();
-            var blobList = new List<string>();
-            await foreach (var blob in blobs)
+            if(await blobs.AnyAsync())
             {
-                blobList.Add(blob.Name);
-            }
-
-            //_logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", blobList.Count, containerName);
-            if (blobList.Count > 0)
-            {
-                // container is not empty, we have work to do
+                _logger.LogInformation("Container '{ContainerName}' is not empty.", containerName);
                 return false;
             }
-            // container is empty, nothing to do
+            // No blobs found, container is empty
             return true;
         }
         catch (Exception ex)
@@ -221,8 +219,6 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
 
             var blobClient = sourceContainerClient.GetBlobClient(blob);
             var destinationBlobClient = destinationContainerClient.GetBlobClient(blob);
-
-            _logger.LogInformation("Moving data from {Blob} in Azure Storage container '{SourceContainerName}' to '{DestinationContainerName}'...", blob, sourceContainerName, destinationContainerName);
 
             var content = await blobClient.DownloadContentAsync();
             await destinationBlobClient.UploadAsync(content.Value.Content, overwrite: true);

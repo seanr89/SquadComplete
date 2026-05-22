@@ -12,7 +12,7 @@ public class LeagueAPIModel
     public Dictionary<string, string>? Parameters { get; set; }
 
     [JsonPropertyName("errors")]
-    public List<object>? Errors { get; set; }
+    public object? Errors { get; set; }
 
     [JsonPropertyName("results")]
     public int Results { get; set; }

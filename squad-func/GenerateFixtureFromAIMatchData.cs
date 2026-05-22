@@ -10,6 +10,7 @@ using squad_func.Services;
 using System.Text.Json;
 using Squad.Function.Models.AI;
 using Squad.Function.Models.API;
+using Squad.Function.Utils;
 
 namespace Squad.Function;
 
@@ -26,12 +27,13 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// This will attempt to ingest a file from AzureStorage, grab and process the match
     /// Use the FootballData API to get the player and team info to fill out the fixture if possible
     /// else just build a dummy match record
-    /// Schedule - 20:30 every day
-    /// 0 30 20 * * *
+    /// Schedule - 20:30 every day (19:30 UTC) - 
+    /// this is to allow the function to run after the Gemini function that generates the match data file runs at 19:00 UTC
+    /// 0 30 19-21 * * *
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
-    public async Task Run([TimerTrigger("0 30 19 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 30 19-21 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
@@ -59,7 +61,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
 
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
-            League? dbLeague = await GetOrCreateLeague(matchData);
+            League dbLeague = await GetOrCreateLeague(matchData);
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
@@ -70,7 +72,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             dbAwayTeam ??= await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
             //Sleep added as a precaution to allow the API to catch up with the requests
             Thread.Sleep(5000);
-            DateTime? matchDate = GetMatchDate(matchData);
+            DateTime? matchDate = MatchDataUtils.GetMatchDate(matchData);
             if (matchDate == null)
             {
                 _logger.LogError("Could not parse match date");
@@ -111,6 +113,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 await AddPlayersToMappedPlayerList(awayPlayers, awayPlayersFound, dbAwayPlayers, mappedAwayPlayers);
             }
 
+            _logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
+
             // check that there are at least 11 players from each team else the data set was wrong
             if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
             {
@@ -128,6 +132,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 _ = int.TryParse(scoreParts[0], out homeGoalCount);
                 _ = int.TryParse(scoreParts[1], out awayGoalCount);
             }
+
+            _logger.LogInformation("Got Scores now create fixture!");
 
             var newFixture = new Fixture
             {
@@ -160,27 +166,17 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         }
         catch (Exception ex)
         {
-            //_logger.LogError(ex, "Error Caught");
             _logger.LogError("GenerateFixtureFromAIMatchData error msg : {ex.Message}", ex.Message);
-            _logger.LogError("GenerateFixtureFromAIMatchData error src : {ex.Source}", ex.Source);
-            _logger.LogError("GenerateFixtureFromAIMatchData error stktrc : {ex.StackTrace}", ex.StackTrace);
             throw;
         }
     }
 
-    private static DateTime? GetMatchDate(MatchDetails? matchData)
-    {
-        DateTime? matchDate = null;
-        if (DateTime.TryParse(matchData?.MatchMetadata?.Date, out var parsedDate))
-        {
-            matchDate = parsedDate;
-        }
-        // update matchdate to resolve issue: Cannot write DateTime with Kind=Unspecified to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
-        matchDate = DateTime.SpecifyKind(matchDate ?? DateTime.MinValue, DateTimeKind.Utc);
-        return matchDate;
-    }
-
-    private async Task<League?> GetOrCreateLeague(MatchDetails? matchData)
+    /// <summary>
+    /// Gets or creates a league in the database
+    /// </summary>
+    /// <param name="matchData">The match data</param>
+    /// <returns>The league</returns>
+    private async Task<League> GetOrCreateLeague(MatchDetails? matchData)
     {
         string? competitionName = matchData?.MatchMetadata?.Competition;
         var dbLeague = _context.Leagues.FirstOrDefault(l => l.Name == competitionName);
@@ -236,10 +232,11 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             else
             {
                 var playerResponse = await _apiService.GetPlayerByNameAsync(player.Name);
+                Thread.Sleep(2500);
                 try
                 {
                     var foundPlayer = JsonSerializer.Deserialize<PlayerAPIModel>(playerResponse);
-                    if (foundPlayer != null && foundPlayer.Response?.Count > 0)
+                    if (foundPlayer != null && foundPlayer.Results > 0)
                     {
                         var matchedResponseItem = foundPlayer?.Response?.FirstOrDefault(r =>
                         r.Player != null && (
@@ -292,9 +289,9 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError("GenerateFixtureFromAIMatchData error msg : {ex.Message}", ex.Message);
                     throw;
                 }
-                Thread.Sleep(2500);
             }
         }
     }
@@ -306,7 +303,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// <param name="homeTeamName">The name of the home team</param>
     /// <param name="dbHomeTeam">The database home team</param>
     /// <returns></returns>
-    private async Task<Team> FindAndCreateTeamIfNotExists(MatchDetails? matchData, string? homeTeamName, Team dbHomeTeam)
+    private async Task<Team> FindAndCreateTeamIfNotExists(MatchDetails? matchData, string? homeTeamName, Team? dbHomeTeam)
     {
         _logger.LogInformation("Getting team by name for: {TeamName}", homeTeamName);
         var homeTeamResponse = await _apiService.GetTeamByNameAsync(homeTeamName);
