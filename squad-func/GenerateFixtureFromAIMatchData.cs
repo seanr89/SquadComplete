@@ -29,11 +29,11 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// else just build a dummy match record
     /// Schedule - 20:30 every day (19:30 UTC) - 
     /// this is to allow the function to run after the Gemini function that generates the match data file runs at 19:00 UTC
-    /// 0 30 19 * * *
+    /// 0 30 19-21 * * *
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
-    public async Task Run([TimerTrigger("0 30 19 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 30 19-21 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
