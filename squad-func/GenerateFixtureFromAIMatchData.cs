@@ -252,7 +252,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                             var newPlayer = new Player
                             {
                                 ApiId = matchedResponseItem.Player.Id,
-                                Name = matchedResponseItem.Player.Name ?? "N/A",
+                                Name = matchedResponseItem.Player.Firstname + " " + matchedResponseItem.Player.Lastname ?? "N/A",
                                 Photo = matchedResponseItem.Player.Photo ?? "N/A"
                             };
                             _context.Players.Add(newPlayer);
