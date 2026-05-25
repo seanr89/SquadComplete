@@ -70,8 +70,6 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
 
             dbHomeTeam ??= await FindAndCreateTeamIfNotExists(matchData, homeTeamName, dbHomeTeam);
             dbAwayTeam ??= await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
-            //Sleep added as a precaution to allow the API to catch up with the requests
-            Thread.Sleep(5000);
             DateTime? matchDate = MatchDataUtils.GetMatchDate(matchData);
             if (matchDate == null)
             {
@@ -307,6 +305,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     {
         _logger.LogInformation("Getting team by name for: {TeamName}", homeTeamName);
         var homeTeamResponse = await _apiService.GetTeamByNameAsync(homeTeamName);
+        Thread.Sleep(2500);
         var homeTeam = JsonSerializer.Deserialize<TeamAPIModel>(homeTeamResponse);
 
         if (homeTeam != null && homeTeam?.Response?.Count > 0)
