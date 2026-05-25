@@ -113,7 +113,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 await AddPlayersToMappedPlayerList(awayPlayers, awayPlayersFound, dbAwayPlayers, mappedAwayPlayers);
             }
 
-            _logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
+            //_logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
 
             // check that there are at least 11 players from each team else the data set was wrong
             if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
@@ -201,7 +201,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 PlayerId = player.Id,
                 FixtureId = newFixture.Id,
                 TeamId = dbHomeTeam.Id,
-                Position = playerMapped?.apiPlayer?.Response?.First()?.Player?.Position ?? "N/A",
+                Position = playerMapped?.filePlayerData?.Position ?? "N/A",
                 Rating = (decimal?)playerMapped?.filePlayerData?.Rating ?? 0.0m
             };
             _context.PlayerFixtureStatistics.Add(newPlayerFixtureStat);
