@@ -11,6 +11,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'squad-api/**'
+      - 'squad-domain/**'
   workflow_dispatch:
 
 permissions:
