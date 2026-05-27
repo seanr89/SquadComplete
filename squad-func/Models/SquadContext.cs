@@ -16,6 +16,9 @@ public class SquadContext : DbContext
     public DbSet<Formation> Formations { get; set; }
     public DbSet<Season> Seasons { get; set; }
     public DbSet<TeamSeason> TeamSeasons { get; set; }
+    public DbSet<UserSquad> UserSquads { get; set; }
+    public DbSet<UserSquadPlayer> UserSquadPlayers { get; set; }
+    public DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +37,21 @@ public class SquadContext : DbContext
         // Unique constraint for TeamSeason
         modelBuilder.Entity<TeamSeason>()
             .HasIndex(t => new { t.TeamId, t.SeasonId })
+            .IsUnique();
+
+        // Unique constraint for User BrowserIdentifierId
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.BrowserIdentifierId)
+            .IsUnique();
+
+        // Unique constraint for UserSquad (user_id, game_record_id)
+        modelBuilder.Entity<UserSquad>()
+            .HasIndex(us => new { us.UserId, us.GameRecordId })
+            .IsUnique();
+
+        // Unique constraint for UserSquadPlayer (user_squad_id, player_id)
+        modelBuilder.Entity<UserSquadPlayer>()
+            .HasIndex(usp => new { usp.UserSquadId, usp.PlayerId })
             .IsUnique();
     }
 }

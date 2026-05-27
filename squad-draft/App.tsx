@@ -201,6 +201,39 @@ const App: React.FC = () => {
 
   const [userName, setUserName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const getShareText = () => {
+    const formattedDate = new Date().toLocaleDateString(undefined, {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+    const playUrl = window.location.origin;
+
+    return `🏆 I just completed today's Ultimate 11 Draft Challenge! ⚽\n\n` +
+           `📅 Date: ${formattedDate}\n` +
+           `⭐ My Team Avg Rating: ${totalRating} / 100\n\n` +
+           `Can you build a better squad? Play today's challenge here:\n` +
+           `🔗 ${playUrl}`;
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(getShareText());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    const shareText = encodeURIComponent(getShareText());
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}`;
+    window.open(whatsappUrl, '_blank');
+  };
 
   const getBrowserId = () => {
     let id = localStorage.getItem('squad-browser-id');
@@ -279,6 +312,18 @@ const App: React.FC = () => {
             title="About Us"
           >
             <i className="fas fa-question-circle md:mr-2"></i> <span className="hidden md:inline">About</span>
+          </button>
+          <button
+            onClick={() => {
+              const playUrl = window.location.origin;
+              const text = `⚽ Try the daily Ultimate 11 Draft Challenge! Build your dream squad from today's matches.\n🔗 ${playUrl}`;
+              const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+              window.open(whatsappUrl, '_blank');
+            }}
+            className="px-4 py-2 rounded-lg font-bold transition-all bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600 hover:text-white"
+            title="Invite friends via WhatsApp"
+          >
+            <i className="fa-brands fa-whatsapp md:mr-2"></i> <span className="hidden md:inline">Invite</span>
           </button>
           <button
             onClick={() => setView('draft')}
@@ -466,6 +511,31 @@ const App: React.FC = () => {
                        <p className="text-xs opacity-80">Check the leaderboard to see how you rank.</p>
                      </div>
                   )}
+                  <div className="border-t border-slate-700/50 my-6 pt-6 text-left">
+                    <h4 className="text-slate-400 font-bold text-xs uppercase mb-3 tracking-widest">Share Challenge</h4>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <button
+                        onClick={handleShareWhatsApp}
+                        className="py-3 px-4 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-bold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                      >
+                        <i className="fa-brands fa-whatsapp text-lg"></i> WhatsApp
+                      </button>
+                      <button
+                        onClick={handleCopyLink}
+                        className={`py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border ${
+                          copied
+                            ? 'bg-green-500/20 border-green-500 text-green-400'
+                            : 'bg-slate-700/30 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'
+                        }`}
+                      >
+                        {copied ? (
+                          <><i className="fas fa-check"></i> Copied!</>
+                        ) : (
+                          <><i className="fas fa-copy"></i> Copy Link</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                   <button
                     onClick={resetDraft}
                     className="w-full py-3 px-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"

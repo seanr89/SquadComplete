@@ -14,6 +14,7 @@ public static class EndpointExtensions
         app.MapFormationEndpoints();
         app.MapGameRecordEndpoints();
         app.MapFeedbackEndpoints();
+        app.MapEventEndpoints();
         app.MapUserSquadEndpoints();
         app.MapStatisticsEndpoints();
     }

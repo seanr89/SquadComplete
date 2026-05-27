@@ -57,10 +57,12 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             {
                 // get player fixture count for home and away teams to ensure we have enough players
                 var homePlayerFixtureCount = await _context.PlayerFixtureStatistics
-                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.HomeTeamId);
+                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.HomeTeamId
+                            && pf.Position != null && pf.Position != "N/A");
 
                 var awayPlayerFixtureCount = await _context.PlayerFixtureStatistics
-                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.AwayTeamId);
+                    .CountAsync(pf => pf.FixtureId == fixture.Id && pf.TeamId == fixture.AwayTeamId
+                            && pf.Position != null && pf.Position != "N/A");
 
                 // we need at least 11 players for a team to be selected if they are to be included in the game
                 if (homePlayerFixtureCount == 0 && awayPlayerFixtureCount == 0)

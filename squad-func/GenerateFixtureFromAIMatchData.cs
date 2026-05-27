@@ -33,7 +33,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
-    public async Task Run([TimerTrigger("0 30 16-21 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 30 20-21 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
@@ -70,8 +70,6 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
 
             dbHomeTeam ??= await FindAndCreateTeamIfNotExists(matchData, homeTeamName, dbHomeTeam);
             dbAwayTeam ??= await FindAndCreateTeamIfNotExists(matchData, awayTeamName, dbAwayTeam);
-            //Sleep added as a precaution to allow the API to catch up with the requests
-            Thread.Sleep(5000);
             DateTime? matchDate = MatchDataUtils.GetMatchDate(matchData);
             if (matchDate == null)
             {
@@ -113,7 +111,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 await AddPlayersToMappedPlayerList(awayPlayers, awayPlayersFound, dbAwayPlayers, mappedAwayPlayers);
             }
 
-            _logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
+            //_logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
 
             // check that there are at least 11 players from each team else the data set was wrong
             if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
@@ -201,7 +199,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 PlayerId = player.Id,
                 FixtureId = newFixture.Id,
                 TeamId = dbHomeTeam.Id,
-                Position = playerMapped?.apiPlayer?.Response?.First()?.Player?.Position ?? "N/A",
+                Position = playerMapped?.filePlayerData?.Position ?? "N/A",
                 Rating = (decimal?)playerMapped?.filePlayerData?.Rating ?? 0.0m
             };
             _context.PlayerFixtureStatistics.Add(newPlayerFixtureStat);
@@ -307,6 +305,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     {
         _logger.LogInformation("Getting team by name for: {TeamName}", homeTeamName);
         var homeTeamResponse = await _apiService.GetTeamByNameAsync(homeTeamName);
+        Thread.Sleep(2500);
         var homeTeam = JsonSerializer.Deserialize<TeamAPIModel>(homeTeamResponse);
 
         if (homeTeam != null && homeTeam?.Response?.Count > 0)
