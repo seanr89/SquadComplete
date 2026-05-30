@@ -17,22 +17,26 @@ public class DailyReport(ILoggerFactory loggerFactory, SquadContext context, Ema
     {
         var date = DateTime.Now.AddDays(-1);
         var teamCount = await _context.Teams.CountAsync();
+        var activeTeamCount = await _context.Teams.CountAsync(t => t.Active);
         var memberCount = await _context.Players.CountAsync();
         var fixtureCount = await _context.Fixtures.CountAsync();
         var gameRecordCount = await _context.GameRecords.CountAsync();
+        var userGameRecordCount = await _context.UserSquads.CountAsync();
 
         var report = new DailyStats
         {
             Date = date,
             TotalTeams = teamCount,
+            ActiveTeams = activeTeamCount,
             TotalPlayers = memberCount,
             TotalMatches = fixtureCount,
-            TotalGameRecords = gameRecordCount
+            TotalGameRecords = gameRecordCount,
+            TotalUserSquads = userGameRecordCount
         };
 
         _emailService.SendEmail(
             recipient: "srafferty89@gmail.com",
-            subject: "Daily Report",
+            subject: "Squad Daily Report",
             body: report.ToString()
         );
     }

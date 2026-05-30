@@ -49,15 +49,9 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             */
 
             var blobs = await _storageService.GetBlobs("ai-team-single");
-            if (blobs.Count <= 0)
-            {
-                _logger.LogWarning("No blobs found in ai-team-single storage.");
-                return;
-            }
-            var blob = blobs.First();
-
+            var blob = blobs.FirstOrDefault() ?? throw new Exception("No blob found in ai-team-single container");
             var data = await _storageService.ReadFromStorage(blob, "ai-team-single");
-            if (string.IsNullOrEmpty(data)) return;
+
 
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
@@ -132,21 +126,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             }
 
             _logger.LogInformation("Got Scores now create fixture!");
-
-            var newFixture = new Fixture
-            {
-                LeagueId = dbLeague.Id,
-                HomeTeamId = dbHomeTeam.Id,
-                AwayTeamId = dbAwayTeam.Id,
-                HomeTeamName = matchData?.HomeTeam?.Name,
-                AwayTeamName = matchData?.AwayTeam?.Name,
-                HomeGoalCount = homeGoalCount,
-                AwayGoalCount = awayGoalCount,
-                FixtureDate = matchDate,
-                FixtureSource = "AI"
-            };
-            _context.Fixtures.Add(newFixture);
-            _context.SaveChanges();
+            Fixture newFixture = CreateNewFixtureAndSave(matchData, dbLeague, dbHomeTeam, 
+                dbAwayTeam, matchDate, homeGoalCount, awayGoalCount);
 
             // Now I need to include any and all players from the home and away teams into the player fixture stats
             if (dbHomePlayers.Count > 0)
@@ -167,6 +148,38 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             _logger.LogError("GenerateFixtureFromAIMatchData error msg : {ex.Message}", ex.Message);
             throw;
         }
+    }
+
+    /// <summary>
+    /// TODO: Refactor this to be more testable and break down into smaller methods - this is doing a lot right now
+    /// </summary>
+    /// <param name="matchData"></param>
+    /// <param name="dbLeague"></param>
+    /// <param name="dbHomeTeam"></param>
+    /// <param name="dbAwayTeam"></param>
+    /// <param name="matchDate"></param>
+    /// <param name="homeGoalCount"></param>
+    /// <param name="awayGoalCount"></param>
+    /// <returns></returns>
+    private Fixture CreateNewFixtureAndSave(MatchDetails? matchData, League dbLeague, 
+        Team dbHomeTeam, Team dbAwayTeam, 
+        DateTime? matchDate, int homeGoalCount, int awayGoalCount)
+    {
+        var newFixture = new Fixture
+        {
+            LeagueId = dbLeague.Id,
+            HomeTeamId = dbHomeTeam.Id,
+            AwayTeamId = dbAwayTeam.Id,
+            HomeTeamName = matchData?.HomeTeam?.Name,
+            AwayTeamName = matchData?.AwayTeam?.Name,
+            HomeGoalCount = homeGoalCount,
+            AwayGoalCount = awayGoalCount,
+            FixtureDate = matchDate,
+            FixtureSource = "AI"
+        };
+        _context.Fixtures.Add(newFixture);
+        _context.SaveChanges();
+        return newFixture;
     }
 
     /// <summary>
