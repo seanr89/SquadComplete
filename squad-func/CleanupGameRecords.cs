@@ -26,7 +26,7 @@ public class CleanupGameRecords(ILoggerFactory loggerFactory, SquadContext conte
 
         // Retrieve the cleanup threshold in days, defaulting to 60 days
         int cleanupDays = 60;
-        string? cleanupDaysSetting = Environment.GetEnvironmentVariable("GameRecordsCleanupDays");
+        string? cleanupDaysSetting = Environment.GetEnvironmentVariable("GameRecordsCleanupDays") ?? cleanupDays.ToString();
 
         if (!string.IsNullOrEmpty(cleanupDaysSetting) && int.TryParse(cleanupDaysSetting, out int parsedDays))
         {

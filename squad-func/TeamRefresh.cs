@@ -31,10 +31,8 @@ IApiService apiService)
             && (f.HomeGoalCount == null || f.AwayGoalCount == null))
             && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(7)
+            .Take(6)
             .ToListAsync();
-
-        _logger.LogInformation("Found {Count} fixtures with missing goal information.", incompleteFixtures.Count);
 
         foreach (var fixture in incompleteFixtures)
         {
