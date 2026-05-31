@@ -23,6 +23,9 @@ public class DailyReport(ILoggerFactory loggerFactory, SquadContext context, Ema
         var gameRecordCount = await _context.GameRecords.CountAsync();
         var userGameRecordCount = await _context.UserSquads.CountAsync();
 
+        int fixturesMissingTeams = await _context.Fixtures.CountAsync(f => f.HomeTeamId == null || f.AwayTeamId == null);
+        int fixturesMissingScores = await _context.Fixtures.CountAsync(f => f.HomeGoalCount == null || f.AwayGoalCount == null);
+
         var report = new DailyStats
         {
             Date = date,
@@ -31,7 +34,9 @@ public class DailyReport(ILoggerFactory loggerFactory, SquadContext context, Ema
             TotalPlayers = memberCount,
             TotalMatches = fixtureCount,
             TotalGameRecords = gameRecordCount,
-            TotalUserSquads = userGameRecordCount
+            TotalUserSquads = userGameRecordCount,
+            FixturesMissingTeams = fixturesMissingTeams,
+            FixturesMissingScores = fixturesMissingScores
         };
 
         _emailService.SendEmail(

@@ -49,7 +49,6 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         }
 
         string responseJson = await response.Content.ReadAsStringAsync();
-        //_logger.LogInformation("Gemini API Response: {ResponseJson}", responseJson);
         return responseJson;
     }
 
@@ -63,7 +62,6 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
     {
         _logger.LogInformation("Getting history for {Team} {Season}", team, season);
 
-        // Add a try/catch flow
         try
         {
 
@@ -87,7 +85,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
             {
                 string errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogError("Error HTTP {StatusCode}: {ErrorContent}", (int)response.StatusCode, errorContent);
-                return null;
+                return string.Empty;
             }
 
             string responseJson = await response.Content.ReadAsStringAsync();
@@ -96,15 +94,21 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         catch (Exception ex)
         {
             _logger.LogError("Error getting history for {Team} {Season}: {Error}", team, season, ex.Message);
-            return null;
+            return string.Empty;
         }
     }
 
+    /// <summary>
+    /// Gets the history of a single match for a given team and season.
+    /// </summary>
+    /// <param name="team">The name of the team.</param>
+    /// <param name="season">The season, in the format "yyyy/yyyy".</param>
+    /// <param name="matchDate">The date of the match.</param>
+    /// <returns>A string containing the history of the match.</returns>
     public async Task<string?> GetSingleMatchHistoryAsync(string team, string season, string matchDate)
     {
         _logger.LogInformation("Getting history for {Team} {Season} {MatchDate}", team, season, matchDate);
 
-        // Add a try/catch flow
         try
         {
             string promptFilePath = Path.Combine(AppContext.BaseDirectory, "prompts/team_fixture_prompt.md");
@@ -151,7 +155,7 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
     /// </summary>
     /// <param name="userPrompt">The user prompt.</param>
     /// <returns>The request body.</returns>
-    private static global::System.Object BuildBaseRequestBody(string userPrompt)
+    private static object BuildBaseRequestBody(string userPrompt)
     {
         var requestBody = new
         {

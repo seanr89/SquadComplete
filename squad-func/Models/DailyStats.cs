@@ -9,16 +9,20 @@ public class DailyStats
     public int TotalPlayers { get; set; } = 0;
     public int TotalUserSquads { get; set; } = 0;
     public int TotalGameRecords { get; set; } = 0;
+    public int FixturesMissingTeams { get; set; } = 0;
+    public int FixturesMissingScores { get; set; } = 0;
 
 
     public override string ToString()
     {
-        return $@"Date: {Date.ToShortDateString()}
+        return $@"Date: {Date.ToLongDateString()}
             Total Teams: {TotalTeams}
             Active Teams: {ActiveTeams}
             Total Matches: {TotalMatches}
             Total Players: {TotalPlayers}
             Total User Squads: {TotalUserSquads}
-            Total Game Records: {TotalGameRecords}";
+            Total Game Records: {TotalGameRecords}
+            Fixtures Missing Teams: {FixturesMissingTeams}
+            Fixtures Missing Scores: {FixturesMissingScores}";
     }
 }
