@@ -23,7 +23,7 @@ IApiService apiService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 8-17 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 8-12 * * *")] TimerInfo myTimer)
     {
         // Now focus on fixtures with missing goal and fixture date information
         var incompleteFixtures = await _context.Fixtures
@@ -31,10 +31,8 @@ IApiService apiService)
             && (f.HomeGoalCount == null || f.AwayGoalCount == null))
             && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(7)
+            .Take(5)
             .ToListAsync();
-
-        _logger.LogInformation("Found {Count} fixtures with missing goal information.", incompleteFixtures.Count);
 
         foreach (var fixture in incompleteFixtures)
         {

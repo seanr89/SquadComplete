@@ -16,7 +16,6 @@ public class SingleMatchHistoricalSearch(ILoggerFactory loggerFactory, SquadCont
 GeminiService geminiService, StorageService storageService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<SingleMatchHistoricalSearch>();
-    private readonly SquadContext _context = context;
     private readonly GeminiService _geminiService = geminiService;
     private readonly StorageService _storageService = storageService;
 
