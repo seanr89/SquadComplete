@@ -55,7 +55,13 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
 
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
-            League dbLeague = await GetOrCreateLeague(matchData);
+            League? dbLeague = await GetOrCreateLeague(matchData);
+            if(dbLeague == null)
+            {
+                _logger.LogError("Could not find or create league for match");
+                await _storageService.MoveBlob(blob, "ai-team-single", "archive");
+                return;
+            }
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
@@ -361,24 +367,31 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
         _logger.LogInformation("Could not find league: {CompetitionName}", competitionName);
         // step2. I want to get the league id from the competition name
         var leagueResponse = await _apiService.GetLeagueByNameAsync(matchData?.MatchMetadata?.Competition);
-        var league = JsonSerializer.Deserialize<LeagueAPIModel>(leagueResponse);
-        if (league != null && league?.Response?.Count > 0)
+        try
         {
-            _logger.LogInformation("Found league: {LeagueName}", league?.Response?.First()?.League?.Name);
-            // lets make a new league record
-            var newLeague = new League
+            var league = JsonSerializer.Deserialize<LeagueAPIModel>(leagueResponse);
+            if (league != null && league?.Response?.Count > 0)
             {
-                ApiId = league?.Response?.First()?.League?.Id ?? 0,
-                Name = league?.Response?.First()?.League?.Name ?? "N/A",
-                Logo = league?.Response?.First()?.League?.Logo ?? "N/A"
-            };
-            _context.Leagues.Add(newLeague);
-            await _context.SaveChangesAsync();
-            dbLeague = newLeague;
+                _logger.LogInformation("Found league: {LeagueName}", league?.Response?.First()?.League?.Name);
+                // lets make a new league record
+                var newLeague = new League
+                {
+                    ApiId = league?.Response?.First()?.League?.Id ?? 0,
+                    Name = league?.Response?.First()?.League?.Name ?? "N/A",
+                    Logo = league?.Response?.First()?.League?.Logo ?? "N/A"
+                };
+                _context.Leagues.Add(newLeague);
+                await _context.SaveChangesAsync();
+                dbLeague = newLeague;
+            }
+            else
+            {
+                _logger.LogInformation("Could not find league: {CompetitionName}", competitionName);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogInformation("Could not find league: {CompetitionName}", competitionName);
+            _logger.LogError(ex, "Error fetching league: {CompetitionName}", competitionName);
         }
 
         return dbLeague;
