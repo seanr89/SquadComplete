@@ -11,6 +11,7 @@ public class DailyStats
     public int TotalGameRecords { get; set; } = 0;
     public int FixturesMissingTeams { get; set; } = 0;
     public int FixturesMissingScores { get; set; } = 0;
+    public int AIFixtureCount { get; set; } = 0;
 
 
     public override string ToString()
@@ -23,6 +24,7 @@ public class DailyStats
             Total User Squads: {TotalUserSquads}
             Total Game Records: {TotalGameRecords}
             Fixtures Missing Teams: {FixturesMissingTeams}
-            Fixtures Missing Scores: {FixturesMissingScores}";
+            Fixtures Missing Scores: {FixturesMissingScores}
+            AI Fixtures: {AIFixtureCount}";
     }
 }

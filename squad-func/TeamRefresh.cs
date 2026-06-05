@@ -19,19 +19,18 @@ IApiService apiService)
     private readonly IApiService _apiService = apiService;
 
     /// <summary>
-    /// Function to refresh player and team info
+    /// Function to refresh player and team info with missing FixtureDate data
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 8-12 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 9-12 * * *")] TimerInfo myTimer)
     {
         // Now focus on fixtures with missing goal and fixture date information
         var incompleteFixtures = await _context.Fixtures
-            .Where(f => (f.FixtureDate == null
-            && (f.HomeGoalCount == null || f.AwayGoalCount == null))
+            .Where(f => (f.FixtureDate == null)
             && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(5)
+            .Take(4)
             .ToListAsync();
 
         foreach (var fixture in incompleteFixtures)
@@ -39,7 +38,7 @@ IApiService apiService)
             try
             {
                 var fixtureData = await _apiService.GetFixtureDataAsync(fixture.ApiId ?? 0);
-                Thread.Sleep(2500);
+                Thread.Sleep(3000);
                 if (fixtureData?.Teams != null)
                 {
                     await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
