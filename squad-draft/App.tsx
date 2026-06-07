@@ -314,18 +314,6 @@ const App: React.FC = () => {
             <i className="fas fa-question-circle md:mr-2"></i> <span className="hidden md:inline">About</span>
           </button>
           <button
-            onClick={() => {
-              const playUrl = window.location.origin;
-              const text = `⚽ Try the daily Ultimate 11 Draft Challenge! Build your dream squad from today's matches.\n🔗 ${playUrl}`;
-              const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-              window.open(whatsappUrl, '_blank');
-            }}
-            className="px-4 py-2 rounded-lg font-bold transition-all bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600 hover:text-white"
-            title="Invite friends via WhatsApp"
-          >
-            <i className="fa-brands fa-whatsapp md:mr-2"></i> <span className="hidden md:inline">Invite</span>
-          </button>
-          <button
             onClick={() => setView('draft')}
             className={`px-4 py-2 rounded-lg font-bold transition-all ${view === 'draft' ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
           >

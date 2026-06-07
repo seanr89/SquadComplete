@@ -4,10 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using squad_func.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.Linq;
 using squad_func.Services;
-using System.Text.Json;
 
 namespace Squad.Function;
 

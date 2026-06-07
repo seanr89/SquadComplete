@@ -56,10 +56,10 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
             League? dbLeague = await GetOrCreateLeague(matchData);
-            if(dbLeague == null)
+            if (dbLeague == null)
             {
                 _logger.LogError("Could not find or create league for match");
-                await _storageService.MoveBlob(blob, "ai-team-single", "archive");
+                await _storageService.MoveBlob(blob, "ai-team-single", "archive-league-error");
                 return;
             }
 
@@ -132,7 +132,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             }
 
             _logger.LogInformation("Got Scores now create fixture!");
-            Fixture newFixture = CreateNewFixtureAndSave(matchData, dbLeague, dbHomeTeam, 
+            Fixture newFixture = CreateNewFixtureAndSave(matchData, dbLeague, dbHomeTeam,
                 dbAwayTeam, matchDate, homeGoalCount, awayGoalCount);
 
             // Now I need to include any and all players from the home and away teams into the player fixture stats
@@ -167,8 +167,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// <param name="homeGoalCount"></param>
     /// <param name="awayGoalCount"></param>
     /// <returns></returns>
-    private Fixture CreateNewFixtureAndSave(MatchDetails? matchData, League dbLeague, 
-        Team dbHomeTeam, Team dbAwayTeam, 
+    private Fixture CreateNewFixtureAndSave(MatchDetails? matchData, League dbLeague,
+        Team dbHomeTeam, Team dbAwayTeam,
         DateTime? matchDate, int homeGoalCount, int awayGoalCount)
     {
         var newFixture = new Fixture

@@ -1,7 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using squad_func.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -12,7 +10,7 @@ using Squad.Function.Models.AI;
 
 namespace Squad.Function;
 
-public class SingleMatchHistoricalSearch(ILoggerFactory loggerFactory, SquadContext context,
+public class SingleMatchHistoricalSearch(ILoggerFactory loggerFactory,
 GeminiService geminiService, StorageService storageService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<SingleMatchHistoricalSearch>();

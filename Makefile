@@ -46,6 +46,17 @@ trim-branches:
 		echo "No merged branches to trim."; \
 	fi
 
+trim-prune-branches:
+	@echo "Trimming merged git branches and pruning remote branches..."
+	@merged_branches=$$(git branch --merged | grep -Ev "^\*|master|main|dev"); \
+	if [ -n "$$merged_branches" ]; then \
+		echo "$$merged_branches" | xargs git branch -d; \
+	else \
+		echo "No merged branches to trim."; \
+	fi
+	@git fetch --prune
+
+
 # Clean artifacts
 clean:
 	@echo "Cleaning artifacts..."
