@@ -86,6 +86,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 && f.FixtureDate == matchDate);
             if (dbFixture != null)
             {
+                _logger.LogWarning("Fixture already exists for {HomeTeam} vs {AwayTeam} on {MatchDate}, skipping creation", homeTeamName, awayTeamName, matchDate);
                 return;
             }
 
