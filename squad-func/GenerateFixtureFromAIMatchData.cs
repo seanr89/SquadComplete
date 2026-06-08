@@ -117,10 +117,16 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             _logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
 
             // check that there are at least 11 players from each team else the data set was wrong
-            if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
+            if (dbHomePlayers.Count < 11 && dbHomeTeam.Active == true)
             {
                 // Not enough players for the fixture - skip
-                _logger.LogWarning("Not enough players for fixture: {HomeTeam} vs {AwayTeam}", dbHomeTeam.Name, dbAwayTeam.Name);
+                _logger.LogWarning("Not enough home team players for fixture: {HomeTeam} vs {AwayTeam}", dbHomeTeam.Name, dbAwayTeam.Name);
+                return;
+            }
+            if (dbAwayPlayers.Count < 11 && dbAwayTeam.Active == true)
+            {
+                // Not enough players for the fixture - skip
+                _logger.LogWarning("Not enough for away team for fixture: {HomeTeam} vs {AwayTeam}", dbHomeTeam.Name, dbAwayTeam.Name);
                 return;
             }
 
