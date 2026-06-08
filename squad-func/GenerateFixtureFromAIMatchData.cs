@@ -63,6 +63,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 return;
             }
 
+            _logger.LogInformation("Got league now get or create teams for fixture!");
+
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
             string? awayTeamName = matchData?.AwayTeam?.Name;
@@ -76,6 +78,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 _logger.LogError("Could not parse match date");
                 return;
             }
+            _logger.LogInformation("Got teams now check if fixture already exists for {HomeTeam} vs {AwayTeam} on {MatchDate}", homeTeamName, awayTeamName, matchDate);
 
             // lets try and find the fixture in the database that matches team id etc...
             var dbFixture = _context.Fixtures.FirstOrDefault(
@@ -111,13 +114,13 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 await AddPlayersToMappedPlayerList(awayPlayers, awayPlayersFound, dbAwayPlayers, mappedAwayPlayers);
             }
 
-            //_logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
+            _logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
 
             // check that there are at least 11 players from each team else the data set was wrong
             if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
             {
                 // Not enough players for the fixture - skip
-                Console.WriteLine($"Not enough players for fixture: {dbHomeTeam.Name} vs {dbAwayTeam.Name}");
+                _logger.LogWarning("Not enough players for fixture: {HomeTeam} vs {AwayTeam}", dbHomeTeam.Name, dbAwayTeam.Name);
                 return;
             }
 
