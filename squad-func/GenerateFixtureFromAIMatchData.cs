@@ -33,7 +33,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
-    public async Task Run([TimerTrigger("0 0,30 15-21 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0,30 15-23 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
@@ -87,6 +87,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             if (dbFixture != null)
             {
                 _logger.LogWarning("Fixture already exists for {HomeTeam} vs {AwayTeam} on {MatchDate}, skipping creation", homeTeamName, awayTeamName, matchDate);
+                await _storageService.MoveBlob(blob, "ai-team-single", "archive-duplicate-fixture");
                 return;
             }
 
