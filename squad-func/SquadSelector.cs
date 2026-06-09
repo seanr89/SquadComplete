@@ -23,7 +23,6 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             // In future, this will need to limited/paginated for performance reasons
             var fixtures = await _context.Fixtures
                 .Include(f => f.League)
-                .AsNoTracking()
                 .ToListAsync();
 
             // Randomize the list of fixtures
@@ -31,8 +30,12 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             var shuffledFixtures = fixtures.OrderBy(x => random.Next()).ToList();
 
             // Retrieve all formations and select a random one
-            var formations = await _context.Formations.AsNoTracking().ToListAsync();
-            Formation? selectedFormation = formations[random.Next(formations.Count)];
+            var formations = await _context.Formations.ToListAsync();
+            Formation? selectedFormation = null;
+            if (formations.Count != 0)
+            {
+                selectedFormation = formations[random.Next(formations.Count)];
+            }
 
             // Create a new game record for today
             var gameRecord = new GameRecord
@@ -40,8 +43,9 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
                 GameDate = DateTime.UtcNow.Date,
                 Formation = selectedFormation
             };
+
             _context.GameRecords.Add(gameRecord);
-            //await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
             // Identify the first 11 unique team IDs and create tags
             var uniqueTeamIds = new HashSet<int>();
@@ -61,16 +65,22 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
                             && pf.Position != null && pf.Position != "N/A");
 
                 // we need at least 11 players for a team to be selected if they are to be included in the game
-                if (homePlayerFixtureCount == 0 && awayPlayerFixtureCount == 0 
-                && (!activeTeamIds.Contains(fixture.HomeTeamId ?? 0) || !activeTeamIds.Contains(fixture.AwayTeamId ?? 0)))
+                if (homePlayerFixtureCount == 0 && awayPlayerFixtureCount == 0)
                 {
                     continue;
                 }
 
-                TryAddTeamTag(fixture.HomeTeamId, homePlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
+                if (activeTeamIds.Contains(fixture.HomeTeamId ?? 0))
+                {
+                    TryAddTeamTag(fixture.HomeTeamId, homePlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
+                }
                 if (uniqueTeamIds.Count >= 11) break;
 
-                TryAddTeamTag(fixture.AwayTeamId, awayPlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
+                if (activeTeamIds.Contains(fixture.AwayTeamId ?? 0))
+                {
+                    TryAddTeamTag(fixture.AwayTeamId, awayPlayerFixtureCount, fixture.Id, gameRecord.Id, uniqueTeamIds, tagsToAdd);
+                }
+
                 if (uniqueTeamIds.Count >= 11) break;
             }
 
