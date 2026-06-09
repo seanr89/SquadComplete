@@ -51,6 +51,7 @@ const CookieConsent: React.FC = () => {
     setConsent(newConsent);
     setIsVisible(false);
     setShowModal(false);
+    window.dispatchEvent(new Event('squad-cookie-consent-changed'));
   };
 
   const handleAcceptAll = () => {

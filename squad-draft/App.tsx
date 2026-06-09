@@ -12,10 +12,15 @@ import AlertDialog from './components/AlertDialog';
 import FixtureInfo from './components/FixtureInfo';
 import CookieConsent from './components/CookieConsent';
 
-const App: React.FC = () => {
+import { AdProvider } from './components/AdContext';
+import { AdBanner } from './components/AdBanner';
+import AdInterstitial from './components/AdInterstitial';
+
+const AppContent: React.FC = () => {
   const [view, setView] = useState<'draft' | 'team' | 'leaderboard'>('draft');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{isOpen: boolean, title: string, message: string, type: 'success' | 'error' | 'info'}>({isOpen: false, title: '', message: '', type: 'info'});
+  const [isInterstitialOpen, setIsInterstitialOpen] = useState(false);
   const [squads, setSquads] = useState<Squad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -163,12 +168,17 @@ const App: React.FC = () => {
     const spot = draft.formation.find(s => s.id === spotId);
     if (!spot || spot.player) return;
 
+    const isDone = draft.selectedPlayers.length + 1 === 11;
+    if (isDone) {
+      setIsInterstitialOpen(true);
+    }
+
     setDraft(prev => ({
       ...prev,
       selectedPlayers: [...prev.selectedPlayers, tempPlayer],
       formation: prev.formation.map(s => s.id === spotId ? { ...s, player: tempPlayer } : s),
       currentStep: prev.currentStep + 1,
-      completed: prev.selectedPlayers.length + 1 === 11
+      completed: isDone
     }));
 
     setTempPlayer(null);
@@ -353,6 +363,11 @@ const App: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {/* Horizontal Ad Banner */}
+      <div className="mb-6 flex justify-center">
+        <AdBanner slotType="horizontal" />
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col justify-center">
@@ -544,6 +559,10 @@ const App: React.FC = () => {
                   </button>
                 </div>
 
+                <div className="flex justify-center items-center">
+                  <AdBanner slotType="sidebar" />
+                </div>
+
                 <div className="bg-slate-800/80 rounded-2xl p-6 border border-slate-700">
                   <h3 className="text-slate-400 font-bold text-sm uppercase mb-4 tracking-widest">Roster List</h3>
                   <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
@@ -617,7 +636,17 @@ const App: React.FC = () => {
           </button>
         </div>
       </footer>
+      {/* Interstitial Ad Popup */}
+      <AdInterstitial isOpen={isInterstitialOpen} onClose={() => setIsInterstitialOpen(false)} />
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AdProvider>
+      <AppContent />
+    </AdProvider>
   );
 };
 
