@@ -201,7 +201,6 @@ const App: React.FC = () => {
 
   const [userName, setUserName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const getShareText = () => {
     const formattedDate = new Date().toLocaleDateString(undefined, {
@@ -217,16 +216,6 @@ const App: React.FC = () => {
            `⭐ My Team Avg Rating: ${totalRating} / 100\n\n` +
            `Can you build a better squad? Play today's challenge here:\n` +
            `🔗 ${playUrl}`;
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(getShareText());
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
   };
 
   const handleShareWhatsApp = () => {
@@ -246,11 +235,20 @@ const App: React.FC = () => {
 
   const handleSubmitTeam = async () => {
     if (!draft.completed || draft.submitted) return;
+    if (!userName.trim()) {
+        setAlertConfig({
+            isOpen: true,
+            title: 'Name Required',
+            message: 'Please enter your name to submit your team.',
+            type: 'error'
+        });
+        return;
+    }
 
     setIsSubmitting(true);
     const payload = {
         BrowserIdentifierId: getBrowserId(),
-        UserName: userName.trim() || undefined,
+        UserName: userName.trim(),
         GameRecordId: draft.gameRecordId,
         FormationId: draft.formationId,
         Players: draft.formation.map(spot => ({
@@ -474,15 +472,16 @@ const App: React.FC = () => {
                     <div className="mb-6 space-y-3">
                       <input
                         type="text"
-                        placeholder="Enter your name (optional)"
+                        placeholder="Enter your name"
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-400"
                         maxLength={50}
+                        required
                       />
                       <button
                         onClick={handleSubmitTeam}
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !userName.trim()}
                         className="w-full py-3 px-4 bg-yellow-400 text-slate-900 rounded-xl font-bold hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
                         {isSubmitting ? (
@@ -501,26 +500,12 @@ const App: React.FC = () => {
                   )}
                   <div className="border-t border-slate-700/50 my-6 pt-6 text-left">
                     <h4 className="text-slate-400 font-bold text-xs uppercase mb-3 tracking-widest">Share Challenge</h4>
-                    <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="mb-4">
                       <button
                         onClick={handleShareWhatsApp}
-                        className="py-3 px-4 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-bold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 px-4 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-bold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
                       >
                         <i className="fa-brands fa-whatsapp text-lg"></i> WhatsApp
-                      </button>
-                      <button
-                        onClick={handleCopyLink}
-                        className={`py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border ${
-                          copied
-                            ? 'bg-green-500/20 border-green-500 text-green-400'
-                            : 'bg-slate-700/30 border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'
-                        }`}
-                      >
-                        {copied ? (
-                          <><i className="fas fa-check"></i> Copied!</>
-                        ) : (
-                          <><i className="fas fa-copy"></i> Copy Link</>
-                        )}
                       </button>
                     </div>
                   </div>

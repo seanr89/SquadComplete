@@ -14,6 +14,13 @@ public class DailyStats
     public int AIFixtureCount { get; set; } = 0;
     public int FixturesMissingDates { get; set; } = 0;
 
+    #region Storage Info
+
+    public int TotalSingleFixtureRecords { get; set; } = 0;
+    public int TotalTeamRecords { get; set; } = 0;
+
+    #endregion
+
 
     public override string ToString()
     {
