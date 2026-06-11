@@ -15,7 +15,7 @@ public class FullSeasonAISearch(ILoggerFactory loggerFactory,
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     [Function("FullSeasonAISearch")]
-    public async Task Run([TimerTrigger("0 0 21 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 21,22 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("FullSeasonAISearch started");
 
