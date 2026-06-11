@@ -127,7 +127,7 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
             await containerClient.CreateIfNotExistsAsync();
 
             var blobs = containerClient.GetBlobsAsync();
-            if(await blobs.AnyAsync())
+            if (await blobs.AnyAsync())
             {
                 _logger.LogInformation("Container '{ContainerName}' is not empty.", containerName);
                 return false;

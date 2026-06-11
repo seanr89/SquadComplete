@@ -33,7 +33,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
-    public async Task Run([TimerTrigger("0 0,30 15-21 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0,30 15-23 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
@@ -56,12 +56,14 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
             League? dbLeague = await GetOrCreateLeague(matchData);
-            if(dbLeague == null)
+            if (dbLeague == null)
             {
                 _logger.LogError("Could not find or create league for match");
-                await _storageService.MoveBlob(blob, "ai-team-single", "archive");
+                await _storageService.MoveBlob(blob, "ai-team-single", "archive-league-error");
                 return;
             }
+
+            _logger.LogInformation("Got league now get or create teams for fixture!");
 
             string? homeTeamName = matchData?.HomeTeam?.Name;
             var dbHomeTeam = _context.Teams.FirstOrDefault(t => t.Name == homeTeamName);
@@ -76,6 +78,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 _logger.LogError("Could not parse match date");
                 return;
             }
+            _logger.LogInformation("Got teams now check if fixture already exists for {HomeTeam} vs {AwayTeam} on {MatchDate}", homeTeamName, awayTeamName, matchDate);
 
             // lets try and find the fixture in the database that matches team id etc...
             var dbFixture = _context.Fixtures.FirstOrDefault(
@@ -83,6 +86,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 && f.FixtureDate == matchDate);
             if (dbFixture != null)
             {
+                _logger.LogWarning("Fixture already exists for {HomeTeam} vs {AwayTeam} on {MatchDate}, skipping creation", homeTeamName, awayTeamName, matchDate);
+                await _storageService.MoveBlob(blob, "ai-team-single", "archive-duplicate-fixture");
                 return;
             }
 
@@ -111,13 +116,19 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 await AddPlayersToMappedPlayerList(awayPlayers, awayPlayersFound, dbAwayPlayers, mappedAwayPlayers);
             }
 
-            //_logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
+            _logger.LogInformation("Players found for fixture {FixtureId}: {HomePlayers} {AwayPlayers}", dbFixture?.Id, dbHomePlayers.Count, dbAwayPlayers.Count);
 
             // check that there are at least 11 players from each team else the data set was wrong
-            if (dbHomePlayers.Count < 11 && dbAwayPlayers.Count < 11)
+            if (dbHomePlayers.Count < 11 && dbHomeTeam.Active == true)
             {
                 // Not enough players for the fixture - skip
-                Console.WriteLine($"Not enough players for fixture: {dbHomeTeam.Name} vs {dbAwayTeam.Name}");
+                _logger.LogWarning("Not enough home team players for fixture: {HomeTeam} vs {AwayTeam}", dbHomeTeam.Name, dbAwayTeam.Name);
+                return;
+            }
+            if (dbAwayPlayers.Count < 11 && dbAwayTeam.Active == true)
+            {
+                // Not enough players for the fixture - skip
+                _logger.LogWarning("Not enough for away team for fixture: {HomeTeam} vs {AwayTeam}", dbHomeTeam.Name, dbAwayTeam.Name);
                 return;
             }
 
@@ -132,7 +143,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             }
 
             _logger.LogInformation("Got Scores now create fixture!");
-            Fixture newFixture = CreateNewFixtureAndSave(matchData, dbLeague, dbHomeTeam, 
+            Fixture newFixture = CreateNewFixtureAndSave(matchData, dbLeague, dbHomeTeam,
                 dbAwayTeam, matchDate, homeGoalCount, awayGoalCount);
 
             // Now I need to include any and all players from the home and away teams into the player fixture stats
@@ -167,8 +178,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// <param name="homeGoalCount"></param>
     /// <param name="awayGoalCount"></param>
     /// <returns></returns>
-    private Fixture CreateNewFixtureAndSave(MatchDetails? matchData, League dbLeague, 
-        Team dbHomeTeam, Team dbAwayTeam, 
+    private Fixture CreateNewFixtureAndSave(MatchDetails? matchData, League dbLeague,
+        Team dbHomeTeam, Team dbAwayTeam,
         DateTime? matchDate, int homeGoalCount, int awayGoalCount)
     {
         var newFixture = new Fixture

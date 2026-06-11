@@ -1,14 +1,12 @@
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using squad_func.Services;
 using squad_func.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Squad.Function;
 
-public class DailyReport(ILoggerFactory loggerFactory, SquadContext context, EmailSMTPService emailService)
+public class DailyReport(SquadContext context, EmailSMTPService emailService)
 {
-    private readonly ILogger _logger;
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
     private readonly EmailSMTPService _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
 
@@ -23,8 +21,11 @@ public class DailyReport(ILoggerFactory loggerFactory, SquadContext context, Ema
         var gameRecordCount = await _context.GameRecords.CountAsync();
         var userGameRecordCount = await _context.UserSquads.CountAsync();
 
-        int fixturesMissingTeams = await _context.Fixtures.CountAsync(f => f.HomeTeamId == null || f.AwayTeamId == null);
-        int fixturesMissingScores = await _context.Fixtures.CountAsync(f => f.HomeGoalCount == null || f.AwayGoalCount == null);
+        int fixturesMissingTeams = await _context.Fixtures.CountAsync(f => f.HomeTeamId == null ||
+            f.AwayTeamId == null);
+        int fixturesMissingScores = await _context.Fixtures.CountAsync(f => f.HomeGoalCount == null ||
+            f.AwayGoalCount == null);
+        int fixturesMissingDates = await _context.Fixtures.CountAsync(f => f.FixtureDate == null);
         var AIFixtureCount = await _context.Fixtures.CountAsync(f => f.FixtureSource == "AI");
 
         var report = new DailyStats
@@ -38,6 +39,7 @@ public class DailyReport(ILoggerFactory loggerFactory, SquadContext context, Ema
             TotalUserSquads = userGameRecordCount,
             FixturesMissingTeams = fixturesMissingTeams,
             FixturesMissingScores = fixturesMissingScores,
+            FixturesMissingDates = fixturesMissingDates,
             AIFixtureCount = AIFixtureCount
         };
 

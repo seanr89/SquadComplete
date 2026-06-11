@@ -4,10 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using squad_func.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.Linq;
 using squad_func.Services;
-using System.Text.Json;
 
 namespace Squad.Function;
 
@@ -23,14 +21,14 @@ IApiService apiService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 9-12 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 9-14 * * *")] TimerInfo myTimer)
     {
         // Now focus on fixtures with missing goal and fixture date information
         var incompleteFixtures = await _context.Fixtures
             .Where(f => (f.FixtureDate == null)
             && f.ApiId != null)
             .OrderBy(f => f.CreatedAt)
-            .Take(4)
+            .Take(5)
             .ToListAsync();
 
         foreach (var fixture in incompleteFixtures)
@@ -38,9 +36,9 @@ IApiService apiService)
             try
             {
                 var fixtureData = await _apiService.GetFixtureDataAsync(fixture.ApiId ?? 0);
-                Thread.Sleep(3000);
                 if (fixtureData?.Teams != null)
                 {
+                    Thread.Sleep(2500);
                     await UpdateFixtureDetailsAsync(fixture.Id, fixtureData);
                     _logger.LogInformation("Updated team information for fixture {FixtureId}.", fixture.Id);
                 }
@@ -64,12 +62,6 @@ IApiService apiService)
         var dbFixture = await _context.Fixtures.FindAsync(fixtureId);
         if (dbFixture != null)
         {
-            dbFixture.HomeGoalCount = fixtureData.Goals?.Home;
-            dbFixture.AwayGoalCount = fixtureData.Goals?.Away;
-            dbFixture.HomeTeamId = fixtureData.Teams?.Home?.Id;
-            dbFixture.AwayTeamId = fixtureData.Teams?.Away?.Id;
-            dbFixture.HomeTeamName = fixtureData.Teams?.Home?.Name;
-            dbFixture.AwayTeamName = fixtureData.Teams?.Away?.Name;
             dbFixture.UpdatedAt = DateTime.UtcNow;
             dbFixture.FixtureSource = "API";
             dbFixture.FixtureDate = fixtureData?.Fixture?.Date != null

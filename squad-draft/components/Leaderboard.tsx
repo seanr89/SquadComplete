@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Player } from '../types';
 import { fetchDailySquads, fetchLeaderboard } from '../api';
+import MaterialDatePicker from './MaterialDatePicker';
 
 interface LeaderboardEntry {
   id: string;
@@ -14,6 +15,11 @@ const Leaderboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // Date picker limit: not in the future, only go back 14 days
+  const maxDate = new Date();
+  const minDate = new Date();
+  minDate.setDate(maxDate.getDate() - 14);
 
   useEffect(() => {
     const loadData = async () => {
@@ -30,6 +36,7 @@ const Leaderboard: React.FC = () => {
         console.error("Failed to load leaderboard", error);
         setEntries([]);
       } finally {
+        setViewMonthYearFromDateString(selectedDate);
         setLoading(false);
       }
     };
@@ -37,54 +44,74 @@ const Leaderboard: React.FC = () => {
     loadData();
   }, [selectedDate]);
 
+  // Sync internal calendar view month/year to reflect selectedDate changes
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+
+  const setViewMonthYearFromDateString = (dateStr: string) => {
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        setCalendarMonth(parseInt(parts[1], 10) - 1);
+        setCalendarYear(parseInt(parts[0], 10));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const closeDialog = () => {
     setSelectedEntry(null);
   };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-4xl mx-auto">
-      <div className="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 shadow-xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="bg-[#111827]/70 backdrop-blur-md rounded-2xl p-6 border border-slate-800 shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <h2 className="text-2xl font-extrabold text-white flex items-center gap-3">
-            <i className="fas fa-list-ol text-yellow-400"></i>
+            <span className="text-yellow-400"><i className="fas fa-list-ol"></i></span>
             Daily Leaderboard
           </h2>
 
-          <div className="flex items-center gap-3 bg-slate-700/50 p-2 px-4 rounded-xl border border-slate-600">
-            <i className="fas fa-calendar-alt text-slate-400 text-sm"></i>
-            <input
-              type="date"
+          <div className="flex justify-end">
+            <MaterialDatePicker
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="bg-transparent text-white text-sm font-bold focus:outline-none [color-scheme:dark]"
+              onChange={setSelectedDate}
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-900/40">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase tracking-wider">
-                <th className="p-4 font-bold">Rank</th>
-                <th className="p-4 font-bold">Player</th>
-                <th className="p-4 font-bold text-center">Avg Rating</th>
-                <th className="p-4 font-bold text-center">Action</th>
+              <tr className="border-b border-slate-800/80 bg-slate-900/50 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                <th className="p-4 py-5 pl-6 font-bold w-20">Rank</th>
+                <th className="p-4 py-5 font-bold">Player</th>
+                <th className="p-4 py-5 font-bold text-center w-36">Avg Rating</th>
+                <th className="p-4 py-5 font-bold text-center w-36">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-400 font-bold">
-                    <i className="fas fa-spinner fa-spin mr-2"></i> Loading leaderboard...
+                  <td colSpan={4} className="p-12 text-center text-slate-400 font-bold">
+                    <div className="flex items-center justify-center gap-3">
+                      <i className="fas fa-spinner fa-spin text-yellow-400 text-lg"></i>
+                      <span>Loading leaderboard...</span>
+                    </div>
                   </td>
                 </tr>
               ) : entries.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center">
-                    <div className="flex flex-col items-center justify-center text-slate-400">
-                      <i className="fas fa-calendar-times text-4xl mb-3 text-slate-500"></i>
-                      <p className="text-lg font-bold">No Entries Today</p>
-                      <p className="text-sm">Be the first to submit your squad!</p>
+                  <td colSpan={4} className="p-16 text-center">
+                    <div className="flex flex-col items-center justify-center text-slate-400 max-w-xs mx-auto">
+                      <div className="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center mb-4 text-slate-500 shadow-inner">
+                        <i className="fas fa-calendar-times text-2xl"></i>
+                      </div>
+                      <p className="text-lg font-bold text-white mb-1">No Entries Today</p>
+                      <p className="text-sm text-slate-500 leading-relaxed">Be the first to build a squad and submit it to the leaderboard!</p>
                     </div>
                   </td>
                 </tr>
@@ -92,28 +119,52 @@ const Leaderboard: React.FC = () => {
                 entries.map((entry, index) => (
                   <tr
                     key={entry.id}
-                    className={`border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors ${index === 0 ? 'bg-yellow-400/5' :
-                        index === 1 ? 'bg-slate-300/5' :
-                          index === 2 ? 'bg-amber-600/5' : ''
-                      }`}
+                    className={`border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors last:border-0 ${
+                      index === 0 ? 'bg-yellow-500/5 hover:bg-yellow-500/10' :
+                      index === 1 ? 'bg-slate-400/5 hover:bg-slate-400/10' :
+                      index === 2 ? 'bg-amber-600/5 hover:bg-amber-600/10' : ''
+                    }`}
                   >
-                    <td className="p-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 border border-slate-600 font-bold text-white shadow-inner">
-                        {index + 1}
+                    <td className="p-4 pl-6">
+                      <div className="flex items-center">
+                        {index === 0 ? (
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-yellow-500 to-amber-400 text-slate-900 border border-yellow-300 font-extrabold shadow-lg shadow-yellow-500/20 text-sm">
+                            🏆
+                          </div>
+                        ) : index === 1 ? (
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-slate-400 to-slate-300 text-slate-900 border border-slate-200 font-extrabold shadow-lg shadow-slate-300/20 text-sm">
+                            🥈
+                          </div>
+                        ) : index === 2 ? (
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-amber-700 to-amber-600 text-white border border-amber-500 font-extrabold shadow-lg shadow-amber-700/20 text-sm">
+                            🥉
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800/80 border border-slate-700 font-bold text-slate-400 text-xs">
+                            {index + 1}
+                          </div>
+                        )}
                       </div>
                     </td>
-                    <td className="p-4 font-bold text-white text-lg">{entry.playerName}</td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-slate-800/90 border border-slate-700/80 flex items-center justify-center text-slate-400 shadow-inner flex-shrink-0">
+                          <i className="fas fa-user text-xs"></i>
+                        </div>
+                        <span className="font-bold text-white text-base truncate max-w-[180px] sm:max-w-none">{entry.playerName}</span>
+                      </div>
+                    </td>
                     <td className="p-4 text-center">
-                      <span className="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-600 font-black text-yellow-400">
+                      <span className="inline-block px-3 py-1 rounded-full bg-slate-800 border border-slate-700 font-black text-yellow-400 text-sm tracking-wider">
                         {entry.teamAverageRating.toFixed(1)}
                       </span>
                     </td>
                     <td className="p-4 text-center">
                       <button
                         onClick={() => setSelectedEntry(entry)}
-                        className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold transition-all shadow-md hover:shadow-lg text-sm"
+                        className="mx-auto px-4 py-2 bg-yellow-400/10 hover:bg-yellow-400 text-yellow-400 hover:text-slate-950 border border-yellow-400/20 hover:border-yellow-400 rounded-xl font-bold transition-all shadow-md active:scale-[0.97] text-xs flex items-center justify-center gap-2 w-full sm:w-auto max-w-[120px]"
                       >
-                        <i className="fas fa-eye mr-2"></i> View Squad
+                        <i className="fas fa-eye"></i> View Squad
                       </button>
                     </td>
                   </tr>

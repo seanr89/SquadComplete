@@ -12,6 +12,14 @@ public class DailyStats
     public int FixturesMissingTeams { get; set; } = 0;
     public int FixturesMissingScores { get; set; } = 0;
     public int AIFixtureCount { get; set; } = 0;
+    public int FixturesMissingDates { get; set; } = 0;
+
+    #region Storage Info
+
+    public int TotalSingleFixtureRecords { get; set; } = 0;
+    public int TotalTeamRecords { get; set; } = 0;
+
+    #endregion
 
 
     public override string ToString()
@@ -25,6 +33,7 @@ public class DailyStats
             Total Game Records: {TotalGameRecords}
             Fixtures Missing Teams: {FixturesMissingTeams}
             Fixtures Missing Scores: {FixturesMissingScores}
+            Fixtures Missing Dates: {FixturesMissingDates}
             AI Fixtures: {AIFixtureCount}";
     }
 }

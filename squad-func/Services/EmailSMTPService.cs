@@ -8,7 +8,7 @@ public class EmailSMTPService
     {
         _email = Environment.GetEnvironmentVariable("SMTP_SENDER") ?? "srafferty89@gmail.com";
         _password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
-    } 
+    }
 
     /// <summary>
     /// Sends an email to the specified recipient with the given subject and body.
