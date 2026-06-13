@@ -46,6 +46,7 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
 
             _context.GameRecords.Add(gameRecord);
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Game record created with ID: {GameRecordId}", gameRecord.Id);
 
             // Identify the first 11 unique team IDs and create tags
             var uniqueTeamIds = new HashSet<int>();
@@ -53,6 +54,7 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
 
             var activeTeamIds = await _context.Teams.Where(t => t.Active == true).Select(t => t.Id).ToListAsync();
 
+            _logger.LogInformation("Total fixtures: {TotalFixtures}, Active teams: {ActiveTeamsCount}", totalFixtures, activeTeamIds.Count);
             foreach (var fixture in shuffledFixtures)
             {
                 // get player fixture count for home and away teams to ensure we have enough players
@@ -88,6 +90,10 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
             {
                 _context.GameRecordTags.AddRange(tagsToAdd);
                 await _context.SaveChangesAsync();
+            }
+            else
+            {
+                _logger.LogWarning("No valid teams found to add to the game record.");
             }
         }
         catch (Exception ex)
