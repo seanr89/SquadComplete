@@ -3,7 +3,7 @@ import React, { useState, useMemo, useRef } from 'react';
 
 import { INITIAL_FORMATION, generateFormationSpots } from './constants';
 import { DraftState, Player, Squad, FormationSpot, Position } from './types';
-import { fetchDailySquads, submitUserSquad } from './api';
+import { fetchDailySquads, submitUserSquad, recordRequest } from './api';
 import Pitch from './components/Pitch';
 import PlayerCard from './components/PlayerCard';
 import AboutDialog from './components/AboutDialog';
@@ -37,6 +37,17 @@ const App: React.FC = () => {
       completed: false
     };
   });
+
+  React.useEffect(() => {
+    const hasRecorded = sessionStorage.getItem('squad-draft-recorded');
+    if (!hasRecorded) {
+      recordRequest().then((success) => {
+        if (success) {
+          sessionStorage.setItem('squad-draft-recorded', 'true');
+        }
+      });
+    }
+  }, []);
 
   React.useEffect(() => {
     const loadSquads = async () => {

@@ -2,6 +2,8 @@ import { Squad, DailyChallenge } from './types';
 
 // @ts-ignore - Vite provides import.meta.env
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5212';
+// @ts-ignore
+const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || 'http://localhost:7172';
 
 export const fetchDailySquads = async (date?: string): Promise<DailyChallenge | null> => {
     try {
@@ -131,6 +133,31 @@ export const fetchStatistics = async (): Promise<any | null> => {
     } catch (error) {
         console.error('Error fetching statistics:', error);
         return null;
+    }
+};
+
+export const recordRequest = async (): Promise<boolean> => {
+    try {
+        const response = await fetch(`${FUNCTIONS_BASE_URL}/api/record`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                dateTime: new Date().toISOString(),
+                device: navigator.userAgent
+            }),
+        });
+
+        if (!response.ok) {
+            console.error('Failed to record request:', response.statusText);
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error recording request:', error);
+        return false;
     }
 };
 

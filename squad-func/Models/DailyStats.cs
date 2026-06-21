@@ -14,6 +14,9 @@ public class DailyStats
     public int AIFixtureCount { get; set; } = 0;
     public int FixturesMissingDates { get; set; } = 0;
 
+    public int TotalFeedbacks { get; set; } = 0;
+    public int TotalEvents { get; set; } = 0;
+
     #region Storage Info
 
     public int TotalSingleFixtureRecords { get; set; } = 0;
@@ -34,6 +37,9 @@ public class DailyStats
             Fixtures Missing Teams: {FixturesMissingTeams}
             Fixtures Missing Scores: {FixturesMissingScores}
             Fixtures Missing Dates: {FixturesMissingDates}
-            AI Fixtures: {AIFixtureCount}";
+            AI Fixtures: {AIFixtureCount}
+            Total Feedbacks: {TotalFeedbacks}
+            Total Events: {TotalEvents}
+        ";
     }
 }

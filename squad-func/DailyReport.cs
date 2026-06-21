@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Squad.Function;
 
-public class DailyReport(SquadContext context, EmailSMTPService emailService)
+public class DailyReport(SquadContext context, EmailSMTPService emailService, StorageService storageService)
 {
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
     private readonly EmailSMTPService _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+    private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
 
     [Function("DailyReport")]
     public async Task Run([TimerTrigger("0 0 1 * * *")] TimerInfo myTimer)
@@ -28,6 +29,13 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService)
         int fixturesMissingDates = await _context.Fixtures.CountAsync(f => f.FixtureDate == null);
         var AIFixtureCount = await _context.Fixtures.CountAsync(f => f.FixtureSource == "AI");
 
+        int aiteamCount = await _storageService.GetContainerBlobCount("aiteams");
+        int aiteamSingleCount = await _storageService.GetContainerBlobCount("aiteamsingle");
+
+        int feedCount = await _context.Feedbacks.CountAsync();
+        int eventCount = await _context.Events.CountAsync();
+
+
         var report = new DailyStats
         {
             Date = date,
@@ -40,6 +48,8 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService)
             FixturesMissingTeams = fixturesMissingTeams,
             FixturesMissingScores = fixturesMissingScores,
             FixturesMissingDates = fixturesMissingDates,
+            TotalTeamRecords = aiteamCount,
+            TotalSingleFixtureRecords = aiteamSingleCount,
             AIFixtureCount = AIFixtureCount
         };
 
