@@ -15,7 +15,7 @@ public class SquadSelector(ILoggerFactory loggerFactory, SquadContext context)
     private readonly SquadContext _context = context;
 
     [Function("SquadSelector")]
-    public async Task Run([TimerTrigger("0 0 2 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 30 0 * * *")] TimerInfo myTimer)
     {
         try
         {

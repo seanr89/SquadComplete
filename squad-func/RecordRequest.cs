@@ -1,0 +1,89 @@
+using System;
+using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+
+namespace Squad.Function;
+
+public class RecordRequest(ILoggerFactory loggerFactory)
+{
+    private readonly ILogger _logger = loggerFactory.CreateLogger<RecordRequest>();
+
+    public class RequestBodyDto
+    {
+        public DateTime? DateTime { get; set; }
+        public string? IpAddress { get; set; }
+        public string? Device { get; set; }
+    }
+
+    [Function("RecordRequest")]
+    public async Task<IActionResult> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "record")] HttpRequest req)
+    {
+        _logger.LogInformation("Processing HTTP POST request for RecordRequest.");
+
+        try
+        {
+            RequestBodyDto? data;
+            
+            // Read and deserialize the request body
+            using (var reader = new StreamReader(req.Body))
+            {
+                var bodyStr = await reader.ReadToEndAsync();
+                if (string.IsNullOrWhiteSpace(bodyStr))
+                {
+                    return new BadRequestObjectResult(new { error = "Request body is empty." });
+                }
+
+                data = JsonSerializer.Deserialize<RequestBodyDto>(bodyStr, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+
+            if (data == null)
+            {
+                return new BadRequestObjectResult(new { error = "Failed to parse JSON body." });
+            }
+
+            // Extract values, utilizing fallback values from headers/context if fields are missing in body
+            DateTime recordedTime = data.DateTime ?? DateTime.UtcNow;
+            
+            string ipAddress = data.IpAddress 
+                ?? req.Headers["X-Forwarded-For"].ToString() 
+                ?? req.HttpContext.Connection.RemoteIpAddress?.ToString() 
+                ?? "Unknown";
+
+            string device = data.Device 
+                ?? req.Headers["User-Agent"].ToString() 
+                ?? "Unknown";
+
+            // Log the request details
+            _logger.LogInformation("Logged Event - Time: {Time}, IP: {IP}, Device: {Device}", 
+                recordedTime, ipAddress, device);
+
+            // Return success with the processed data
+            return new OkObjectResult(new
+            {
+                message = "Request successfully logged.",
+                dateTime = recordedTime,
+                ipAddress = ipAddress,
+                device = device
+            });
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "JSON Deserialization failed.");
+            return new BadRequestObjectResult(new { error = "Invalid JSON format.", details = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while processing the request.");
+            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+        }
+    }
+}

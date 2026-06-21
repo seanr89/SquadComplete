@@ -56,6 +56,47 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
         }
     }
 
+    public async Task<int> GetContainerBlobCount(string containerName)
+    {
+        try
+        {
+            // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
+            string? connectionString = _configuration["FixtureStorage"]
+                ?? Environment.GetEnvironmentVariable("FixtureStorage");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
+                throw new InvalidOperationException("Storage connection string is not configured.");
+            }
+
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+            // Ensure the container exists
+            await containerClient.CreateIfNotExistsAsync();
+
+            var blobs = containerClient.GetBlobsAsync();
+            int count = 0;
+            await foreach (var blob in blobs)
+            {
+                count++;
+            }
+
+            _logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", count, containerName);
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving blobs from Azure Storage container '{ContainerName}'.", containerName);
+            if (ex.InnerException != null)
+            {
+                _logger.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
+            }
+            throw;
+        }
+    }
+
     /// <summary>
     /// Gets a list of blobs from Azure Storage.
     /// </summary>
