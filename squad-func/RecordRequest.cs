@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using squad_func.Models;
 
 namespace Squad.Function;
 
-public class RecordRequest(ILoggerFactory loggerFactory)
+public class RecordRequest(ILoggerFactory loggerFactory, SquadContext context)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<RecordRequest>();
+    private readonly SquadContext _context = context;
 
     public class RequestBodyDto
     {
@@ -65,6 +67,23 @@ public class RecordRequest(ILoggerFactory loggerFactory)
             // Log the request details
             _logger.LogInformation("Logged Event - Time: {Time}, IP: {IP}, Device: {Device}", 
                 recordedTime, ipAddress, device);
+
+            // Create and save database Event log
+            string eventMessage = JsonSerializer.Serialize(data, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            var newEvent = new Event
+            {
+                Title = "Access",
+                Message = eventMessage,
+                Level = "Info",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Events.Add(newEvent);
+            await _context.SaveChangesAsync();
 
             // Return success with the processed data
             return new OkObjectResult(new

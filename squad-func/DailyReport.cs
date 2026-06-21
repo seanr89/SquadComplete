@@ -32,6 +32,9 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
         int aiteamCount = await _storageService.GetContainerBlobCount("aiteams");
         int aiteamSingleCount = await _storageService.GetContainerBlobCount("aiteamsingle");
 
+        int feedCount = await _context.Feedbacks.CountAsync();
+        int eventCount = await _context.Events.CountAsync();
+
 
         var report = new DailyStats
         {
