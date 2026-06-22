@@ -12,7 +12,7 @@ public static class FeedbackEndpoints
 {
     public static void MapFeedbackEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/feedbacks").WithTags("Feedbacks");
+        var group = routes.MapGroup("/api/feedback").WithTags("Feedback");
 
         group.MapPost("/", async (FeedbackDto feedbackDto, SquadContext db) =>
         {
@@ -37,7 +37,7 @@ public static class FeedbackEndpoints
                 CreatedAt = DateTime.UtcNow
             };
 
-            db.Feedbacks.Add(feedback);
+            db.Feedback.Add(feedback);
             await db.SaveChangesAsync();
 
             return Results.Ok();

@@ -17,7 +17,7 @@ public class SquadContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<UserSquad> UserSquads { get; set; }
     public DbSet<UserSquadPlayer> UserSquadPlayers { get; set; }
-    public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<Feedback> Feedback { get; set; }
     public DbSet<Event> Events { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

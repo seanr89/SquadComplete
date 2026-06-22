@@ -102,7 +102,7 @@ export const submitUserSquad = async (payload: any): Promise<boolean> => {
 
 export const submitFeedback = async (name: string, email: string, message: string): Promise<boolean> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/feedbacks`, {
+        const response = await fetch(`${API_BASE_URL}/api/feedback`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
