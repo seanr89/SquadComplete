@@ -55,10 +55,12 @@ public class RecordRequest(ILoggerFactory loggerFactory, SquadContext context)
             // Extract values, utilizing fallback values from headers/context if fields are missing in body
             DateTime recordedTime = data.DateTime ?? DateTime.UtcNow;
             
-            string ipAddress = data.IpAddress 
-                ?? req.Headers["X-Forwarded-For"].ToString() 
+            string ipAddress = data?.IpAddress?.ToString() 
+                ?? (string)req.Headers["X-Forwarded-For"] // Implicit cast to string returns null if missing
                 ?? req.HttpContext.Connection.RemoteIpAddress?.ToString() 
                 ?? "Unknown";
+            
+            data.IpAddress = ipAddress; // Update the data object with the resolved IP address
 
             string device = data.Device 
                 ?? req.Headers["User-Agent"].ToString() 
