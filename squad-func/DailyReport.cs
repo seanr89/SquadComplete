@@ -50,7 +50,9 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
             FixturesMissingDates = fixturesMissingDates,
             TotalTeamRecords = aiteamCount,
             TotalSingleFixtureRecords = aiteamSingleCount,
-            AIFixtureCount = AIFixtureCount
+            AIFixtureCount = AIFixtureCount,
+            TotalEvents = eventCount,
+            TotalFeedbacks = feedCount
         };
 
         _emailService.SendEmail(
