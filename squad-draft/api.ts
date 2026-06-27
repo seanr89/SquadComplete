@@ -136,8 +136,21 @@ export const fetchStatistics = async (): Promise<any | null> => {
     }
 };
 
-export const recordRequest = async (): Promise<boolean> => {
+export const recordRequest = async (ipAddress?: string): Promise<boolean> => {
     try {
+        let resolvedIp = ipAddress;
+        if (!resolvedIp) {
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                if (ipResponse.ok) {
+                    const data = await ipResponse.json();
+                    resolvedIp = data.ip;
+                }
+            } catch (ipError) {
+                console.warn('Failed to fetch IP address automatically:', ipError);
+            }
+        }
+
         const response = await fetch(`${FUNCTIONS_BASE_URL}/api/record`, {
             method: 'POST',
             headers: {
@@ -145,7 +158,8 @@ export const recordRequest = async (): Promise<boolean> => {
             },
             body: JSON.stringify({
                 dateTime: new Date().toISOString(),
-                device: navigator.userAgent
+                device: navigator.userAgent,
+                ipAddress: resolvedIp
             }),
         });
 

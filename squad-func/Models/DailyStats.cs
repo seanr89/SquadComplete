@@ -38,6 +38,8 @@ public class DailyStats
             Fixtures Missing Scores: {FixturesMissingScores}
             Fixtures Missing Dates: {FixturesMissingDates}
             AI Fixtures: {AIFixtureCount}
+            Total Team Records: {TotalTeamRecords}
+            Total Single Fixture Records: {TotalSingleFixtureRecords}
             Total Feedbacks: {TotalFeedbacks}
             Total Events: {TotalEvents}
         ";
