@@ -21,7 +21,7 @@ IApiService apiService)
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("TeamRefresh")]
-    public async Task Run([TimerTrigger("0 0 9-14 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0 9-12 * * *")] TimerInfo myTimer)
     {
         // Now focus on fixtures with missing goal and fixture date information
         var incompleteFixtures = await _context.Fixtures

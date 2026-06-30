@@ -1,4 +1,4 @@
-name: Functions - Deploy
+name: AZ Function - Build and Deploy
 
 on:
   push:

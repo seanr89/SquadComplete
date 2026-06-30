@@ -13,6 +13,7 @@ public class DailyStats
     public int FixturesMissingScores { get; set; } = 0;
     public int AIFixtureCount { get; set; } = 0;
     public int FixturesMissingDates { get; set; } = 0;
+    public int PlayersMissingPhotos { get; set; } = 0;
 
     public int TotalFeedbacks { get; set; } = 0;
     public int TotalEvents { get; set; } = 0;
@@ -42,6 +43,7 @@ public class DailyStats
             Total Single Fixture Records: {TotalSingleFixtureRecords}
             Total Feedbacks: {TotalFeedbacks}
             Total Events: {TotalEvents}
+            Players Missing Photos: {PlayersMissingPhotos}
         ";
     }
 }

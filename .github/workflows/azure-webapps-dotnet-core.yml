@@ -1,5 +1,5 @@
 
-name: API - Deploy
+name: Az API - Deploy
 
 env:
   AZURE_WEBAPP_NAME: whoplayapi    

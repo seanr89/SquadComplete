@@ -1,4 +1,4 @@
-name: SPA - Deploy
+name: Az SPA - Deploy
 on:
   push:
     branches: [ "main" ]
