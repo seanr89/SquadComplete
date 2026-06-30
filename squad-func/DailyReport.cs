@@ -29,11 +29,13 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
         int fixturesMissingDates = await _context.Fixtures.CountAsync(f => f.FixtureDate == null);
         var AIFixtureCount = await _context.Fixtures.CountAsync(f => f.FixtureSource == "AI");
 
-        int aiteamCount = await _storageService.GetContainerBlobCount("aiteams");
-        int aiteamSingleCount = await _storageService.GetContainerBlobCount("aiteamsingle");
+        int aiteamCount = await _storageService.GetContainerBlobCount("ai-teams");
+        int aiteamSingleCount = await _storageService.GetContainerBlobCount("ai-team-single");
 
         int feedCount = await _context.Feedback.CountAsync();
         int eventCount = await _context.Events.CountAsync();
+
+        int playerMissingPhotoCount = await _context.Players.CountAsync(p => p.Photo == null || p.Photo == "");
 
 
         var report = new DailyStats
@@ -52,7 +54,8 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
             TotalSingleFixtureRecords = aiteamSingleCount,
             AIFixtureCount = AIFixtureCount,
             TotalEvents = eventCount,
-            TotalFeedbacks = feedCount
+            TotalFeedbacks = feedCount,
+            PlayersMissingPhotos = playerMissingPhotoCount
         };
 
         _emailService.SendEmail(
