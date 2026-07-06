@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Squad.Function;
 
-public class PlayerPhotoRefresh(SquadContext context)
+public class PlayerPhotoRefresh(SquadContext context, GeminiService geminiService)
 {
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
-    
+    private readonly GeminiService _geminiService = geminiService ?? throw new ArgumentNullException(nameof(geminiService));
+
     [Function("PlayerPhotoRefresh")]
     public async Task Run([TimerTrigger("0 0 6 * * *")] TimerInfo myTimer)
     {
