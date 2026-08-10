@@ -31,7 +31,13 @@ public class PlayerPhotoRefresh(SquadContext context, GeminiService geminiServic
                 var lastname = playerName.Split(' ').LastOrDefault();
                 if (!string.IsNullOrEmpty(lastname))
                 {
-                    
+                    var playerNamePrompResp = await _geminiService.GetPlayerPhotoPrompt(lastname);
+                    if(playerNamePrompResp != null)
+                    {
+                        //TODO we need to now parse this response and get the new name and update!
+                        hasUpdates = true;
+                        Thread.Sleep(1500); // sleep for 1.5 second to avoid rate limiting
+                    }
                 }
             }
 

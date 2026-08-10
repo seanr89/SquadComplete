@@ -207,3 +207,6 @@ appsettings.json
 # I'll leave the appsettings.json entry commented out if I'm not sure.
 # Actually I'll just add standard ones.
 [Aa]pp[Ss]ettings.[Dd]evelopment.json
+
+.env
+output.json
