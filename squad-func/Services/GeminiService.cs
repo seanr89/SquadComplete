@@ -180,4 +180,48 @@ public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
         };
         return requestBody;
     }
+
+    /// <summary>
+    /// Gets the player photo prompt for a given last name.
+    /// This method reads a prompt template from a file, replaces a placeholder with the provided last
+    /// </summary>
+    /// <param name="lastname"></param>
+    /// <returns></returns>
+    public async Task<string?> GetPlayerPhotoPrompt(string lastname)
+    {
+        try
+        {
+            string promptFilePath = Path.Combine(AppContext.BaseDirectory, "prompts/playername-prompt.md");
+            string template = await File.ReadAllTextAsync(promptFilePath);
+
+            string finalPrompt = template
+            .Replace("[INSERT PLAYER NAME HERE]", lastname);
+            var requestBody = BuildBaseRequestBody(finalPrompt);
+
+            string json = JsonSerializer.Serialize(requestBody, _serializerOptions);
+
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_agentModel}:generateContent?key={_apiKey}";
+
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+            _logger.LogInformation("Sending request to Gemini API...");
+            HttpResponseMessage response = await _httpClient.PostAsync(url, content, cts.Token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Error HTTP {StatusCode}: {ErrorContent}", (int)response.StatusCode, errorContent);
+                return null;
+            }
+
+            string responseJson = await response.Content.ReadAsStringAsync();
+            return responseJson;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error getting image data for GetPlayerPhotoPrompt: {Error}", ex.Message);
+            return null;
+        }
+    }
 }

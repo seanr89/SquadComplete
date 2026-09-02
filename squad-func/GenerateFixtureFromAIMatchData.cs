@@ -33,7 +33,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
     /// </summary>
     /// <param name="myTimer">The timer trigger info.</param>
     [Function("GenerateFixtureFromAIMatchData")]
-    public async Task Run([TimerTrigger("0 0,30 16-23 * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("0 0,30 16-20 * * *")] TimerInfo myTimer)
     {
         _logger.LogInformation("GenerateFixtureFromAIMatchData triggered at: {CurrentUtcDateTime}", DateTime.UtcNow);
         try
