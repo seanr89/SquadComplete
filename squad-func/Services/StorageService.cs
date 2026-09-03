@@ -277,4 +277,215 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
             throw;
         }
     }
+
+    /// <summary>
+    /// Gets a configured BlobServiceClient instance using FixtureStorage or AzureWebJobsStorage.
+    /// </summary>
+    public BlobServiceClient GetBlobServiceClient()
+    {
+        string? connectionString = _configuration["FixtureStorage"]
+            ?? Environment.GetEnvironmentVariable("FixtureStorage")
+            ?? _configuration["AzureWebJobsStorage"]
+            ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage' or 'AzureWebJobsStorage'.");
+            throw new InvalidOperationException("Storage connection string is not configured.");
+        }
+
+        return new BlobServiceClient(connectionString);
+    }
+
+    /// <summary>
+    /// Searches for and downloads a player's image from Azure Blob Storage.
+    /// Supports various playersname formatting conventions (exact, lowercased, slugified, spaces stripped, extensions).
+    /// </summary>
+    /// <param name="playerName">The player name to query.</param>
+    /// <param name="containerName">The target container name (defaults to configured PlayerImageContainer or 'playersname').</param>
+    /// <returns>A tuple of the image bytes, MIME content type, and the resolved blob name, or null if not found.</returns>
+    public async Task<(byte[] Content, string ContentType, string BlobName)?> GetPlayerImageAsync(string playerName, string? containerName = null)
+    {
+        if (string.IsNullOrWhiteSpace(playerName))
+        {
+            return null;
+        }
+
+        string targetContainer = !string.IsNullOrWhiteSpace(containerName)
+            ? containerName
+            : (_configuration["PlayerImageContainer"]
+               ?? Environment.GetEnvironmentVariable("PlayerImageContainer")
+               ?? "playersname");
+
+        try
+        {
+            var blobServiceClient = GetBlobServiceClient();
+            var containerClient = blobServiceClient.GetBlobContainerClient(targetContainer);
+
+            bool containerExists = await containerClient.ExistsAsync();
+            if (!containerExists)
+            {
+                // Check if the container itself is named in playersname format (e.g. if container-per-player is used)
+                string fallbackContainer = NormalizePlayerName(playerName);
+                if (!string.Equals(targetContainer, fallbackContainer, StringComparison.OrdinalIgnoreCase))
+                {
+                    var altContainerClient = blobServiceClient.GetBlobContainerClient(fallbackContainer);
+                    if (await altContainerClient.ExistsAsync())
+                    {
+                        containerClient = altContainerClient;
+                        containerExists = true;
+                    }
+                }
+
+                if (!containerExists)
+                {
+                    _logger.LogWarning("Container '{ContainerName}' does not exist.", targetContainer);
+                    return null;
+                }
+            }
+
+            var candidates = GenerateBlobNameCandidates(playerName);
+
+            foreach (var candidate in candidates)
+            {
+                var blobClient = containerClient.GetBlobClient(candidate);
+                if (await blobClient.ExistsAsync())
+                {
+                    _logger.LogInformation("Found player image for '{PlayerName}' at blob '{BlobName}' in container '{ContainerName}'.",
+                        playerName, candidate, containerClient.Name);
+
+                    var download = await blobClient.DownloadContentAsync();
+                    byte[] bytes = download.Value.Content.ToArray();
+                    string contentType = DetermineContentType(candidate, download.Value.Details.ContentType, bytes);
+
+                    return (bytes, contentType, candidate);
+                }
+            }
+
+            // Fuzzy prefix / normalization scan if candidates didn't match directly
+            string cleanNorm = NormalizePlayerName(playerName);
+            await foreach (var blobItem in containerClient.GetBlobsAsync())
+            {
+                string blobWithoutExt = Path.GetFileNameWithoutExtension(blobItem.Name);
+                if (NormalizePlayerName(blobWithoutExt).Equals(cleanNorm, StringComparison.OrdinalIgnoreCase))
+                {
+                    var blobClient = containerClient.GetBlobClient(blobItem.Name);
+                    var download = await blobClient.DownloadContentAsync();
+                    byte[] bytes = download.Value.Content.ToArray();
+                    string contentType = DetermineContentType(blobItem.Name, download.Value.Details.ContentType, bytes);
+
+                    _logger.LogInformation("Found player image for '{PlayerName}' via fuzzy match at blob '{BlobName}'.",
+                        playerName, blobItem.Name);
+
+                    return (bytes, contentType, blobItem.Name);
+                }
+            }
+
+            _logger.LogInformation("Player image for '{PlayerName}' was not found in container '{ContainerName}'.",
+                playerName, containerClient.Name);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving player image for '{PlayerName}' from container '{ContainerName}'.",
+                playerName, targetContainer);
+            throw;
+        }
+    }
+
+    private static string NormalizePlayerName(string name)
+    {
+        return new string(name.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
+    }
+
+    private static List<string> GenerateBlobNameCandidates(string playerName)
+    {
+        var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        string trimmed = playerName.Trim();
+        string lower = trimmed.ToLowerInvariant();
+        string slug = lower.Replace(" ", "-");
+        string snake = lower.Replace(" ", "_");
+        string squashed = lower.Replace(" ", "").Replace("-", "").Replace("_", "");
+
+        bool hasExtension = Path.HasExtension(trimmed);
+
+        if (hasExtension)
+        {
+            candidates.Add(trimmed);
+            candidates.Add(lower);
+            candidates.Add(slug);
+            candidates.Add(snake);
+            candidates.Add(squashed);
+        }
+        else
+        {
+            string[] extensions = [".png", ".jpg", ".jpeg", ".webp", ".svg", ".gif", ""];
+            var baseNames = new List<string> { trimmed, lower, slug, snake, squashed };
+
+            var parts = trimmed.Split([' ', '-'], StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length > 1)
+            {
+                string lastName = parts[^1].ToLowerInvariant();
+                baseNames.Add(lastName);
+            }
+
+            foreach (var baseName in baseNames)
+            {
+                foreach (var ext in extensions)
+                {
+                    candidates.Add($"{baseName}{ext}");
+                }
+            }
+        }
+
+        return [.. candidates];
+    }
+
+    private static string DetermineContentType(string blobName, string? blobContentType, byte[] bytes)
+    {
+        if (!string.IsNullOrWhiteSpace(blobContentType)
+            && !blobContentType.Equals("application/octet-stream", StringComparison.OrdinalIgnoreCase))
+        {
+            return blobContentType;
+        }
+
+        string ext = Path.GetExtension(blobName).ToLowerInvariant();
+        switch (ext)
+        {
+            case ".png":
+                return "image/png";
+            case ".jpg":
+            case ".jpeg":
+                return "image/jpeg";
+            case ".webp":
+                return "image/webp";
+            case ".svg":
+                return "image/svg+xml";
+            case ".gif":
+                return "image/gif";
+        }
+
+        // Magic bytes detection
+        if (bytes.Length >= 8)
+        {
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
+                return "image/png";
+
+            // JPEG: FF D8 FF
+            if (bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+                return "image/jpeg";
+
+            // GIF: 47 49 46 38
+            if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x38)
+                return "image/gif";
+
+            // WebP: RIFF....WEBP
+            if (bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
+                bytes.Length >= 12 && bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50)
+                return "image/webp";
+        }
+
+        return "image/jpeg";
+    }
 }
