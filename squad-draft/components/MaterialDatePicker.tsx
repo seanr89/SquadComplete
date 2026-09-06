@@ -31,16 +31,25 @@ const MaterialDatePicker: React.FC<MaterialDatePickerProps> = ({
     }
   }, [isOpen, value]);
 
-  // Click outside handler
+  // Click outside and Escape key handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -164,45 +173,54 @@ const MaterialDatePicker: React.FC<MaterialDatePickerProps> = ({
       {/* Date Picker Trigger Button */}
       <button
         type="button"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        aria-label={`Select date. Current selection is ${formatDisplayDate(value)}`}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700/80 text-white p-2.5 px-4 rounded-xl border border-slate-700 shadow-md transition-all active:scale-[0.98] select-none"
+        className="flex items-center gap-3 bg-slate-800 hover:bg-slate-700/80 text-white p-2.5 px-4 rounded-xl border border-slate-700 shadow-md transition-all active:scale-[0.98] select-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
       >
-        <i className="far fa-calendar text-yellow-400 text-sm"></i>
+        <i className="far fa-calendar text-yellow-400 text-sm" aria-hidden="true"></i>
         <span className="text-sm font-bold tracking-wide">{formatDisplayDate(value)}</span>
-        <i className={`fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}></i>
+        <i className={`fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true"></i>
       </button>
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-[#1e293b] border border-slate-700 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div
+          role="dialog"
+          aria-label="Calendar date picker"
+          aria-modal="false"
+          className="absolute right-0 top-full mt-2 w-80 bg-[#1e293b] border border-slate-700 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+        >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-1">
-              <span className="text-white font-bold text-base">
+              <span className="text-white font-bold text-base" aria-live="polite">
                 {monthNames[viewMonth]} {viewYear}
               </span>
-              <i className="fas fa-caret-down text-slate-400 text-xs cursor-pointer hover:text-white"></i>
             </div>
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white transition-all active:scale-95"
+                aria-label="Previous month"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
               >
-                <i className="fas fa-chevron-left text-sm"></i>
+                <i className="fas fa-chevron-left text-sm" aria-hidden="true"></i>
               </button>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white transition-all active:scale-95"
+                aria-label="Next month"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
               >
-                <i className="fas fa-chevron-right text-sm"></i>
+                <i className="fas fa-chevron-right text-sm" aria-hidden="true"></i>
               </button>
             </div>
           </div>
 
           {/* Weekday labels */}
-          <div className="grid grid-cols-7 gap-1 text-center mb-2">
+          <div className="grid grid-cols-7 gap-1 text-center mb-2" aria-hidden="true">
             {daysOfWeek.map((day, idx) => (
               <span key={idx} className="text-xs font-semibold text-slate-400 py-1">
                 {day}
@@ -211,29 +229,33 @@ const MaterialDatePicker: React.FC<MaterialDatePickerProps> = ({
           </div>
 
           {/* Days Grid */}
-          <div className="grid grid-cols-7 gap-1 text-center">
+          <div className="grid grid-cols-7 gap-1 text-center" role="grid">
             {gridDays.map(({ date, isCurrentMonth }, idx) => {
               const disabled = isDateDisabled(date);
               const selected = isDateSelected(date);
               
               let textColor = 'text-white font-medium';
               if (!isCurrentMonth) {
-                textColor = 'text-slate-600 font-normal';
+                textColor = 'text-slate-500 font-normal';
               }
               if (disabled) {
-                textColor = 'text-slate-700 cursor-not-allowed font-normal';
+                textColor = 'text-slate-600 cursor-not-allowed font-normal';
               }
+
+              const formattedDateLabel = `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}${selected ? ', selected' : ''}${disabled ? ', disabled' : ''}`;
 
               return (
                 <button
                   key={idx}
                   type="button"
                   disabled={disabled}
+                  aria-label={formattedDateLabel}
+                  aria-selected={selected}
                   onClick={() => handleDateClick(date)}
                   className={`
-                    w-9 h-9 mx-auto flex items-center justify-center rounded-xl text-sm transition-all relative
-                    ${disabled ? 'pointer-events-none' : 'hover:bg-slate-700/60 cursor-pointer'}
-                    ${selected ? 'bg-blue-500 text-white font-black hover:bg-blue-600 shadow-md shadow-blue-500/20' : ''}
+                    w-9 h-9 mx-auto flex items-center justify-center rounded-xl text-sm transition-all relative focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none
+                    ${disabled ? 'pointer-events-none opacity-40' : 'hover:bg-slate-700/60 cursor-pointer'}
+                    ${selected ? 'bg-blue-500 text-white font-black hover:bg-blue-600 shadow-md shadow-blue-500/20 ring-1 ring-blue-300' : ''}
                     ${textColor}
                   `}
                 >
@@ -248,14 +270,14 @@ const MaterialDatePicker: React.FC<MaterialDatePickerProps> = ({
             <button
               type="button"
               onClick={handleClearClick}
-              className="text-blue-400 hover:text-blue-300 font-bold transition-all px-2 py-1 rounded hover:bg-blue-500/10 active:scale-95"
+              className="text-blue-400 hover:text-blue-300 font-bold transition-all px-2 py-1 rounded hover:bg-blue-500/10 active:scale-95 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
             >
               Clear
             </button>
             <button
               type="button"
               onClick={handleTodayClick}
-              className="text-blue-400 hover:text-blue-300 font-bold transition-all px-2 py-1 rounded hover:bg-blue-500/10 active:scale-95"
+              className="text-blue-400 hover:text-blue-300 font-bold transition-all px-2 py-1 rounded hover:bg-blue-500/10 active:scale-95 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
             >
               Today
             </button>

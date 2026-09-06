@@ -18,7 +18,7 @@ public class EmailSMTPService
     /// <param name="body">The body content of the email.</param>
     /// <returns>Returns true if the email was sent successfully, otherwise returns false.</returns>
     /// <exception cref="Exception">Catches any exception that occurs during the email sending process and logs it to the console.</exception>
-    public void SendEmail(string recipient, string subject, string body)
+    public void SendEmail(string recipient, string subject, string body, bool isHtml = false)
     {
         try
         {
@@ -28,6 +28,7 @@ public class EmailSMTPService
             mail.To.Add(recipient);
             mail.Subject = subject;
             mail.Body = body;
+            mail.IsBodyHtml = isHtml;
 
             //Enable SMTP configuration - password is empty for testing purposes atm
             SmtpServer.Port = 587;

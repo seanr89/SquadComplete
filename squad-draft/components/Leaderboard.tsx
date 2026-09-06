@@ -64,12 +64,26 @@ const Leaderboard: React.FC = () => {
     setSelectedEntry(null);
   };
 
+  useEffect(() => {
+    if (!selectedEntry) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeDialog();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedEntry]);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full max-w-4xl mx-auto">
       <div className="bg-[#111827]/70 backdrop-blur-md rounded-2xl p-6 border border-slate-800 shadow-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <h2 className="text-2xl font-extrabold text-white flex items-center gap-3">
-            <span className="text-yellow-400"><i className="fas fa-list-ol"></i></span>
+            <span className="text-yellow-400"><i className="fas fa-list-ol" aria-hidden="true"></i></span>
             Daily Leaderboard
           </h2>
 
@@ -84,13 +98,14 @@ const Leaderboard: React.FC = () => {
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-slate-800/80 bg-slate-900/40">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse" aria-label="Daily draft leaderboard rankings">
+            <caption className="sr-only">Daily leaderboard user rankings and ratings</caption>
             <thead>
               <tr className="border-b border-slate-800/80 bg-slate-900/50 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                <th className="p-4 py-5 pl-6 font-bold w-20">Rank</th>
-                <th className="p-4 py-5 font-bold">Player</th>
-                <th className="p-4 py-5 font-bold text-center w-36">Avg Rating</th>
-                <th className="p-4 py-5 font-bold text-center w-36">Action</th>
+                <th scope="col" className="p-4 py-5 pl-6 font-bold w-20">Rank</th>
+                <th scope="col" className="p-4 py-5 font-bold">Player</th>
+                <th scope="col" className="p-4 py-5 font-bold text-center w-36">Avg Rating</th>
+                <th scope="col" className="p-4 py-5 font-bold text-center w-36">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -161,10 +176,12 @@ const Leaderboard: React.FC = () => {
                     </td>
                     <td className="p-4 text-center">
                       <button
+                        type="button"
                         onClick={() => setSelectedEntry(entry)}
-                        className="mx-auto px-4 py-2 bg-yellow-400/10 hover:bg-yellow-400 text-yellow-400 hover:text-slate-950 border border-yellow-400/20 hover:border-yellow-400 rounded-xl font-bold transition-all shadow-md active:scale-[0.97] text-xs flex items-center justify-center gap-2 w-full sm:w-auto max-w-[120px]"
+                        aria-label={`View squad for ${entry.playerName}`}
+                        className="mx-auto px-4 py-2 bg-yellow-400/10 hover:bg-yellow-400 text-yellow-400 hover:text-slate-950 border border-yellow-400/20 hover:border-yellow-400 rounded-xl font-bold transition-all shadow-md active:scale-[0.97] text-xs flex items-center justify-center gap-2 w-full sm:w-auto max-w-[120px] focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
                       >
-                        <i className="fas fa-eye"></i> View Squad
+                        <i className="fas fa-eye" aria-hidden="true"></i> View Squad
                       </button>
                     </td>
                   </tr>
@@ -175,22 +192,33 @@ const Leaderboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Placeholder Dialog */}
+      {/* Squad Details Dialog */}
       {selectedEntry && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={closeDialog} />
+          <div
+            className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+            onClick={closeDialog}
+            aria-hidden="true"
+          />
 
-          <div className="relative w-full max-w-lg bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden max-h-[85vh]">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leaderboard-modal-title"
+            className="relative w-full max-w-lg bg-slate-800 rounded-2xl border border-slate-700 shadow-2xl flex flex-col overflow-hidden max-h-[85vh] animate-in zoom-in-95 duration-200"
+          >
             <div className="flex items-center justify-between p-4 md:p-6 border-b border-slate-700">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <i className="fas fa-users text-yellow-400"></i>
+              <h3 id="leaderboard-modal-title" className="text-xl font-bold text-white flex items-center gap-2">
+                <i className="fas fa-users text-yellow-400" aria-hidden="true"></i>
                 {selectedEntry.playerName}'s Squad
               </h3>
               <button
+                type="button"
                 onClick={closeDialog}
-                className="text-slate-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700"
+                aria-label="Close squad details dialog"
+                className="text-slate-400 hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
               >
-                <i className="fas fa-times"></i>
+                <i className="fas fa-times" aria-hidden="true"></i>
               </button>
             </div>
 
@@ -209,14 +237,14 @@ const Leaderboard: React.FC = () => {
                       {player.image ? (
                         <img src={player.image} alt={player.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-xs font-bold text-slate-500">{player.position}</span>
+                        <span className="text-xs font-bold text-slate-400">{player.position}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-white truncate">{player.name}</div>
                       <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{player.position}</div>
                     </div>
-                    <div className="text-sm font-black text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">
+                    <div className="text-sm font-black text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded">
                       {player.rating.toFixed(1)}
                     </div>
                   </div>
@@ -226,8 +254,9 @@ const Leaderboard: React.FC = () => {
 
             <div className="p-4 border-t border-slate-700 bg-slate-800/50 flex justify-end">
               <button
+                type="button"
                 onClick={closeDialog}
-                className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-all"
+                className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
               >
                 Close
               </button>
