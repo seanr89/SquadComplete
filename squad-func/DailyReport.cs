@@ -22,11 +22,6 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
         var gameRecordCount = await _context.GameRecords.CountAsync();
         var userGameRecordCount = await _context.UserSquads.CountAsync();
 
-        int fixturesMissingTeams = await _context.Fixtures.CountAsync(f => f.HomeTeamId == null ||
-            f.AwayTeamId == null);
-        int fixturesMissingScores = await _context.Fixtures.CountAsync(f => f.HomeGoalCount == null ||
-            f.AwayGoalCount == null);
-        int fixturesMissingDates = await _context.Fixtures.CountAsync(f => f.FixtureDate == null);
         var AIFixtureCount = await _context.Fixtures.CountAsync(f => f.FixtureSource == "AI");
 
         int aiteamCount = await _storageService.GetContainerBlobCount("ai-teams");
@@ -34,6 +29,10 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
 
         int feedCount = await _context.Feedback.CountAsync();
         int eventCount = await _context.Events.CountAsync();
+        DateTime? latestEventDate = await _context.Events
+            .OrderByDescending(e => e.CreatedAt)
+            .Select(e => (DateTime?)e.CreatedAt)
+            .FirstOrDefaultAsync();
 
         int playerMissingPhotoCount = await _context.Players.CountAsync(p => p.Photo == null || p.Photo == "");
 
@@ -47,21 +46,20 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
             TotalMatches = fixtureCount,
             TotalGameRecords = gameRecordCount,
             TotalUserSquads = userGameRecordCount,
-            FixturesMissingTeams = fixturesMissingTeams,
-            FixturesMissingScores = fixturesMissingScores,
-            FixturesMissingDates = fixturesMissingDates,
             TotalTeamRecords = aiteamCount,
             TotalSingleFixtureRecords = aiteamSingleCount,
             AIFixtureCount = AIFixtureCount,
             TotalEvents = eventCount,
+            LatestEventDate = latestEventDate,
             TotalFeedbacks = feedCount,
             PlayersMissingPhotos = playerMissingPhotoCount
         };
 
         _emailService.SendEmail(
             recipient: "srafferty89@gmail.com",
-            subject: "Squad Daily Report",
-            body: report.ToString()
+            subject: $"Squad Daily Report — {report.Date:ddd, dd MMM yyyy}",
+            body: report.ToHtml(),
+            isHtml: true
         );
     }
 }

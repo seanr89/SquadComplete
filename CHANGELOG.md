@@ -1,3 +1,12 @@
+## [Unreleased]
+
+### Added
+- Created agentic markdown files suite including root `AGENTS.md` and scoped instructions (`squad-draft/AGENTS.md`, `squad-api/AGENTS.md`, `squad-func/AGENTS.md`).
+- Added specialist agent personas under `.agents/` (`code-reviewer.md`, `reactjs-specialist.md`, `dotnet-specialist.md`).
+- Added Antigravity skills under `.agents/skills/` (`code-reviewer/SKILL.md`, `reactjs-specialist/SKILL.md`).
+- Implemented frontend accessibility overhaul for `squad-draft` (WCAG 2.1 AA keyboard navigation, live region announcements, image error fallbacks, and accessible WAI-ARIA modal dialogs).
+
+
 # [0.3.0](https://github.com/seanr89/SquadComplete/compare/v0.2.0...v0.3.0) (2026-03-24)
 
 

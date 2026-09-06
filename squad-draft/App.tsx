@@ -15,7 +15,10 @@ import CookieConsent from './components/CookieConsent';
 const App: React.FC = () => {
   const [view, setView] = useState<'draft' | 'team' | 'leaderboard'>('draft');
   const [isAboutOpen, setIsAboutOpen] = useState(false);
-  const [alertConfig, setAlertConfig] = useState<{isOpen: boolean, title: string, message: string, type: 'success' | 'error' | 'info'}>({isOpen: false, title: '', message: '', type: 'info'});
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [liveAnnouncement, setLiveAnnouncement] = useState('');
+  const [alertConfig, setAlertConfig] = useState<{isOpen: boolean, title: string, message: string, type: 'success' | 'error' | 'info' | 'warning'}>({isOpen: false, title: '', message: '', type: 'info'});
   const [squads, setSquads] = useState<Squad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -166,6 +169,7 @@ const App: React.FC = () => {
     if (draft.selectedPlayers.find(p => p.id === player.id)) return;
     setTempPlayer(player);
     setActiveSpotId(null);
+    setLiveAnnouncement(`Selected ${player.name}, position ${player.position}. Now select an open spot on the tactical pitch to confirm placement.`);
   };
 
   const confirmPlacement = (spotId: number) => {
@@ -174,35 +178,48 @@ const App: React.FC = () => {
     const spot = draft.formation.find(s => s.id === spotId);
     if (!spot || spot.player) return;
 
+    const placedPlayer = tempPlayer;
+    const nextCount = draft.selectedPlayers.length + 1;
+    const isNowComplete = nextCount === 11;
+
     setDraft(prev => ({
       ...prev,
-      selectedPlayers: [...prev.selectedPlayers, tempPlayer],
-      formation: prev.formation.map(s => s.id === spotId ? { ...s, player: tempPlayer } : s),
+      selectedPlayers: [...prev.selectedPlayers, placedPlayer],
+      formation: prev.formation.map(s => s.id === spotId ? { ...s, player: placedPlayer } : s),
       currentStep: prev.currentStep + 1,
-      completed: prev.selectedPlayers.length + 1 === 11
+      completed: isNowComplete
     }));
+
+    if (isNowComplete) {
+      setLiveAnnouncement(`Placed ${placedPlayer.name} into ${spot.position}. Draft complete! All 11 players selected.`);
+    } else {
+      setLiveAnnouncement(`Placed ${placedPlayer.name} into ${spot.position}. Advancing to pick number ${draft.currentStep + 2} of 11.`);
+    }
 
     setTempPlayer(null);
     setActiveSpotId(null);
   };
 
   const cancelSelection = () => {
+    if (tempPlayer) {
+      setLiveAnnouncement(`Cancelled selection for ${tempPlayer.name}.`);
+    }
     setTempPlayer(null);
     setActiveSpotId(null);
   };
 
-  const resetDraft = () => {
-    if (confirm("Reset your draft and start over?")) {
-      const today = new Date().toISOString().split('T')[0];
-      localStorage.removeItem(`squad-draft-${today}`);
-      setDraft(prev => ({
-        currentStep: 0,
-        selectedPlayers: [],
-        formation: prev.formation.map(s => ({ ...s, player: null })),
-        completed: false
-      }));
-      setView('draft');
-    }
+  const executeResetDraft = () => {
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.removeItem(`squad-draft-${today}`);
+    setDraft(prev => ({
+      currentStep: 0,
+      selectedPlayers: [],
+      formation: prev.formation.map(s => ({ ...s, player: null })),
+      completed: false
+    }));
+    setView('draft');
+    setIsResetConfirmOpen(false);
+    setLiveAnnouncement('Draft has been reset. You can start over.');
   };
 
   const totalRating = useMemo(() => {
@@ -292,19 +309,44 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col max-w-5xl mx-auto p-4 md:p-8">
+      {/* Skip to Main Content Link for Keyboard Accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-yellow-400 focus:text-slate-900 focus:font-bold focus:rounded-xl focus:shadow-2xl focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
+      {/* Screen Reader Live Region for Dynamic Game Announcements */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {liveAnnouncement}
+      </div>
+
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <span className="text-yellow-400"><i className="fas fa-trophy"></i></span>
+            <span className="text-yellow-400" aria-hidden="true"><i className="fas fa-trophy"></i></span>
             ULTIMATE 11
           </h1>
           <div className="flex items-center gap-2 relative group w-max">
-            <p className="text-slate-400 font-medium">Daily Squad Draft Challenge</p>
-            <i className="fas fa-info-circle text-slate-400 cursor-help transition-colors hover:text-slate-300"></i>
+            <p className="text-slate-300 font-medium">Daily Squad Draft Challenge</p>
+            <button
+              type="button"
+              onClick={() => setIsInstructionsOpen(prev => !prev)}
+              aria-expanded={isInstructionsOpen}
+              aria-label="Toggle draft instructions"
+              className="text-slate-400 hover:text-slate-200 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none rounded-full p-1 transition-colors"
+            >
+              <i className="fas fa-info-circle text-sm" aria-hidden="true"></i>
+            </button>
 
-            <div className="absolute left-0 top-full mt-2 w-72 bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
-              <h4 className="text-slate-400 text-xs font-bold uppercase mb-2">Instructions</h4>
+            <div
+              className={`absolute left-0 top-full mt-2 w-72 bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-xl transition-all duration-200 z-50 ${
+                isInstructionsOpen ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible pointer-events-none group-hover:pointer-events-auto'
+              }`}
+            >
+              <h2 className="text-slate-400 text-xs font-bold uppercase mb-2">Instructions</h2>
               <ul className="text-xs text-slate-300 space-y-1.5 list-disc pl-4">
                 <li>Choose ONE player from each daily squad</li>
                 <li>Assign them to a specific spot on your formation</li>
@@ -314,30 +356,45 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <nav aria-label="Main navigation" className="flex gap-2">
           <button
+            type="button"
             onClick={() => setIsAboutOpen(true)}
-            className="px-4 py-2 rounded-lg font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700"
+            className="px-4 py-2 rounded-lg font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
             title="About Us"
           >
-            <i className="fas fa-question-circle md:mr-2"></i> <span className="hidden md:inline">About</span>
+            <i className="fas fa-question-circle md:mr-2" aria-hidden="true"></i> <span className="hidden md:inline">About</span>
           </button>
           <button
+            type="button"
             onClick={() => setView('draft')}
-            className={`px-4 py-2 rounded-lg font-bold transition-all ${view === 'draft' ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+            aria-current={view === 'draft' ? 'page' : undefined}
+            className={`px-4 py-2 rounded-lg font-bold transition-all focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${
+              view === 'draft'
+                ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
           >
-            <i className="fas fa-list-ul mr-2"></i> Draft
+            <i className="fas fa-list-ul mr-2" aria-hidden="true"></i> Draft
           </button>
           <button
+            type="button"
             onClick={() => setView('team')}
-            className={`px-4 py-2 rounded-lg font-bold transition-all ${view === 'team' ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+            aria-current={view === 'team' ? 'page' : undefined}
+            className={`px-4 py-2 rounded-lg font-bold transition-all focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${
+              view === 'team'
+                ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
           >
-            <i className="fas fa-tshirt mr-2"></i> My Team
+            <i className="fas fa-tshirt mr-2" aria-hidden="true"></i> My Team
           </button>
           <button
+            type="button"
             onClick={() => setView('leaderboard')}
+            aria-current={view === 'leaderboard' ? 'page' : undefined}
             disabled={!draft.completed}
-            className={`px-4 py-2 rounded-lg font-bold transition-all ${
+            className={`px-4 py-2 rounded-lg font-bold transition-all focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${
               !draft.completed
                 ? 'opacity-50 cursor-not-allowed bg-slate-800 text-slate-500'
                 : view === 'leaderboard'
@@ -346,13 +403,13 @@ const App: React.FC = () => {
             }`}
             title={!draft.completed ? 'Complete draft to view leaderboard' : ''}
           >
-            <i className="fas fa-list-ol mr-2"></i> Leaderboard
+            <i className="fas fa-list-ol mr-2" aria-hidden="true"></i> Leaderboard
           </button>
-        </div>
+        </nav>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col justify-center">
+      <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col justify-center focus:outline-none">
         {loading && (
           <div className="flex flex-col items-center justify-center p-12 text-slate-400">
             <i className="fas fa-spinner fa-spin text-4xl mb-4 text-yellow-400"></i>
@@ -414,16 +471,25 @@ const App: React.FC = () => {
               </div>
 
               {tempPlayer && (
-                <div className="bg-blue-600 rounded-xl p-4 flex items-center justify-between animate-pulse">
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="bg-blue-600 rounded-xl p-4 flex items-center justify-between shadow-lg"
+                >
                   <div className="flex items-center gap-3">
-                    <i className="fas fa-info-circle text-white text-xl"></i>
+                    <i className="fas fa-info-circle text-white text-xl" aria-hidden="true"></i>
                     <div>
                       <p className="font-bold text-white">Place {tempPlayer.name}</p>
-                      <p className="text-blue-100 text-xs">Tap a spot on the pitch to confirm placement</p>
+                      <p className="text-blue-100 text-xs">Tap an empty spot on the tactical pitch to confirm placement</p>
                     </div>
                   </div>
-                  <button onClick={cancelSelection} className="p-2 hover:bg-blue-700 rounded-lg text-white">
-                    <i className="fas fa-times"></i>
+                  <button
+                    type="button"
+                    onClick={cancelSelection}
+                    aria-label={`Cancel placement for ${tempPlayer.name}`}
+                    className="p-2 hover:bg-blue-700 rounded-lg text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none transition-colors"
+                  >
+                    <i className="fas fa-times" aria-hidden="true"></i>
                   </button>
                 </div>
               )}
@@ -481,30 +547,34 @@ const App: React.FC = () => {
                   )}
                   {draft.completed && !draft.submitted && (
                     <div className="mb-6 space-y-3">
+                      <label htmlFor="user-name-input" className="sr-only">Your Name</label>
                       <input
+                        id="user-name-input"
                         type="text"
                         placeholder="Enter your name"
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-400"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400"
                         maxLength={50}
                         required
+                        aria-required="true"
                       />
                       <button
+                        type="button"
                         onClick={handleSubmitTeam}
                         disabled={isSubmitting || !userName.trim()}
-                        className="w-full py-3 px-4 bg-yellow-400 text-slate-900 rounded-xl font-bold hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full py-3 px-4 bg-yellow-400 text-slate-900 rounded-xl font-bold hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
                       >
                         {isSubmitting ? (
-                            <><i className="fas fa-spinner fa-spin"></i> Submitting...</>
+                            <><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Submitting...</>
                         ) : (
-                            <><i className="fas fa-upload"></i> Submit Team</>
+                            <><i className="fas fa-upload" aria-hidden="true"></i> Submit Team</>
                         )}
                       </button>
                     </div>
                   )}
                   {draft.submitted && (
-                     <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg p-4 mb-6">
+                     <div role="status" className="bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg p-4 mb-6">
                        <p className="font-bold">Team Submitted!</p>
                        <p className="text-xs opacity-80">Check the leaderboard to see how you rank.</p>
                      </div>
@@ -513,18 +583,20 @@ const App: React.FC = () => {
                     <h4 className="text-slate-400 font-bold text-xs uppercase mb-3 tracking-widest">Share Challenge</h4>
                     <div className="mb-4">
                       <button
+                        type="button"
                         onClick={handleShareWhatsApp}
-                        className="w-full py-3 px-4 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-bold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 px-4 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-bold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
                       >
-                        <i className="fa-brands fa-whatsapp text-lg"></i> WhatsApp
+                        <i className="fa-brands fa-whatsapp text-lg" aria-hidden="true"></i> WhatsApp
                       </button>
                     </div>
                   </div>
                   <button
-                    onClick={resetDraft}
-                    className="w-full py-3 px-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2"
+                    type="button"
+                    onClick={() => setIsResetConfirmOpen(true)}
+                    className="w-full py-3 px-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
                   >
-                    <i className="fas fa-redo"></i> Reset Draft
+                    <i className="fas fa-redo" aria-hidden="true"></i> Reset Draft
                   </button>
                 </div>
 
@@ -563,43 +635,61 @@ const App: React.FC = () => {
         onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))} 
       />
 
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isResetConfirmOpen}
+        title="Reset Draft?"
+        message="Are you sure you want to reset your draft? Your currently placed players will be cleared and you can start today's challenge over."
+        type="warning"
+        confirmText="Reset Draft"
+        cancelText="Cancel"
+        onClose={() => setIsResetConfirmOpen(false)}
+        onConfirm={executeResetDraft}
+      />
+
       <CookieConsent />
 
       <footer className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-4 md:hidden z-50">
-        <div className="flex justify-around items-center max-w-lg mx-auto">
+        <nav aria-label="Mobile navigation" className="flex justify-around items-center max-w-lg mx-auto">
           <button
+            type="button"
             onClick={() => setView('draft')}
-            className={`flex flex-col items-center gap-1 ${view === 'draft' ? 'text-yellow-400' : 'text-slate-500'}`}
+            aria-current={view === 'draft' ? 'page' : undefined}
+            className={`flex flex-col items-center gap-1 p-2 rounded-lg focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${view === 'draft' ? 'text-yellow-400' : 'text-slate-400'}`}
           >
-            <i className="fas fa-list-ul"></i>
+            <i className="fas fa-list-ul" aria-hidden="true"></i>
             <span className="text-[10px] font-bold uppercase">Draft</span>
           </button>
-          <div className="w-12 h-12 rounded-full bg-slate-800 -mt-10 border-4 border-slate-900 flex items-center justify-center text-yellow-400 shadow-xl">
+          <div className="w-12 h-12 rounded-full bg-slate-800 -mt-10 border-4 border-slate-900 flex items-center justify-center text-yellow-400 shadow-xl" aria-hidden="true">
             <i className="fas fa-plus"></i>
           </div>
           <button
+            type="button"
             onClick={() => setView('team')}
-            className={`flex flex-col items-center gap-1 ${view === 'team' ? 'text-yellow-400' : 'text-slate-500'}`}
+            aria-current={view === 'team' ? 'page' : undefined}
+            className={`flex flex-col items-center gap-1 p-2 rounded-lg focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${view === 'team' ? 'text-yellow-400' : 'text-slate-400'}`}
           >
-            <i className="fas fa-tshirt"></i>
+            <i className="fas fa-tshirt" aria-hidden="true"></i>
             <span className="text-[10px] font-bold uppercase">Team</span>
           </button>
           <button
+            type="button"
             onClick={() => setView('leaderboard')}
+            aria-current={view === 'leaderboard' ? 'page' : undefined}
             disabled={!draft.completed}
-            className={`flex flex-col items-center gap-1 ${
+            className={`flex flex-col items-center gap-1 p-2 rounded-lg focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${
               !draft.completed
                 ? 'opacity-50 cursor-not-allowed text-slate-600'
                 : view === 'leaderboard'
                 ? 'text-yellow-400'
-                : 'text-slate-500'
+                : 'text-slate-400'
             }`}
             title={!draft.completed ? 'Complete draft to view leaderboard' : ''}
           >
-            <i className="fas fa-list-ol"></i>
+            <i className="fas fa-list-ol" aria-hidden="true"></i>
             <span className="text-[10px] font-bold uppercase">Ranks</span>
           </button>
-        </div>
+        </nav>
       </footer>
     </div>
   );

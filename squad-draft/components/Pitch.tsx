@@ -21,13 +21,17 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, ac
 
 
   return (
-    <div className="pitch-bg w-full aspect-[2/3] md:aspect-auto md:h-[600px] rounded-3xl relative overflow-hidden shadow-2xl border-4 border-slate-800">
+    <div
+      role="region"
+      aria-label="Tactical pitch formation"
+      className="pitch-bg w-full aspect-[2/3] md:aspect-auto md:h-[600px] rounded-3xl relative overflow-hidden shadow-2xl border-4 border-slate-800"
+    >
       {/* Pitch Markings */}
-      <div className="pitch-lines m-4 border-2"></div>
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-20 border-b-2 border-x-2 border-white/10"></div>
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-20 border-t-2 border-x-2 border-white/10"></div>
-      <div className="pitch-center"></div>
-      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10"></div>
+      <div className="pitch-lines m-4 border-2" aria-hidden="true"></div>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-20 border-b-2 border-x-2 border-white/10" aria-hidden="true"></div>
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/3 h-20 border-t-2 border-x-2 border-white/10" aria-hidden="true"></div>
+      <div className="pitch-center" aria-hidden="true"></div>
+      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10" aria-hidden="true"></div>
 
       {/* Players */}
       {formation.map((spot) => (
@@ -48,7 +52,9 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, ac
             />
           ) : (
             <button
+              type="button"
               onClick={() => onSpotClick?.(spot)}
+              aria-label={`Empty ${spot.position} spot. Press Enter or Space to place player.`}
               onDragOver={(e) => {
                 if (isDroppable) {
                   e.preventDefault();
@@ -71,13 +77,13 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, ac
                   onSpotDrop?.(spot.id);
                 }
               }}
-              className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-all
+              className={`w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-dashed flex items-center justify-center transition-all focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none
                 ${(activeSpotId === spot.id || dragOverSpotId === spot.id)
-                  ? 'border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/30'
-                  : 'border-white/20 hover:border-white/40 hover:bg-white/5'
+                  ? 'border-yellow-400 bg-yellow-400/20 scale-110 shadow-lg shadow-yellow-400/30 ring-2 ring-yellow-400/50'
+                  : 'border-white/30 hover:border-white/60 hover:bg-white/10'
                 }`}
             >
-              <span className="text-[10px] md:text-xs font-bold text-white/50">{spot.position}</span>
+              <span className="text-[10px] md:text-xs font-black text-white/70">{spot.position}</span>
             </button>
           )}
         </div>
