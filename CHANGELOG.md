@@ -5,6 +5,11 @@
 - Added specialist agent personas under `.agents/` (`code-reviewer.md`, `reactjs-specialist.md`, `dotnet-specialist.md`).
 - Added Antigravity skills under `.agents/skills/` (`code-reviewer/SKILL.md`, `reactjs-specialist/SKILL.md`).
 - Implemented frontend accessibility overhaul for `squad-draft` (WCAG 2.1 AA keyboard navigation, live region announcements, image error fallbacks, and accessible WAI-ARIA modal dialogs).
+- Added `TeamRoster` component organizing drafted squads by tactical lines (GK, DEF, MID, FWD) with hover synchronization to tactical pitch.
+
+### Changed
+- Expanded midfield formation spacing across the tactical pitch in `squad-draft` with wider horizontal distribution and natural vertical depth staggering (e.g. LCM/RCM flanking with a deeper central pivot) to eliminate avatar clumping.
+- Redesigned Team and Roster screen in `squad-draft` with Hero Command Center header and split layout (`lg:w-5/12` Pitch and `lg:w-7/12` Roster), fixing player name truncation and modernizing avatar framing.
 
 
 # [0.3.0](https://github.com/seanr89/SquadComplete/compare/v0.2.0...v0.3.0) (2026-03-24)

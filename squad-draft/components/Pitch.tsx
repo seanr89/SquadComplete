@@ -9,6 +9,7 @@ interface PitchProps {
   onPlayerClick?: (player: Player) => void;
   activeSpotId: number | null;
   selectedPlayerId?: string | null;
+  highlightedPlayerId?: string | null;
   disabledPlayerIds?: string[];
   isDroppable?: boolean;
   onSpotDrop?: (spotId: number) => void;
@@ -16,7 +17,7 @@ interface PitchProps {
   onPlayerDragStart?: (player: Player) => void;
 }
 
-const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, activeSpotId, selectedPlayerId, disabledPlayerIds = [], isDroppable, onSpotDrop, isDraggable, onPlayerDragStart }) => {
+const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, activeSpotId, selectedPlayerId, highlightedPlayerId, disabledPlayerIds = [], isDroppable, onSpotDrop, isDraggable, onPlayerDragStart }) => {
   const [dragOverSpotId, setDragOverSpotId] = React.useState<number | null>(null);
 
 
@@ -46,6 +47,7 @@ const Pitch: React.FC<PitchProps> = ({ formation, onSpotClick, onPlayerClick, ac
               compact
               onClick={onPlayerClick}
               isSelected={selectedPlayerId === spot.player.id}
+              isHighlighted={highlightedPlayerId === spot.player.id}
               disabled={disabledPlayerIds.includes(spot.player.id)}
               draggable={isDraggable}
               onDragStart={() => onPlayerDragStart?.(spot.player)}
