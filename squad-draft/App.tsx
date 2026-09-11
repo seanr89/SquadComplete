@@ -6,6 +6,7 @@ import { DraftState, Player, Squad, FormationSpot, Position } from './types';
 import { fetchDailySquads, submitUserSquad, recordRequest } from './api';
 import Pitch from './components/Pitch';
 import PlayerCard from './components/PlayerCard';
+import TeamRoster from './components/TeamRoster';
 import AboutDialog from './components/AboutDialog';
 import Leaderboard from './components/Leaderboard';
 import AlertDialog from './components/AlertDialog';
@@ -60,18 +61,28 @@ const App: React.FC = () => {
         if (fetchedChallenge && fetchedChallenge.squads.length > 0) {
           setSquads(fetchedChallenge.squads);
           
-          // If the draft is new (or empty), initialize the formation from the API
+          // If the draft is new (or empty), initialize the formation from the API, or refresh coordinates preserving placed players
           setDraft(prev => {
              const updates: Partial<DraftState> = {
                 gameRecordId: fetchedChallenge.id,
                 formationId: fetchedChallenge.formation?.id
              };
-             if (prev.selectedPlayers.length === 0 && fetchedChallenge.formation) {
-                 updates.formation = generateFormationSpots(
+             if (fetchedChallenge.formation) {
+                 const newSpots = generateFormationSpots(
                      fetchedChallenge.formation.defence,
                      fetchedChallenge.formation.midfield,
                      fetchedChallenge.formation.attack
                  );
+                 if (prev.selectedPlayers.length === 0) {
+                     updates.formation = newSpots;
+                 } else {
+                     updates.formation = newSpots.map(newSpot => {
+                         const existingSpot = prev.formation.find(s => s.id === newSpot.id);
+                         return existingSpot && existingSpot.player
+                             ? { ...newSpot, player: existingSpot.player }
+                             : newSpot;
+                     });
+                 }
              }
              return { ...prev, ...updates };
           });
@@ -124,32 +135,100 @@ const App: React.FC = () => {
     const formation: FormationSpot[] = [];
     let idCounter = 100;
 
-    const rowConfigs: { pos: Position; top: string }[] = [
-      { pos: 'GK', top: '85%' },
-      { pos: 'DEF', top: '65%' },
-      { pos: 'MID', top: '40%' },
-      { pos: 'FWD', top: '15%' }
+    const rowConfigs: { pos: Position; defaultTop: string }[] = [
+      { pos: 'GK', defaultTop: '86%' },
+      { pos: 'DEF', defaultTop: '68%' },
+      { pos: 'MID', defaultTop: '43%' },
+      { pos: 'FWD', defaultTop: '16%' }
     ];
 
-    rowConfigs.forEach(({ pos, top }) => {
+    rowConfigs.forEach(({ pos, defaultTop }) => {
       const players = playersByPos[pos];
       const count = players.length;
 
       players.forEach((player, i) => {
         let left = '50%';
-        let spotTop = top;
+        let spotTop = defaultTop;
 
-        if (count === 1) {
+        if (pos === 'GK') {
           left = '50%';
-        } else if (count === 2) {
-          left = i === 0 ? '35%' : '65%';
-        } else if (count === 3) {
-          left = i === 0 ? '25%' : (i === 1 ? '50%' : '75%');
-          if (pos === 'FWD' && i === 1) spotTop = '10%';
-        } else if (count === 4) {
-          left = (20 + i * 20) + '%';
-        } else if (count >= 5) {
-          left = (15 + (i * 70) / (count - 1)) + '%';
+          spotTop = '86%';
+        } else if (pos === 'DEF') {
+          spotTop = '68%';
+          if (count === 3) {
+            left = i === 0 ? '24%' : i === 1 ? '50%' : '76%';
+          } else if (count === 4) {
+            left = (18 + i * 21.3) + '%';
+          } else if (count === 5) {
+            left = (14 + (i * 72) / 4) + '%';
+            if (i === 0 || i === 4) spotTop = '63%';
+          } else {
+            left = (15 + (i * 70) / Math.max(count - 1, 1)) + '%';
+          }
+        } else if (pos === 'MID') {
+          // Midfield spacing: generous width and staggered depth
+          if (count === 1) {
+            left = '50%';
+            spotTop = '45%';
+          } else if (count === 2) {
+            left = i === 0 ? '32%' : '68%';
+            spotTop = '44%';
+          } else if (count === 3) {
+            if (i === 0) {
+              left = '22%';
+              spotTop = '41%';
+            } else if (i === 1) {
+              left = '50%';
+              spotTop = '48%';
+            } else {
+              left = '78%';
+              spotTop = '41%';
+            }
+          } else if (count === 4) {
+            if (i === 0) {
+              left = '16%';
+              spotTop = '39%';
+            } else if (i === 1) {
+              left = '38%';
+              spotTop = '46%';
+            } else if (i === 2) {
+              left = '62%';
+              spotTop = '46%';
+            } else {
+              left = '84%';
+              spotTop = '39%';
+            }
+          } else if (count === 5) {
+            const midTops = ['38%', '44%', '48%', '44%', '38%'];
+            const midLefts = ['15%', '32%', '50%', '68%', '85%'];
+            left = midLefts[i];
+            spotTop = midTops[i];
+          } else {
+            left = (15 + (i * 70) / Math.max(count - 1, 1)) + '%';
+            spotTop = i % 2 === 0 ? '40%' : '47%';
+          }
+        } else if (pos === 'FWD') {
+          if (count === 1) {
+            left = '50%';
+            spotTop = '13%';
+          } else if (count === 2) {
+            left = i === 0 ? '34%' : '66%';
+            spotTop = '15%';
+          } else if (count === 3) {
+            if (i === 0) {
+              left = '22%';
+              spotTop = '18%';
+            } else if (i === 1) {
+              left = '50%';
+              spotTop = '11%';
+            } else {
+              left = '78%';
+              spotTop = '18%';
+            }
+          } else {
+            left = (18 + (i * 64) / Math.max(count - 1, 1)) + '%';
+            spotTop = i % 2 === 1 ? '11%' : '17%';
+          }
         }
 
         formation.push({
@@ -229,6 +308,7 @@ const App: React.FC = () => {
 
   const [userName, setUserName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rosterHoveredPlayerId, setRosterHoveredPlayerId] = useState<string | null>(null);
 
   const getShareText = () => {
     const formattedDate = new Date().toLocaleDateString(undefined, {
@@ -324,22 +404,21 @@ const App: React.FC = () => {
 
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">
-            <span className="text-yellow-400" aria-hidden="true"><i className="fas fa-trophy"></i></span>
-            ULTIMATE 11
-          </h1>
-          <div className="flex items-center gap-2 relative group w-max">
-            <p className="text-slate-300 font-medium">Daily Squad Draft Challenge</p>
-            <button
-              type="button"
-              onClick={() => setIsInstructionsOpen(prev => !prev)}
-              aria-expanded={isInstructionsOpen}
-              aria-label="Toggle draft instructions"
-              className="text-slate-400 hover:text-slate-200 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none rounded-full p-1 transition-colors"
-            >
-              <i className="fas fa-info-circle text-sm" aria-hidden="true"></i>
-            </button>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">
+              <span className="text-yellow-400" aria-hidden="true"><i className="fas fa-trophy"></i></span>
+              ULTIMATE 11
+            </h1>
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={() => setIsInstructionsOpen(prev => !prev)}
+                aria-expanded={isInstructionsOpen}
+                aria-label="Toggle draft instructions"
+                className="text-slate-400 hover:text-slate-200 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none rounded-full p-1 transition-colors"
+              >
+                <i className="fas fa-info-circle text-sm" aria-hidden="true"></i>
+              </button>
 
             <div
               className={`absolute left-0 top-full mt-2 w-72 bg-slate-800 rounded-xl p-4 border border-slate-700 shadow-xl transition-all duration-200 z-50 ${
@@ -519,102 +598,146 @@ const App: React.FC = () => {
         )}
 
         {!loading && !error && view !== 'leaderboard' && (view === 'team' || draft.completed) && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col md:flex-row gap-8">
-              <div className="md:w-2/3">
-                <Pitch formation={draft.formation} activeSpotId={null} />
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+            {/* Hero Command Center Header */}
+            <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700/80 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
+              {/* Left: Squad Stats & Info */}
+              <div className="flex items-center gap-4 md:gap-6">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 p-0.5 shadow-lg shadow-yellow-500/20 flex-shrink-0">
+                  <div className="w-full h-full bg-slate-900 rounded-[14px] flex flex-col items-center justify-center">
+                    <span className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-400">
+                      {totalRating}
+                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Avg OVR</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h2 className="text-lg md:text-xl font-extrabold text-white">Your Squad</h2>
+                    {draft.completed && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <i className="fa-solid fa-circle-check text-[10px]" aria-hidden="true"></i> Draft Complete
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs md:text-sm text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-white">{draft.selectedPlayers.length} / 11</span> Players Selected
+                    {draft.formation.length > 0 && (
+                      <span className="text-slate-400 font-medium">
+                        • {draft.formation.filter(s => s.position === 'DEF').length}-
+                        {draft.formation.filter(s => s.position === 'MID').length}-
+                        {draft.formation.filter(s => s.position === 'FWD').length} Formation
+                      </span>
+                    )}
+                  </p>
+                </div>
               </div>
 
-              <div className="md:w-1/3 space-y-6">
-                <div className="bg-slate-800/80 rounded-2xl p-6 border border-slate-700 text-center">
-                  <h3 className="text-slate-400 font-bold text-sm uppercase mb-4 tracking-widest">Team Performance</h3>
-                  <div className="flex justify-around items-end h-24 mb-6">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="text-3xl font-black text-white">{totalRating}</div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">Avg Rating</div>
-                    </div>
-                    <div className="w-[2px] h-full bg-slate-700"></div>
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="text-3xl font-black text-yellow-400">{draft.selectedPlayers.length}</div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">Players</div>
-                    </div>
+              {/* Right: Actions Cluster */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap lg:justify-end">
+                {draft.completed && !draft.submitted && (
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    <label htmlFor="user-name-input" className="sr-only">Your Name</label>
+                    <input
+                      id="user-name-input"
+                      type="text"
+                      placeholder="Enter your name"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-400 text-sm focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/50 w-full sm:w-44"
+                      maxLength={50}
+                      required
+                      aria-required="true"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSubmitTeam}
+                      disabled={isSubmitting || !userName.trim()}
+                      className="px-4 py-2.5 bg-yellow-400 text-slate-900 rounded-xl font-bold hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none whitespace-nowrap cursor-pointer"
+                    >
+                      {isSubmitting ? (
+                        <><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Submitting...</>
+                      ) : (
+                        <><i className="fas fa-upload" aria-hidden="true"></i> Submit Team</>
+                      )}
+                    </button>
                   </div>
-                  {draft.completed && (
-                    <div className="bg-green-500/10 border border-green-500/20 text-green-400 rounded-lg p-4 mb-6">
-                      <p className="font-bold">Draft Complete!</p>
-                      <p className="text-xs opacity-80">You've built an incredible squad of legends.</p>
-                    </div>
-                  )}
-                  {draft.completed && !draft.submitted && (
-                    <div className="mb-6 space-y-3">
-                      <label htmlFor="user-name-input" className="sr-only">Your Name</label>
-                      <input
-                        id="user-name-input"
-                        type="text"
-                        placeholder="Enter your name"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400"
-                        maxLength={50}
-                        required
-                        aria-required="true"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSubmitTeam}
-                        disabled={isSubmitting || !userName.trim()}
-                        className="w-full py-3 px-4 bg-yellow-400 text-slate-900 rounded-xl font-bold hover:bg-yellow-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none"
-                      >
-                        {isSubmitting ? (
-                            <><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Submitting...</>
-                        ) : (
-                            <><i className="fas fa-upload" aria-hidden="true"></i> Submit Team</>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                  {draft.submitted && (
-                     <div role="status" className="bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg p-4 mb-6">
-                       <p className="font-bold">Team Submitted!</p>
-                       <p className="text-xs opacity-80">Check the leaderboard to see how you rank.</p>
-                     </div>
-                  )}
-                  <div className="border-t border-slate-700/50 my-6 pt-6 text-left">
-                    <h4 className="text-slate-400 font-bold text-xs uppercase mb-3 tracking-widest">Share Challenge</h4>
-                    <div className="mb-4">
-                      <button
-                        type="button"
-                        onClick={handleShareWhatsApp}
-                        className="w-full py-3 px-4 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-bold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
-                      >
-                        <i className="fa-brands fa-whatsapp text-lg" aria-hidden="true"></i> WhatsApp
-                      </button>
-                    </div>
+                )}
+
+                {draft.submitted && (
+                  <div role="status" className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs md:text-sm font-semibold">
+                    <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                    <span>Submitted!</span>
+                    <button
+                      type="button"
+                      onClick={() => setView('leaderboard')}
+                      className="ml-1 text-xs font-bold underline hover:text-blue-300 transition-colors"
+                    >
+                      Leaderboard
+                    </button>
                   </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleShareWhatsApp}
+                    className="flex-1 sm:flex-initial px-3.5 py-2.5 bg-emerald-600/15 border border-emerald-500/30 text-emerald-400 rounded-xl font-semibold hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2 text-xs md:text-sm focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none cursor-pointer"
+                    title="Share squad on WhatsApp"
+                  >
+                    <i className="fa-brands fa-whatsapp text-base" aria-hidden="true"></i>
+                    <span>Share</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setIsResetConfirmOpen(true)}
-                    className="w-full py-3 px-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-bold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+                    className="flex-1 sm:flex-initial px-3.5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl font-semibold hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-2 text-xs md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none cursor-pointer"
+                    title="Reset draft"
                   >
-                    <i className="fas fa-redo" aria-hidden="true"></i> Reset Draft
+                    <i className="fas fa-redo text-xs" aria-hidden="true"></i>
+                    <span>Reset</span>
                   </button>
                 </div>
+              </div>
+            </div>
 
-                <div className="bg-slate-800/80 rounded-2xl p-6 border border-slate-700">
-                  <h3 className="text-slate-400 font-bold text-sm uppercase mb-4 tracking-widest">Roster List</h3>
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {draft.selectedPlayers.length === 0 ? (
-                      <p className="text-slate-600 text-sm text-center py-4">No players drafted yet</p>
-                    ) : (
-                      draft.selectedPlayers.map(p => (
-                        <PlayerCard
-                          key={p.id}
-                          player={p}
-                        />
-                      ))
-                    )}
+            {/* Main Content Split: Tactical Pitch & Roster */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Tactical Pitch (Left Column) */}
+              <div className="lg:col-span-5 xl:col-span-5 lg:sticky lg:top-24">
+                <div className="bg-slate-800/40 p-3 md:p-4 rounded-3xl border border-slate-700/60 shadow-xl backdrop-blur-sm">
+                  <div className="flex items-center justify-between px-2 mb-3">
+                    <h3 className="text-slate-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                      <i className="fa-solid fa-futbol text-emerald-400" aria-hidden="true"></i> Tactical Formation
+                    </h3>
+                    <span className="text-[11px] font-bold text-slate-400 bg-slate-900/60 px-2 py-0.5 rounded-md border border-slate-800">
+                      Starting XI
+                    </span>
                   </div>
+                  <Pitch
+                    formation={draft.formation}
+                    activeSpotId={null}
+                    highlightedPlayerId={rosterHoveredPlayerId}
+                  />
                 </div>
+              </div>
+
+              {/* Team Roster (Right Column) */}
+              <div className="lg:col-span-7 xl:col-span-7">
+                <div className="flex items-center justify-between mb-3.5 px-1">
+                  <h3 className="text-white font-extrabold text-base md:text-lg flex items-center gap-2">
+                    <i className="fa-solid fa-list-check text-yellow-400" aria-hidden="true"></i>
+                    Squad Roster
+                  </h3>
+                  <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+                    Hover over players to highlight on pitch
+                  </span>
+                </div>
+                <TeamRoster
+                  players={draft.selectedPlayers}
+                  highlightedPlayerId={rosterHoveredPlayerId}
+                  onPlayerHover={(player) => setRosterHoveredPlayerId(player ? player.id : null)}
+                />
               </div>
             </div>
           </div>
