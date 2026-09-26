@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -15,6 +17,7 @@ public static class PlayerFixtureStatisticEndpoints
         group.MapGet("/", async (SquadContext db) =>
         {
             return await db.PlayerFixtureStatistics
+                .AsNoTracking()
                 .Include(pfs => pfs.Fixture)
                 .Include(pfs => pfs.Player)
                 .Include(pfs => pfs.Team)
@@ -28,6 +31,7 @@ public static class PlayerFixtureStatisticEndpoints
         group.MapGet("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
         {
             return await db.PlayerFixtureStatistics
+                .AsNoTracking()
                 .Include(pfs => pfs.Fixture)
                 .Include(pfs => pfs.Player)
                 .Include(pfs => pfs.Team)
@@ -41,7 +45,7 @@ public static class PlayerFixtureStatisticEndpoints
         /// <summary>
         /// Updates an existing player fixture statistic.
         /// </summary>
-        group.MapPut("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, PlayerFixtureStatistic inputPfs, SquadContext db) =>
+        group.MapPut("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, PlayerFixtureStatisticDto inputPfs, SquadContext db) =>
         {
             var foundModel = await db.PlayerFixtureStatistics.FindAsync(fixtureId, playerId);
 
@@ -64,18 +68,33 @@ public static class PlayerFixtureStatisticEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdatePlayerFixtureStatistic");
+        .WithName("UpdatePlayerFixtureStatistic")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Creates a new player fixture statistic.
         /// </summary>
-        group.MapPost("/", async (PlayerFixtureStatistic pfs, SquadContext db) =>
+        group.MapPost("/", async (PlayerFixtureStatisticDto pfsDto, SquadContext db) =>
         {
+            var pfs = new PlayerFixtureStatistic
+            {
+                FixtureId = pfsDto.FixtureId,
+                PlayerId = pfsDto.PlayerId,
+                TeamId = pfsDto.TeamId,
+                Minutes = pfsDto.Minutes,
+                Number = pfsDto.Number,
+                Position = pfsDto.Position,
+                Rating = pfsDto.Rating,
+                IsCaptain = pfsDto.IsCaptain,
+                IsSubstitute = pfsDto.IsSubstitute
+            };
+
             db.PlayerFixtureStatistics.Add(pfs);
             await db.SaveChangesAsync();
             return Results.Created($"/api/player-fixture-statistics/{pfs.FixtureId}/{pfs.PlayerId}", pfs);
         })
-        .WithName("CreatePlayerFixtureStatistic");
+        .WithName("CreatePlayerFixtureStatistic")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Deletes a specific player fixture statistic by fixture ID and player ID.
@@ -91,6 +110,7 @@ public static class PlayerFixtureStatisticEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeletePlayerFixtureStatistic");
+        .WithName("DeletePlayerFixtureStatistic")
+        .RequireAdminApiKey();
     }
 }

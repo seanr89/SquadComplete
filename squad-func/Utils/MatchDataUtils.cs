@@ -1,19 +1,21 @@
 using System;
+using System.Globalization;
 using Squad.Function.Models.AI;
 
 namespace Squad.Function.Utils;
 
 public static class MatchDataUtils
 {
+    /// <summary>
+    /// Parses the AI-supplied match date as UTC. Returns null if missing/unparseable.
+    /// </summary>
     public static DateTime? GetMatchDate(MatchDetails? matchData)
     {
-        DateTime? matchDate = null;
-        if (DateTime.TryParse(matchData?.MatchMetadata?.Date, out var parsedDate))
+        if (!DateTime.TryParse(matchData?.MatchMetadata?.Date, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
         {
-            matchDate = parsedDate;
+            return null;
         }
-        // update matchdate to resolve issue: Cannot write DateTime with Kind=Unspecified to PostgreSQL type 'timestamp with time zone', only UTC is supported. Note that it's not possible to mix DateTimes with different Kinds in an array, range, or multirange. (Parameter 'value')
-        matchDate = DateTime.SpecifyKind(matchDate ?? DateTime.MinValue, DateTimeKind.Utc);
-        return matchDate;
+        // Npgsql only accepts Kind=Utc for 'timestamp with time zone' columns.
+        return DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc);
     }
 }

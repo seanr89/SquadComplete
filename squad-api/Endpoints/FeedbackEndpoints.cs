@@ -41,6 +41,7 @@ public static class FeedbackEndpoints
             await db.SaveChangesAsync();
 
             return Results.Ok();
-        });
+        })
+        .RequireRateLimiting("PublicWrite");
     }
 }

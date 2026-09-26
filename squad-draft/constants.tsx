@@ -127,3 +127,29 @@ export const generateFormationSpots = (defence: number, midfield: number, attack
 
   return formation;
 };
+
+/**
+ * Carries placed players from a saved formation onto freshly generated spots.
+ * Spot ids are a running counter across lines (GK, DEF, MID, FWD), so the same id can belong to a
+ * different line once the formation shape changes. Players are therefore matched by line and slot
+ * number within that line (e.g. "2nd DEF"), never by raw id.
+ * Returns null if any placed player's slot doesn't exist in the new shape: the caller should then
+ * keep the saved layout rather than silently moving the player to a different line.
+ */
+export const remapFormationPlayers = (savedSpots: FormationSpot[], newSpots: FormationSpot[]): FormationSpot[] | null => {
+  const slotKey = (spots: FormationSpot[], spot: FormationSpot) =>
+    `${spot.position}:${spots.filter(s => s.position === spot.position).indexOf(spot)}`;
+
+  const playersBySlot = new Map(
+    savedSpots.filter(s => s.player).map(s => [slotKey(savedSpots, s), s.player] as const)
+  );
+
+  const remapped = newSpots.map(spot => {
+    const key = slotKey(newSpots, spot);
+    const player = playersBySlot.get(key) ?? null;
+    playersBySlot.delete(key);
+    return { ...spot, player };
+  });
+
+  return playersBySlot.size === 0 ? remapped : null;
+};

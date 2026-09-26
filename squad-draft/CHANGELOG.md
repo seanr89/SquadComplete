@@ -23,7 +23,13 @@ All notable changes to the `squad-draft` frontend service will be documented in 
 - Modernized player cards in roster with circular position-accented avatars, high-contrast typography, and gold gradient rating pills (removing harsh white square backgrounds in dark mode).
 - Refactored `PlayerCard` into fully accessible interactive elements with `role="button"`, ARIA labels, focus rings, and keyboard event handlers.
 - Replaced hover-only instructions with an accessible toggle button and popover.
+- `recordRequest` (`api.ts`) no longer calls the third-party `api.ipify.org` service or sends `ipAddress`/`dateTime`. The `RecordRequest` function now derives both server-side, so only the `device` hint is sent.
 - Enhanced contrast across text, badges, and focus rings.
+
+### Fixed
+- Loading the daily formation no longer silently moves already-placed players to a different line. Spot IDs are a running counter across GK/DEF/MID/FWD, so matching saved players by ID put them in the wrong line whenever the formation shape changed (e.g. 4-4-2 to 3-5-2). The new `remapFormationPlayers` helper in `constants.tsx` matches by line and slot number instead. If a placed player's slot doesn't exist in the new shape, the saved layout and its `formationId` are kept, so the submission stays self-consistent.
+- `getBrowserId` no longer falls back to `Math.random()` (about 60 bits, not cryptographically random) when `crypto.randomUUID` is unavailable, e.g. over plain HTTP or on older Safari. A new `generateUuid` helper builds a proper RFC 4122 v4 UUID from `crypto.getRandomValues` instead. IDs already stored in `localStorage` are kept, so existing players stay linked to their leaderboard entries.
+- `CookieConsent` no longer collects consent decoratively: the analytics tracking call (`recordRequest`) in `App.tsx` now checks `checkConsent('analytics')` before firing, and reacts immediately to consent changes via a new `squad-cookie-consent-changed` event instead of only running once on mount.
 
 ### Removed
 - Removed the "Daily Squad Draft Challenge" subtitle text from the header.

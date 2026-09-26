@@ -9,6 +9,7 @@ export interface Consent {
 }
 
 const STORAGE_KEY = 'squad-cookie-consent';
+export const CONSENT_CHANGED_EVENT = 'squad-cookie-consent-changed';
 
 export const checkConsent = (category: ConsentCategory): boolean => {
   if (category === 'necessary') return true;
@@ -65,6 +66,7 @@ const CookieConsent: React.FC = () => {
     setConsent(newConsent);
     setIsVisible(false);
     setShowModal(false);
+    window.dispatchEvent(new CustomEvent<Consent>(CONSENT_CHANGED_EVENT, { detail: newConsent }));
   };
 
   const handleAcceptAll = () => {

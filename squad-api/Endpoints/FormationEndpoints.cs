@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -20,7 +22,7 @@ public static class FormationEndpoints
         /// <returns>A list of all formations.</returns>
         group.MapGet("/", async (SquadContext db) =>
         {
-            return await db.Formations.ToListAsync();
+            return await db.Formations.AsNoTracking().ToListAsync();
         })
         .WithName("GetAllFormations");
 
@@ -32,7 +34,7 @@ public static class FormationEndpoints
         /// <returns>The requested formation if found; otherwise, a 404 Not Found response.</returns>
         group.MapGet("/{id}", async (int id, SquadContext db) =>
         {
-            return await db.Formations.FindAsync(id)
+            return await db.Formations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id)
                 is Formation model
                     ? Results.Ok(model)
                     : Results.NotFound();
@@ -46,7 +48,7 @@ public static class FormationEndpoints
         /// <param name="inputFormation">The updated formation data.</param>
         /// <param name="db">The database context.</param>
         /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapPut("/{id}", async (int id, Formation inputFormation, SquadContext db) =>
+        group.MapPut("/{id}", async (int id, FormationDto inputFormation, SquadContext db) =>
         {
             var foundModel = await db.Formations.FindAsync(id);
 
@@ -65,7 +67,8 @@ public static class FormationEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdateFormation");
+        .WithName("UpdateFormation")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Creates a new formation.
@@ -73,13 +76,22 @@ public static class FormationEndpoints
         /// <param name="formation">The formation data to create.</param>
         /// <param name="db">The database context.</param>
         /// <returns>The newly created formation with a 201 Created response.</returns>
-        group.MapPost("/", async (Formation formation, SquadContext db) =>
+        group.MapPost("/", async (FormationDto formationDto, SquadContext db) =>
         {
+            var formation = new Formation
+            {
+                Name = formationDto.Name,
+                Defence = formationDto.Defence,
+                Midfield = formationDto.Midfield,
+                Attack = formationDto.Attack
+            };
+
             db.Formations.Add(formation);
             await db.SaveChangesAsync();
             return Results.Created($"/api/formations/{formation.Id}", formation);
         })
-        .WithName("CreateFormation");
+        .WithName("CreateFormation")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Deletes a specific formation by its unique identifier.
@@ -98,6 +110,7 @@ public static class FormationEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeleteFormation");
+        .WithName("DeleteFormation")
+        .RequireAdminApiKey();
     }
 }

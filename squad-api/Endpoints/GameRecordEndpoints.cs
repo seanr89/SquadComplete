@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.Models;
 using squad_api.Services;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -60,14 +61,16 @@ public static class GameRecordEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdateGameRecord");
+        .WithName("UpdateGameRecord")
+        .RequireAdminApiKey();
 
         group.MapPost("/", async (GameRecord record, GameRecordService service) =>
         {
             var createdRecordDto = await service.CreateGameRecordAsync(record);
             return Results.Created($"/api/game-records/{createdRecordDto.Id}", createdRecordDto);
         })
-        .WithName("CreateGameRecord");
+        .WithName("CreateGameRecord")
+        .RequireAdminApiKey();
 
         group.MapDelete("/{id:int}", async (int id, SquadContext db) =>
         {
@@ -80,6 +83,7 @@ public static class GameRecordEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeleteGameRecord");
+        .WithName("DeleteGameRecord")
+        .RequireAdminApiKey();
     }
 }

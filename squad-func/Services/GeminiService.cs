@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using squad_func.Models.AI;
 
 public class GeminiService(HttpClient httpClient, ILogger<GeminiService> logger)
 {
