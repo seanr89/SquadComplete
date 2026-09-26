@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
 
 namespace squad_api.Endpoints;
@@ -46,7 +47,7 @@ public static class FixtureEndpoints
         /// <param name="inputFixture">The updated fixture data.</param>
         /// <param name="db">The database context.</param>
         /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapPut("/{id}", async (int id, Fixture inputFixture, SquadContext db) =>
+        group.MapPut("/{id}", async (int id, FixtureDto inputFixture, SquadContext db) =>
         {
             var foundModel = await db.Fixtures.FindAsync(id);
 
@@ -63,6 +64,9 @@ public static class FixtureEndpoints
             foundModel.AwayTeamName = inputFixture.AwayTeamName;
             foundModel.HomeGoalCount = inputFixture.HomeGoalCount;
             foundModel.AwayGoalCount = inputFixture.AwayGoalCount;
+            foundModel.FixtureDate = inputFixture.FixtureDate;
+            foundModel.FixtureSource = inputFixture.FixtureSource;
+            foundModel.ApiId = inputFixture.ApiId;
             foundModel.UpdatedAt = DateTime.UtcNow;
 
             await db.SaveChangesAsync();
@@ -77,8 +81,22 @@ public static class FixtureEndpoints
         /// <param name="fixture">The fixture data to create.</param>
         /// <param name="db">The database context.</param>
         /// <returns>The newly created fixture with a 201 Created response.</returns>
-        group.MapPost("/", async (Fixture fixture, SquadContext db) =>
+        group.MapPost("/", async (FixtureDto fixtureDto, SquadContext db) =>
         {
+            var fixture = new Fixture
+            {
+                LeagueId = fixtureDto.LeagueId,
+                HomeTeamId = fixtureDto.HomeTeamId,
+                HomeTeamName = fixtureDto.HomeTeamName,
+                AwayTeamId = fixtureDto.AwayTeamId,
+                AwayTeamName = fixtureDto.AwayTeamName,
+                HomeGoalCount = fixtureDto.HomeGoalCount,
+                AwayGoalCount = fixtureDto.AwayGoalCount,
+                FixtureDate = fixtureDto.FixtureDate,
+                FixtureSource = fixtureDto.FixtureSource,
+                ApiId = fixtureDto.ApiId
+            };
+
             db.Fixtures.Add(fixture);
             await db.SaveChangesAsync();
             return Results.Created($"/api/fixtures/{fixture.Id}", fixture);

@@ -53,6 +53,7 @@ public static class EventEndpoints
             await db.SaveChangesAsync();
 
             return Results.Created($"/api/events/{newEvent.Id}", newEvent);
-        });
+        })
+        .RequireRateLimiting("PublicWrite");
     }
 }

@@ -7,13 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using squad_func.Models;
+using squad_func.Services;
 
 namespace Squad.Function;
 
-public class RecordRequest(ILoggerFactory loggerFactory, SquadContext context)
+public class RecordRequest(ILoggerFactory loggerFactory, SquadContext context, IpRateLimiterService rateLimiter)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<RecordRequest>();
     private readonly SquadContext _context = context;
+    private readonly IpRateLimiterService _rateLimiter = rateLimiter;
 
     public class RequestBodyDto
     {
@@ -27,6 +29,19 @@ public class RecordRequest(ILoggerFactory loggerFactory, SquadContext context)
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "record")] HttpRequest req)
     {
         _logger.LogInformation("Processing HTTP POST request for RecordRequest.");
+
+        // Rate-limit by the server-derived IP (never the client-asserted body value) to
+        // stop this anonymous, unauthenticated endpoint from being spammed.
+        string forwardedFor = req.Headers["X-Forwarded-For"].ToString();
+        string rateLimitKey = !string.IsNullOrEmpty(forwardedFor)
+            ? forwardedFor
+            : req.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
+        if (!_rateLimiter.IsAllowed(rateLimitKey))
+        {
+            _logger.LogWarning("Rate limit exceeded for {Key} on RecordRequest.", rateLimitKey);
+            return new ObjectResult(new { error = "Too many requests." }) { StatusCode = StatusCodes.Status429TooManyRequests };
+        }
 
         try
         {

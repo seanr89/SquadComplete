@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
 
 namespace squad_api.Endpoints;
@@ -46,7 +47,7 @@ public static class FormationEndpoints
         /// <param name="inputFormation">The updated formation data.</param>
         /// <param name="db">The database context.</param>
         /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapPut("/{id}", async (int id, Formation inputFormation, SquadContext db) =>
+        group.MapPut("/{id}", async (int id, FormationDto inputFormation, SquadContext db) =>
         {
             var foundModel = await db.Formations.FindAsync(id);
 
@@ -73,8 +74,16 @@ public static class FormationEndpoints
         /// <param name="formation">The formation data to create.</param>
         /// <param name="db">The database context.</param>
         /// <returns>The newly created formation with a 201 Created response.</returns>
-        group.MapPost("/", async (Formation formation, SquadContext db) =>
+        group.MapPost("/", async (FormationDto formationDto, SquadContext db) =>
         {
+            var formation = new Formation
+            {
+                Name = formationDto.Name,
+                Defence = formationDto.Defence,
+                Midfield = formationDto.Midfield,
+                Attack = formationDto.Attack
+            };
+
             db.Formations.Add(formation);
             await db.SaveChangesAsync();
             return Results.Created($"/api/formations/{formation.Id}", formation);

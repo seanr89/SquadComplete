@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
 
 namespace squad_api.Endpoints;
@@ -41,7 +42,7 @@ public static class PlayerFixtureStatisticEndpoints
         /// <summary>
         /// Updates an existing player fixture statistic.
         /// </summary>
-        group.MapPut("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, PlayerFixtureStatistic inputPfs, SquadContext db) =>
+        group.MapPut("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, PlayerFixtureStatisticDto inputPfs, SquadContext db) =>
         {
             var foundModel = await db.PlayerFixtureStatistics.FindAsync(fixtureId, playerId);
 
@@ -69,8 +70,21 @@ public static class PlayerFixtureStatisticEndpoints
         /// <summary>
         /// Creates a new player fixture statistic.
         /// </summary>
-        group.MapPost("/", async (PlayerFixtureStatistic pfs, SquadContext db) =>
+        group.MapPost("/", async (PlayerFixtureStatisticDto pfsDto, SquadContext db) =>
         {
+            var pfs = new PlayerFixtureStatistic
+            {
+                FixtureId = pfsDto.FixtureId,
+                PlayerId = pfsDto.PlayerId,
+                TeamId = pfsDto.TeamId,
+                Minutes = pfsDto.Minutes,
+                Number = pfsDto.Number,
+                Position = pfsDto.Position,
+                Rating = pfsDto.Rating,
+                IsCaptain = pfsDto.IsCaptain,
+                IsSubstitute = pfsDto.IsSubstitute
+            };
+
             db.PlayerFixtureStatistics.Add(pfs);
             await db.SaveChangesAsync();
             return Results.Created($"/api/player-fixture-statistics/{pfs.FixtureId}/{pfs.PlayerId}", pfs);

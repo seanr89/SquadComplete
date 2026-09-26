@@ -102,7 +102,8 @@ public static class UserSquadEndpoints
 
             return Results.Created($"/api/user-squads/{userSquad.Id}", new { userSquad.Id });
         })
-        .WithName("CreateUserSquad");
+        .WithName("CreateUserSquad")
+        .RequireRateLimiting("PublicWrite");
 
         group.MapGet("/{gameRecordId:int}/leaderboard", async (int gameRecordId, SquadContext db) =>
         {

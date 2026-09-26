@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
 
 namespace squad_api.Endpoints;
@@ -46,7 +47,7 @@ public static class LeagueEndpoints
         /// <param name="inputLeague">The updated league data.</param>
         /// <param name="db">The database context.</param>
         /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapPut("/{id}", async (int id, League inputLeague, SquadContext db) =>
+        group.MapPut("/{id}", async (int id, LeagueDto inputLeague, SquadContext db) =>
         {
             var foundModel = await db.Leagues.FindAsync(id);
 
@@ -62,6 +63,7 @@ public static class LeagueEndpoints
             foundModel.CountryName = inputLeague.CountryName;
             foundModel.CountryCode = inputLeague.CountryCode;
             foundModel.CountryFlag = inputLeague.CountryFlag;
+            foundModel.ApiId = inputLeague.ApiId;
             foundModel.UpdatedAt = DateTime.UtcNow;
 
             await db.SaveChangesAsync();
@@ -76,8 +78,19 @@ public static class LeagueEndpoints
         /// <param name="league">The league data to create.</param>
         /// <param name="db">The database context.</param>
         /// <returns>The newly created league with a 201 Created response.</returns>
-        group.MapPost("/", async (League league, SquadContext db) =>
+        group.MapPost("/", async (LeagueDto leagueDto, SquadContext db) =>
         {
+            var league = new League
+            {
+                Name = leagueDto.Name,
+                Type = leagueDto.Type,
+                Logo = leagueDto.Logo,
+                CountryName = leagueDto.CountryName,
+                CountryCode = leagueDto.CountryCode,
+                CountryFlag = leagueDto.CountryFlag,
+                ApiId = leagueDto.ApiId
+            };
+
             db.Leagues.Add(league);
             await db.SaveChangesAsync();
             return Results.Created($"/api/leagues/{league.Id}", league);

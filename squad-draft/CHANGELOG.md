@@ -25,6 +25,9 @@ All notable changes to the `squad-draft` frontend service will be documented in 
 - Replaced hover-only instructions with an accessible toggle button and popover.
 - Enhanced contrast across text, badges, and focus rings.
 
+### Fixed
+- `CookieConsent` no longer collects consent decoratively: the analytics tracking call (`recordRequest`) in `App.tsx` now checks `checkConsent('analytics')` before firing, and reacts immediately to consent changes via a new `squad-cookie-consent-changed` event instead of only running once on mount.
+
 ### Removed
 - Removed the "Daily Squad Draft Challenge" subtitle text from the header.
 

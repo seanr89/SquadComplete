@@ -27,6 +27,7 @@ builder.Services.AddHttpClient<GeminiService>(client => client.Timeout = TimeSpa
 
 builder.Services.AddTransient<StorageService>();
 builder.Services.AddTransient<EmailSMTPService>();
+builder.Services.AddSingleton<IpRateLimiterService>();
 
 builder.Services.AddHttpClient<IApiService, ApiService>(client => client.Timeout = TimeSpan.FromSeconds(240))
     .RemoveAllLoggers()

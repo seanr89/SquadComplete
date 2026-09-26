@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
 
 namespace squad_api.Endpoints;
@@ -46,7 +47,7 @@ public static class PlayerEndpoints
         /// <param name="inputPlayer">The updated player data.</param>
         /// <param name="db">The database context.</param>
         /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapPut("/{id}", async (int id, Player inputPlayer, SquadContext db) =>
+        group.MapPut("/{id}", async (int id, PlayerDto inputPlayer, SquadContext db) =>
         {
             var foundModel = await db.Players.FindAsync(id);
 
@@ -58,6 +59,7 @@ public static class PlayerEndpoints
             // Update properties
             foundModel.Name = inputPlayer.Name;
             foundModel.Photo = inputPlayer.Photo;
+            foundModel.ApiId = inputPlayer.ApiId;
             foundModel.UpdatedAt = DateTime.UtcNow;
 
             await db.SaveChangesAsync();
@@ -72,8 +74,15 @@ public static class PlayerEndpoints
         /// <param name="player">The player data to create.</param>
         /// <param name="db">The database context.</param>
         /// <returns>The newly created player with a 201 Created response.</returns>
-        group.MapPost("/", async (Player player, SquadContext db) =>
+        group.MapPost("/", async (PlayerDto playerDto, SquadContext db) =>
         {
+            var player = new Player
+            {
+                Name = playerDto.Name,
+                Photo = playerDto.Photo,
+                ApiId = playerDto.ApiId
+            };
+
             db.Players.Add(player);
             await db.SaveChangesAsync();
             return Results.Created($"/api/players/{player.Id}", player);

@@ -11,7 +11,7 @@ import AboutDialog from './components/AboutDialog';
 import Leaderboard from './components/Leaderboard';
 import AlertDialog from './components/AlertDialog';
 import FixtureInfo from './components/FixtureInfo';
-import CookieConsent from './components/CookieConsent';
+import CookieConsent, { checkConsent, CONSENT_CHANGED_EVENT } from './components/CookieConsent';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'draft' | 'team' | 'leaderboard'>('draft');
@@ -43,14 +43,19 @@ const App: React.FC = () => {
   });
 
   React.useEffect(() => {
-    const hasRecorded = sessionStorage.getItem('squad-draft-recorded');
-    if (!hasRecorded) {
+    const attemptRecordRequest = () => {
+      const hasRecorded = sessionStorage.getItem('squad-draft-recorded');
+      if (hasRecorded || !checkConsent('analytics')) return;
       recordRequest().then((success) => {
         if (success) {
           sessionStorage.setItem('squad-draft-recorded', 'true');
         }
       });
-    }
+    };
+
+    attemptRecordRequest();
+    window.addEventListener(CONSENT_CHANGED_EVENT, attemptRecordRequest);
+    return () => window.removeEventListener(CONSENT_CHANGED_EVENT, attemptRecordRequest);
   }, []);
 
   React.useEffect(() => {
