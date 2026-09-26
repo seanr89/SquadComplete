@@ -42,6 +42,7 @@ public static class UserSquadEndpoints
 
             // Check if squad already submitted
             var existingSquad = await db.UserSquads
+                .AsNoTracking()
                 .FirstOrDefaultAsync(us => us.UserId == user.Id && us.GameRecordId == dto.GameRecordId);
 
             if (existingSquad != null)
@@ -108,6 +109,7 @@ public static class UserSquadEndpoints
         group.MapGet("/{gameRecordId:int}/leaderboard", async (int gameRecordId, SquadContext db) =>
         {
             var userSquads = await db.UserSquads
+                .AsNoTracking()
                 .Include(us => us.User)
                 .Include(us => us.UserSquadPlayers)
                     .ThenInclude(usp => usp.Player)
@@ -131,6 +133,7 @@ public static class UserSquadEndpoints
                 .ToListAsync();
 
             var statistics = await db.PlayerFixtureStatistics
+                .AsNoTracking()
                 .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value))
                 .ToListAsync();
 

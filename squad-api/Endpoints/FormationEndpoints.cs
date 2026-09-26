@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -21,7 +22,7 @@ public static class FormationEndpoints
         /// <returns>A list of all formations.</returns>
         group.MapGet("/", async (SquadContext db) =>
         {
-            return await db.Formations.ToListAsync();
+            return await db.Formations.AsNoTracking().ToListAsync();
         })
         .WithName("GetAllFormations");
 
@@ -33,7 +34,7 @@ public static class FormationEndpoints
         /// <returns>The requested formation if found; otherwise, a 404 Not Found response.</returns>
         group.MapGet("/{id}", async (int id, SquadContext db) =>
         {
-            return await db.Formations.FindAsync(id)
+            return await db.Formations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id)
                 is Formation model
                     ? Results.Ok(model)
                     : Results.NotFound();
@@ -66,7 +67,8 @@ public static class FormationEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdateFormation");
+        .WithName("UpdateFormation")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Creates a new formation.
@@ -88,7 +90,8 @@ public static class FormationEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/formations/{formation.Id}", formation);
         })
-        .WithName("CreateFormation");
+        .WithName("CreateFormation")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Deletes a specific formation by its unique identifier.
@@ -107,6 +110,7 @@ public static class FormationEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeleteFormation");
+        .WithName("DeleteFormation")
+        .RequireAdminApiKey();
     }
 }

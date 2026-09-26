@@ -20,6 +20,7 @@ public class GameRecordService
     public async Task<List<GameRecordDto>> GetAllGameRecordsAsync()
     {
         var records = await _db.GameRecords
+            .AsNoTracking()
             .Include(gr => gr.Tags)
                 .ThenInclude(t => t.Team)
             .Include(gr => gr.Formation)
@@ -29,6 +30,7 @@ public class GameRecordService
         var teamIds = records.SelectMany(r => r.Tags).Select(t => t.TeamId).Distinct().ToList();
 
         var statistics = await _db.PlayerFixtureStatistics
+            .AsNoTracking()
             .Include(s => s.Player)
             .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value))
             .ToListAsync();
@@ -44,6 +46,7 @@ public class GameRecordService
     public async Task<GameRecordDto?> GetGameRecordByIdAsync(int id)
     {
         var record = await _db.GameRecords
+            .AsNoTracking()
             .Include(gr => gr.Tags)
                 .ThenInclude(t => t.Team)
             .Include(gr => gr.Formation)
@@ -55,6 +58,7 @@ public class GameRecordService
         var teamIds = record.Tags.Select(t => t.TeamId).Distinct().ToList();
 
         var statistics = await _db.PlayerFixtureStatistics
+            .AsNoTracking()
             .Include(s => s.Player)
             .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value))
             .ToListAsync();
@@ -70,6 +74,7 @@ public class GameRecordService
     public async Task<GameRecordDto?> GetGameRecordByDateAsync(DateTime date)
     {
         var record = await _db.GameRecords
+            .AsNoTracking()
             .Include(gr => gr.Tags)
                 .ThenInclude(t => t.Team)
             .Include(gr => gr.Formation)
@@ -81,6 +86,7 @@ public class GameRecordService
         var teamIds = record.Tags.Select(t => t.TeamId).Distinct().ToList();
 
         var statistics = await _db.PlayerFixtureStatistics
+            .AsNoTracking()
             .Include(s => s.Player)
             .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value) && s.IsSubstitute == false)
             .ToListAsync();

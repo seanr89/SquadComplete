@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -21,7 +22,7 @@ public static class FixtureEndpoints
         /// <returns>A list of all fixtures.</returns>
         group.MapGet("/", async (SquadContext db) =>
         {
-            return await db.Fixtures.Include(f => f.League).ToListAsync();
+            return await db.Fixtures.AsNoTracking().Include(f => f.League).ToListAsync();
         })
         .WithName("GetAllFixtures");
 
@@ -33,7 +34,7 @@ public static class FixtureEndpoints
         /// <returns>The requested fixture if found; otherwise, a 404 Not Found response.</returns>
         group.MapGet("/{id}", async (int id, SquadContext db) =>
         {
-            return await db.Fixtures.Include(f => f.League).FirstOrDefaultAsync(f => f.Id == id)
+            return await db.Fixtures.AsNoTracking().Include(f => f.League).FirstOrDefaultAsync(f => f.Id == id)
                 is Fixture model
                     ? Results.Ok(model)
                     : Results.NotFound();
@@ -73,7 +74,8 @@ public static class FixtureEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdateFixture");
+        .WithName("UpdateFixture")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Creates a new fixture.
@@ -101,7 +103,8 @@ public static class FixtureEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/fixtures/{fixture.Id}", fixture);
         })
-        .WithName("CreateFixture");
+        .WithName("CreateFixture")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Deletes a specific fixture by its unique identifier.
@@ -120,6 +123,7 @@ public static class FixtureEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeleteFixture");
+        .WithName("DeleteFixture")
+        .RequireAdminApiKey();
     }
 }

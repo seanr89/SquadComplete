@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -21,7 +22,7 @@ public static class LeagueEndpoints
         /// <returns>A list of all leagues.</returns>
         group.MapGet("/", async (SquadContext db) =>
         {
-            return await db.Leagues.ToListAsync();
+            return await db.Leagues.AsNoTracking().ToListAsync();
         })
         .WithName("GetAllLeagues");
 
@@ -33,7 +34,7 @@ public static class LeagueEndpoints
         /// <returns>The requested league if found; otherwise, a 404 Not Found response.</returns>
         group.MapGet("/{id}", async (int id, SquadContext db) =>
         {
-            return await db.Leagues.FindAsync(id)
+            return await db.Leagues.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id)
                 is League model
                     ? Results.Ok(model)
                     : Results.NotFound();
@@ -70,7 +71,8 @@ public static class LeagueEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdateLeague");
+        .WithName("UpdateLeague")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Creates a new league.
@@ -95,7 +97,8 @@ public static class LeagueEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/leagues/{league.Id}", league);
         })
-        .WithName("CreateLeague");
+        .WithName("CreateLeague")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Deletes a specific league by its unique identifier.
@@ -114,6 +117,7 @@ public static class LeagueEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeleteLeague");
+        .WithName("DeleteLeague")
+        .RequireAdminApiKey();
     }
 }

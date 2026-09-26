@@ -6,6 +6,7 @@ using squad_api.DTOs;
 using squad_api.Models;
 using System;
 using System.Linq;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -19,11 +20,13 @@ public static class EventEndpoints
         group.MapGet("/", async (SquadContext db, int limit = 50) =>
         {
             var events = await db.Events
+                .AsNoTracking()
                 .OrderByDescending(e => e.CreatedAt)
                 .Take(limit)
                 .ToListAsync();
             return Results.Ok(events);
-        });
+        })
+        .RequireAdminApiKey();
 
         // POST /api/events - Log a new event
         group.MapPost("/", async (EventDto eventDto, SquadContext db) =>

@@ -55,6 +55,15 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
 
             var matchData = JsonSerializer.Deserialize<MatchDetails>(data);
 
+            // AI output is untrusted: clean/truncate strings to column limits and reject payloads
+            // that are structurally invalid, archiving them so they aren't reprocessed every run.
+            var validationErrors = AiDataSanitizer.SanitizeAndValidate(matchData);
+            if (validationErrors.Count > 0)
+            {
+                _logger.LogError("AI match data in blob {Blob} failed validation: {Errors}", blob, string.Join("; ", validationErrors));
+                await _storageService.MoveBlob(blob, "ai-team-single", "archive-invalid-data");
+                return;
+            }
             League? dbLeague = await GetOrCreateLeague(matchData);
             if (dbLeague == null)
             {
@@ -132,15 +141,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 return;
             }
 
-            // Parse score
-            int homeGoalCount = 0;
-            int awayGoalCount = 0;
-            var scoreParts = matchData?.MatchMetadata?.FinalScore?.Split("-");
-            if (scoreParts != null && scoreParts.Length >= 2)
-            {
-                _ = int.TryParse(scoreParts[0], out homeGoalCount);
-                _ = int.TryParse(scoreParts[1], out awayGoalCount);
-            }
+            // Score was already validated by AiDataSanitizer
+            AiDataSanitizer.TryParseScore(matchData?.MatchMetadata?.FinalScore, out int homeGoalCount, out int awayGoalCount);
 
             _logger.LogInformation("Got Scores now create fixture!");
             Fixture newFixture = CreateNewFixtureAndSave(matchData, dbLeague, dbHomeTeam,
@@ -230,7 +232,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 FixtureId = newFixture.Id,
                 TeamId = dbHomeTeam.Id,
                 Position = playerMapped?.filePlayerData?.Position ?? "N/A",
-                Rating = (decimal?)playerMapped?.filePlayerData?.Rating ?? 0.0m
+                Rating = AiDataSanitizer.CleanRating(playerMapped?.filePlayerData?.Rating)
             };
             _context.PlayerFixtureStatistics.Add(newPlayerFixtureStat);
         }
@@ -280,7 +282,8 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                             var newPlayer = new Player
                             {
                                 ApiId = matchedResponseItem.Player.Id,
-                                Name = matchedResponseItem.Player.Firstname + " " + matchedResponseItem.Player.Lastname ?? "N/A",
+                                Name = AiDataSanitizer.CleanText($"{matchedResponseItem.Player.Firstname} {matchedResponseItem.Player.Lastname}", AiDataSanitizer.NameMaxLength)
+                                    ?? player.Name,
                                 Photo = matchedResponseItem.Player.Photo ?? "N/A"
                             };
                             _context.Players.Add(newPlayer);
@@ -345,7 +348,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
             var newHomeTeam = new Team
             {
                 ApiId = homeTeam?.Response?.First()?.Team?.Id ?? 0,
-                Name = homeTeam?.Response?.First()?.Team?.Name ?? "N/A",
+                Name = AiDataSanitizer.CleanText(homeTeam?.Response?.First()?.Team?.Name, AiDataSanitizer.NameMaxLength) ?? homeTeamName ?? "N/A",
                 Logo = homeTeam?.Response?.First()?.Team?.Logo ?? "N/A"
             };
             _context.Teams.Add(newHomeTeam);
@@ -388,7 +391,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 var newLeague = new League
                 {
                     ApiId = league?.Response?.First()?.League?.Id ?? 0,
-                    Name = league?.Response?.First()?.League?.Name ?? "N/A",
+                    Name = AiDataSanitizer.CleanText(league?.Response?.First()?.League?.Name, AiDataSanitizer.NameMaxLength) ?? competitionName ?? "N/A",
                     Logo = league?.Response?.First()?.League?.Logo ?? "N/A"
                 };
                 _context.Leagues.Add(newLeague);

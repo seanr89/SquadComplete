@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 
-import { INITIAL_FORMATION, generateFormationSpots } from './constants';
+import { INITIAL_FORMATION, generateFormationSpots, remapFormationPlayers } from './constants';
 import { DraftState, Player, Squad, FormationSpot, Position } from './types';
 import { fetchDailySquads, submitUserSquad, recordRequest } from './api';
 import Pitch from './components/Pitch';
@@ -12,6 +12,20 @@ import Leaderboard from './components/Leaderboard';
 import AlertDialog from './components/AlertDialog';
 import FixtureInfo from './components/FixtureInfo';
 import CookieConsent, { checkConsent, CONSENT_CHANGED_EVENT } from './components/CookieConsent';
+
+// RFC 4122 v4 UUID. crypto.randomUUID is only available in secure contexts (HTTPS/localhost) and
+// newer browsers, so fall back to crypto.getRandomValues (universally supported) rather than
+// Math.random, which is neither collision-resistant nor unpredictable enough for an anti-abuse id.
+const generateUuid = (): string => {
+  if (typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 4122 variant
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+};
 
 const App: React.FC = () => {
   const [view, setView] = useState<'draft' | 'team' | 'leaderboard'>('draft');
@@ -81,12 +95,16 @@ const App: React.FC = () => {
                  if (prev.selectedPlayers.length === 0) {
                      updates.formation = newSpots;
                  } else {
-                     updates.formation = newSpots.map(newSpot => {
-                         const existingSpot = prev.formation.find(s => s.id === newSpot.id);
-                         return existingSpot && existingSpot.player
-                             ? { ...newSpot, player: existingSpot.player }
-                             : newSpot;
-                     });
+                     const remapped = remapFormationPlayers(prev.formation, newSpots);
+                     if (remapped) {
+                         updates.formation = remapped;
+                     } else {
+                         // The saved draft was built on a different formation shape and some placed
+                         // players have no matching slot. Keep the saved layout and its formation id
+                         // so the submission stays consistent instead of moving players between lines.
+                         console.warn('Daily formation shape changed since this draft was saved; keeping the saved formation.');
+                         updates.formationId = prev.formationId ?? updates.formationId;
+                     }
                  }
              }
              return { ...prev, ...updates };
@@ -340,7 +358,7 @@ const App: React.FC = () => {
   const getBrowserId = () => {
     let id = localStorage.getItem('squad-browser-id');
     if (!id) {
-      id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+      id = generateUuid();
       localStorage.setItem('squad-browser-id', id);
     }
     return id;

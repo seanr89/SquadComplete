@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -21,7 +22,7 @@ public static class PlayerEndpoints
         /// <returns>A list of all players.</returns>
         group.MapGet("/", async (SquadContext db) =>
         {
-            return await db.Players.ToListAsync();
+            return await db.Players.AsNoTracking().ToListAsync();
         })
         .WithName("GetAllPlayers");
 
@@ -33,7 +34,7 @@ public static class PlayerEndpoints
         /// <returns>The requested player if found; otherwise, a 404 Not Found response.</returns>
         group.MapGet("/{id}", async (int id, SquadContext db) =>
         {
-            return await db.Players.FindAsync(id)
+            return await db.Players.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id)
                 is Player model
                     ? Results.Ok(model)
                     : Results.NotFound();
@@ -66,7 +67,8 @@ public static class PlayerEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdatePlayer");
+        .WithName("UpdatePlayer")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Creates a new player.
@@ -87,7 +89,8 @@ public static class PlayerEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/players/{player.Id}", player);
         })
-        .WithName("CreatePlayer");
+        .WithName("CreatePlayer")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Deletes a specific player by their unique identifier.
@@ -106,6 +109,7 @@ public static class PlayerEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeletePlayer");
+        .WithName("DeletePlayer")
+        .RequireAdminApiKey();
     }
 }

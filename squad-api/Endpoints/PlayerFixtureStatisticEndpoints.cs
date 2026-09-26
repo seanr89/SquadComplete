@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
+using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -16,6 +17,7 @@ public static class PlayerFixtureStatisticEndpoints
         group.MapGet("/", async (SquadContext db) =>
         {
             return await db.PlayerFixtureStatistics
+                .AsNoTracking()
                 .Include(pfs => pfs.Fixture)
                 .Include(pfs => pfs.Player)
                 .Include(pfs => pfs.Team)
@@ -29,6 +31,7 @@ public static class PlayerFixtureStatisticEndpoints
         group.MapGet("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
         {
             return await db.PlayerFixtureStatistics
+                .AsNoTracking()
                 .Include(pfs => pfs.Fixture)
                 .Include(pfs => pfs.Player)
                 .Include(pfs => pfs.Team)
@@ -65,7 +68,8 @@ public static class PlayerFixtureStatisticEndpoints
 
             return Results.NoContent();
         })
-        .WithName("UpdatePlayerFixtureStatistic");
+        .WithName("UpdatePlayerFixtureStatistic")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Creates a new player fixture statistic.
@@ -89,7 +93,8 @@ public static class PlayerFixtureStatisticEndpoints
             await db.SaveChangesAsync();
             return Results.Created($"/api/player-fixture-statistics/{pfs.FixtureId}/{pfs.PlayerId}", pfs);
         })
-        .WithName("CreatePlayerFixtureStatistic");
+        .WithName("CreatePlayerFixtureStatistic")
+        .RequireAdminApiKey();
 
         /// <summary>
         /// Deletes a specific player fixture statistic by fixture ID and player ID.
@@ -105,6 +110,7 @@ public static class PlayerFixtureStatisticEndpoints
 
             return Results.NotFound();
         })
-        .WithName("DeletePlayerFixtureStatistic");
+        .WithName("DeletePlayerFixtureStatistic")
+        .RequireAdminApiKey();
     }
 }
