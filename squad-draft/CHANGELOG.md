@@ -33,4 +33,5 @@ All notable changes to the `squad-draft` frontend service will be documented in 
 
 ### Removed
 - Removed the "Daily Squad Draft Challenge" subtitle text from the header.
+- Removed the "Stats" tab and `fetchStatistics` call from `AboutDialog`, which surfaced platform-wide league/team/player/fixture/game counts.
 

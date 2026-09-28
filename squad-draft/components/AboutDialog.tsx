@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { submitFeedback, fetchStatistics } from '../api';
+import { submitFeedback } from '../api';
 
 interface AboutDialogProps {
   isOpen: boolean;
@@ -7,21 +7,9 @@ interface AboutDialogProps {
 }
 
 const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'about' | 'contact' | 'stats'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'contact'>('about');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [stats, setStats] = useState<any | null>(null);
-  const [loadingStats, setLoadingStats] = useState(false);
-
-  useEffect(() => {
-    if (activeTab === 'stats' && !stats && !loadingStats) {
-      setLoadingStats(true);
-      fetchStatistics().then(data => {
-        setStats(data);
-        setLoadingStats(false);
-      });
-    }
-  }, [activeTab, stats, loadingStats]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -114,19 +102,6 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
           </button>
 
           <button
-            id="tab-stats"
-            role="tab"
-            type="button"
-            aria-selected={activeTab === 'stats'}
-            aria-controls="tabpanel-stats"
-            tabIndex={activeTab === 'stats' ? 0 : -1}
-            onClick={() => setActiveTab('stats')}
-            className={`flex-1 py-3 text-sm font-bold transition-colors focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${activeTab === 'stats' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-slate-400 hover:text-slate-300'}`}
-          >
-            Stats
-          </button>
-
-          <button
             id="tab-contact"
             role="tab"
             type="button"
@@ -160,46 +135,6 @@ const AboutDialog: React.FC<AboutDialogProps> = ({ isOpen, onClose }) => {
                   <li>Build a complete 11-man squad with the highest average rating!</li>
                 </ul>
               </div>
-            </div>
-          )}
-
-          {activeTab === 'stats' && (
-            <div id="tabpanel-stats" role="tabpanel" aria-labelledby="tab-stats" tabIndex={0} className="space-y-4 focus:outline-none">
-              <p className="text-sm text-slate-300 mb-4">
-                Current platform statistics from our database.
-              </p>
-              {loadingStats ? (
-                <div className="flex justify-center p-8">
-                  <i className="fas fa-spinner fa-spin text-2xl text-yellow-400" aria-label="Loading statistics"></i>
-                </div>
-              ) : stats ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
-                    <div className="text-2xl font-black text-white">{stats.leagues || stats.leaguesCount || stats.leagueCount || 0}</div>
-                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Leagues</div>
-                  </div>
-                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
-                    <div className="text-2xl font-black text-white">{stats.teams || stats.teamsCount || stats.teamCount || 0}</div>
-                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Teams</div>
-                  </div>
-                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
-                    <div className="text-2xl font-black text-white">{stats.players || stats.playersCount || stats.playerCount || 0}</div>
-                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Players</div>
-                  </div>
-                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center">
-                    <div className="text-2xl font-black text-white">{stats.fixtures || stats.fixturesCount || stats.fixtureCount || 0}</div>
-                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Fixtures</div>
-                  </div>
-                  <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 text-center col-span-2">
-                    <div className="text-2xl font-black text-yellow-400">{stats.games || stats.gamesCount || stats.gameRecordsCount || stats.gameRecordCount || 0}</div>
-                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">Games Played</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center text-slate-400 p-4">
-                  Failed to load statistics.
-                </div>
-              )}
             </div>
           )}
 
