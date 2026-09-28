@@ -66,7 +66,7 @@ export const fetchLeaderboard = async (gameRecordId: number): Promise<any[]> => 
 
 export const fetchFixture = async (fixtureId: number): Promise<any> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/fixtures/${fixtureId}`);
+        const response = await fetch(`${FUNCTIONS_BASE_URL}/api/fixtures/${fixtureId}`);
         if (!response.ok) {
             console.error('Failed to fetch fixture:', response.statusText);
             return null;
