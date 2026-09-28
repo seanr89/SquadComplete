@@ -66,7 +66,7 @@ export const fetchLeaderboard = async (gameRecordId: number): Promise<any[]> => 
 
 export const fetchFixture = async (fixtureId: number): Promise<any> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/fixtures/${fixtureId}`);
+        const response = await fetch(`${FUNCTIONS_BASE_URL}/api/fixtures/${fixtureId}`);
         if (!response.ok) {
             console.error('Failed to fetch fixture:', response.statusText);
             return null;
@@ -119,20 +119,6 @@ export const submitFeedback = async (name: string, email: string, message: strin
     } catch (error) {
         console.error('Error submitting feedback:', error);
         return false;
-    }
-};
-
-export const fetchStatistics = async (): Promise<any | null> => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/statistics`);
-        if (!response.ok) {
-            console.error('Failed to fetch statistics:', response.statusText);
-            return null;
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching statistics:', error);
-        return null;
     }
 };
 

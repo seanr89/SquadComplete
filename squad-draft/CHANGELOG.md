@@ -25,6 +25,7 @@ All notable changes to the `squad-draft` frontend service will be documented in 
 - Replaced hover-only instructions with an accessible toggle button and popover.
 - `recordRequest` (`api.ts`) no longer calls the third-party `api.ipify.org` service or sends `ipAddress`/`dateTime`. The `RecordRequest` function now derives both server-side, so only the `device` hint is sent.
 - Enhanced contrast across text, badges, and focus rings.
+- `fetchFixture` (`api.ts`) now calls the new `GetFixture` Azure Function (`VITE_FUNCTIONS_BASE_URL`) instead of `squad-api`, avoiding the API's cold start. The response shape is unchanged.
 
 ### Fixed
 - Loading the daily formation no longer silently moves already-placed players to a different line. Spot IDs are a running counter across GK/DEF/MID/FWD, so matching saved players by ID put them in the wrong line whenever the formation shape changed (e.g. 4-4-2 to 3-5-2). The new `remapFormationPlayers` helper in `constants.tsx` matches by line and slot number instead. If a placed player's slot doesn't exist in the new shape, the saved layout and its `formationId` are kept, so the submission stays self-consistent.
@@ -33,4 +34,5 @@ All notable changes to the `squad-draft` frontend service will be documented in 
 
 ### Removed
 - Removed the "Daily Squad Draft Challenge" subtitle text from the header.
+- Removed the "Stats" tab and `fetchStatistics` call from `AboutDialog`, which surfaced platform-wide league/team/player/fixture/game counts.
 

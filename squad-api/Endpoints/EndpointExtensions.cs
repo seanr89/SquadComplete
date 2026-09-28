@@ -16,6 +16,5 @@ public static class EndpointExtensions
         app.MapFeedbackEndpoints();
         app.MapEventEndpoints();
         app.MapUserSquadEndpoints();
-        app.MapStatisticsEndpoints();
     }
 }

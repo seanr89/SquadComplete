@@ -7,6 +7,7 @@ All notable changes to the `squad-func` Azure Functions service will be document
 ### Added
 - Added `squad-func/AGENTS.md` containing scoped agent guidelines for Azure Functions, Gemini AI search pipelines, and blob ingestion triggers.
 - Added `IpRateLimiterService`, an in-memory per-IP fixed-window limiter, and wired it into the anonymous `RecordRequest` HTTP trigger (10 requests/minute, keyed off the server-derived IP, not the client-asserted body value) to prevent spam.
+- Added `GetFixture`, an anonymous HTTP `GET /api/fixtures/{id}` trigger that mirrors `squad-api`'s `GetFixtureById` (fixture with its `League` included, same JSON shape) so the client's fixture lookup doesn't wait on the API's cold start. Responses carry `Cache-Control: public, max-age=3600` since historic fixtures don't change.
 
 ### Fixed
 - `RecordRequest` no longer trusts client-asserted audit fields: the IP address is now derived server-side from the right-most `X-Forwarded-For` entry (the one Azure's front end appends, with any port stripped), falling back to the connection's remote address, and the timestamp is always `DateTime.UtcNow`. `ipAddress`/`dateTime` in the request body are ignored. The device string prefers the `User-Agent` header over the body and is capped at 512 characters. The rate limiter now keys off the same resolved IP rather than the raw, spoofable `X-Forwarded-For` string.
