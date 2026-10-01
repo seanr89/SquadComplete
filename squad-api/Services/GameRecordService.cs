@@ -32,7 +32,7 @@ public class GameRecordService
         var statistics = await _db.PlayerFixtureStatistics
             .AsNoTracking()
             .Include(s => s.Player)
-            .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value))
+            .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value) && s.IsSubstitute == false)
             .ToListAsync();
 
         return records.Select(r => MapToDto(r, statistics)).ToList();
@@ -60,7 +60,7 @@ public class GameRecordService
         var statistics = await _db.PlayerFixtureStatistics
             .AsNoTracking()
             .Include(s => s.Player)
-            .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value))
+            .Where(s => fixtureIds.Contains(s.FixtureId) && s.TeamId != null && teamIds.Contains(s.TeamId.Value) && s.IsSubstitute == false)
             .ToListAsync();
 
         return MapToDto(record, statistics);

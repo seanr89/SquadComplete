@@ -16,7 +16,6 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 - [ ] `localStorage.setItem` failures (e.g. `QuotaExceededError`) are only logged, not surfaced to the user — draft silently stops persisting (`App.tsx:104-111`).
 
 ### squad-api
-- [ ] `GetGameRecordByDateAsync` filters `IsSubstitute == false` but `GetAllGameRecordsAsync`/`GetGameRecordByIdAsync` don't — the same game record returns different player sets depending on which endpoint is called (`GameRecordService.cs`).
 - [ ] `CreateUserSquadDto` flow has a check-then-insert race: two rapid submissions for the same user/game record can both pass the "existing squad" check before either commits; the DB unique index eventually blocks the second insert but as an unhandled `DbUpdateException` (500) rather than a clean 409/400 (`UserSquadEndpoints.cs`).
 - [ ] Leaderboard computation does an O(n·m) in-memory scan per squad/player (`UserSquadEndpoints.cs:137-155`) and duplicates statistic-matching logic that already exists in `GameRecordService`.
 - [ ] Commented-out DTO fields (`Minutes`, `Number`, `IsCaptain`, `IsSubstitute`) left in `GameRecordService.cs:132-137` — either wire them up or remove the dead code.
