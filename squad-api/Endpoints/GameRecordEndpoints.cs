@@ -41,19 +41,67 @@ public static class GameRecordEndpoints
                 return Results.NotFound();
             }
 
-            // Update properties
+            if (inputRecord.FormationId.HasValue &&
+                !await db.Formations.AnyAsync(f => f.Id == inputRecord.FormationId.Value))
+            {
+                return Results.BadRequest($"Formation {inputRecord.FormationId} does not exist.");
+            }
+
+            var incomingTags = (inputRecord.Tags ?? new List<GameRecordTag>())
+                .Select(t => (t.FixtureId, t.TeamId))
+                .Distinct()
+                .ToList();
+
+            if (incomingTags.Count > 0)
+            {
+                var fixtureIds = incomingTags.Select(t => t.FixtureId).Distinct().ToList();
+                var teamIds = incomingTags.Select(t => t.TeamId).Distinct().ToList();
+
+                var existingFixtureIds = await db.Fixtures
+                    .AsNoTracking()
+                    .Where(f => fixtureIds.Contains(f.Id))
+                    .Select(f => f.Id)
+                    .ToListAsync();
+                var missingFixtures = fixtureIds.Except(existingFixtureIds).ToList();
+                if (missingFixtures.Count > 0)
+                {
+                    return Results.BadRequest($"Fixture(s) not found: {string.Join(", ", missingFixtures)}.");
+                }
+
+                var existingTeamIds = await db.Teams
+                    .AsNoTracking()
+                    .Where(t => teamIds.Contains(t.Id))
+                    .Select(t => t.Id)
+                    .ToListAsync();
+                var missingTeams = teamIds.Except(existingTeamIds).ToList();
+                if (missingTeams.Count > 0)
+                {
+                    return Results.BadRequest($"Team(s) not found: {string.Join(", ", missingTeams)}.");
+                }
+            }
+
             foundModel.GameDate = inputRecord.GameDate;
+            foundModel.FormationId = inputRecord.FormationId;
             foundModel.UpdatedAt = DateTime.UtcNow;
 
-            // Handle Tags Update
-            if (inputRecord.Tags != null && inputRecord.Tags.Any())
+            // Only touch tags when supplied; diff so unchanged tags are left alone
+            if (incomingTags.Count > 0)
             {
-                db.GameRecordTags.RemoveRange(foundModel.Tags);
-                foundModel.Tags.Clear();
-                foreach (var tag in inputRecord.Tags)
+                var incomingSet = incomingTags.ToHashSet();
+                var toRemove = foundModel.Tags
+                    .Where(t => !incomingSet.Contains((t.FixtureId, t.TeamId)))
+                    .ToList();
+                db.GameRecordTags.RemoveRange(toRemove);
+
+                var existingSet = foundModel.Tags.Select(t => (t.FixtureId, t.TeamId)).ToHashSet();
+                foreach (var (fixtureId, teamId) in incomingSet.Where(t => !existingSet.Contains(t)))
                 {
-                    tag.GameRecordId = foundModel.Id; // Ensure FK is correct
-                    foundModel.Tags.Add(tag);
+                    foundModel.Tags.Add(new GameRecordTag
+                    {
+                        GameRecordId = foundModel.Id,
+                        FixtureId = fixtureId,
+                        TeamId = teamId
+                    });
                 }
             }
 
