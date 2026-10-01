@@ -2,10 +2,6 @@
 
 Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func`, and `squad-domain` (2026-09-26). Items are grouped by category; each entry cites the file(s) it applies to. Not exhaustive — prioritized for impact.
 
-## 🔴 Security (do these first)
-
-- [ ] **`squad-func/local.settings.json` has a real plaintext Supabase password on disk** — not committed (correctly gitignored), but rotate it and confirm it never leaked into an earlier commit. Consider a separate local/dev-only database instead of pointing local dev at the shared instance.
-
 ## 🐞 Bugs
 
 ### squad-draft
@@ -24,7 +20,6 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 - [ ] `SingleMatchHistoricalSearch` isn't idempotent on retry: if the function crashes between uploading to `ai-team-single` and rewriting the source blob, a retry reprocesses the same match and produces duplicates.
 - [ ] Score parsing (`GenerateFixtureFromAIMatchData.cs:138-143`, `SeasonDataProcessor.cs:61-62`) assumes a clean `H-A` string; AI output like `"2-2 (AET)"` silently defaults to 0-0 with no logging.
 - [ ] Player name matching is exact-string only (`GenerateFixtureFromAIMatchData.cs`), so accents/middle names/suffixes create duplicate `Player` rows instead of reconciling with existing ones.
-- [ ] `Player.Name` built as `Firstname + " " + Lastname ?? "N/A"` — the `??` only binds to `Lastname`, so a null first name yields a leading space and a null last name yields `"Firstname N/A"` (`GenerateFixtureFromAIMatchData.cs:283`).
 - [ ] Unhandled exceptions mid-processing in `GenerateFixtureFromAIMatchData` re-throw without moving the bad blob to an error container, so the same blob fails on every subsequent timer run — a reprocessing loop that contradicts the AGENTS.md resilience rule.
 - [ ] Inconsistent sync/async `SaveChanges()` calls within the same isolated-worker function (`GenerateFixtureFromAIMatchData.cs`) risk blocking the worker thread pool under load.
 - [ ] `squad-func/AGENTS.md` references `TeamRefresh.cs`, which does not exist in the current tree — docs are stale relative to code (or the function was removed/renamed and should be reconciled).
