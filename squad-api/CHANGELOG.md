@@ -15,5 +15,9 @@ All notable changes to the `squad-api` backend service will be documented in thi
 - Removed the Supabase host/username from the committed `appsettings.json` `ConnectionStrings:DefaultConnection` (now an empty placeholder) since production already supplies the real value via an Azure App Service `ConnectionStrings__DefaultConnection` app setting; nothing about the real DB endpoint ships in the repo now.
 - Locked down CORS from `AllowAnyOrigin()` to a configured allowlist (`Cors:AllowedOrigins` in `appsettings.json`), set to the production frontend origins (`https://squadup.raffrock.com` custom domain and `https://blue-wave-059115703.4.azurestaticapps.net` default Static Web App hostname) with `http://localhost:3000` overriding it in `appsettings.Development.json` for local dev.
 
+### Fixed
+- `GET /api/game-records` and `GET /api/game-records/{id}` now exclude substitutes (`IsSubstitute == false`), matching `GET /api/game-records/date/{date}`, so a game record returns the same player set from every endpoint.
+- `PUT /api/game-records/{id}` now validates `FormationId` and every tag's fixture/team id up front and returns `400 Bad Request` instead of an unhandled FK exception (500). Tags are now diffed by fixture/team pair so unchanged tags are left alone rather than deleted and re-inserted, and `FormationId` is now actually persisted on update.
+
 ### Removed
 - Removed `GET /api/statistics` (`StatisticsEndpoints.cs`, `StatisticsDto.cs`), which returned platform-wide league/team/player/fixture/game counts, along with its registration in `EndpointExtensions.cs`. No longer used now that the "Stats" tab has been removed from the frontend's `AboutDialog`.
