@@ -30,7 +30,6 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 - [ ] No way to swap or remove an already-placed player short of a full draft reset — significant UX gap for a drafting game.
 - [ ] No pagination on the leaderboard (`squad-draft/components/Leaderboard.tsx`, `squad-api/Endpoints/UserSquadEndpoints.cs`) or on any list endpoint in `squad-api` (players, leagues, fixtures, formations, statistics) — fine today, won't scale.
 - [ ] Only recovery path from an API error is a full `window.location.reload()` (`squad-draft/App.tsx:507-512`) — no retry/backoff or partial-failure UI.
-- [ ] Email report failures are swallowed with only a `Console.WriteLine` (`squad-func/Services/EmailSMTPService.cs:40-43`) — no alerting if the daily report silently fails to send.
 
 ## ⚙️ Improvements
 
@@ -48,7 +47,7 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 ## 🧹 Tech Debt
 
 - [ ] No automated tests anywhere in the repo (`squad-draft`, `squad-api`, `squad-func`, `squad-domain`) — highest-risk gaps are the pitch/formation layout math (frontend), `GameRecordService`'s statistic-mapping logic (API), and the Gemini JSON-parsing/score-parsing utilities (Functions), all of which are pure logic that's cheap to unit test.
-- [ ] Heavy CRUD boilerplate duplication across `squad-api/Endpoints/*.cs` (League, Player, Formation, Fixture, PlayerFixtureStatistic) — nearly identical GET/PUT/POST/DELETE directly against `SquadContext` with no service layer, unlike `GameRecordService`. A generic CRUD helper or shared service pattern would remove ~400 lines of copy-paste.
+- [ ] `PlayerFixtureStatisticEndpoints.cs` still hand-writes GET/PUT/POST/DELETE because its composite key (`/{fixtureId}/{playerId}`) doesn't fit `MapCrud` (`squad-api/Endpoints/CrudEndpointExtensions.cs`, which covers League, Player, Formation and Fixture). Make the helper key-generic if more composite-key resources appear.
 - [ ] `squad-func/Models/SquadContext.cs` duplicates entity/DbSet definitions that should come from the shared `squad-domain` library — risk of drift between the two contexts over time; worth confirming it isn't accidentally resolving to parallel local type definitions.
 - [ ] Inconsistent API response shapes — some `squad-api` endpoints return raw EF entities (shape varies with `ReferenceHandler.IgnoreCycles`), others return hand-built anonymous objects in camelCase alongside PascalCase DTOs elsewhere.
 - [ ] Magic-string position codes (`"GK"`, `"@P5"`, etc.) in `GameRecordService.MapPosition` instead of a shared enum from `squad-domain` — risks drift between ingestion (`squad-func`) and display (`squad-api`/frontend).
