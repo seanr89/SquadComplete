@@ -48,3 +48,5 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 
 - [ ] No automated tests anywhere in the repo (`squad-draft`, `squad-api`, `squad-func`, `squad-domain`) — highest-risk gaps are the pitch/formation layout math (frontend), `GameRecordService`'s statistic-mapping logic (API), and the Gemini JSON-parsing/score-parsing utilities (Functions), all of which are pure logic that's cheap to unit test.
 - [ ] `squad-func/Models/SquadContext.cs` duplicates entity/DbSet definitions that should come from the shared `squad-domain` library — risk of drift between the two contexts over time; worth confirming it isn't accidentally resolving to parallel local type definitions.
+- [ ] Inconsistent API response shapes — some `squad-api` endpoints return raw EF entities (shape varies with `ReferenceHandler.IgnoreCycles`), others return hand-built anonymous objects in camelCase alongside PascalCase DTOs elsewhere.
+- [ ] Magic-string position codes (`"GK"`, `"@P5"`, etc.) in `GameRecordService.MapPosition` instead of a shared enum from `squad-domain` — risks drift between ingestion (`squad-func`) and display (`squad-api`/frontend).
