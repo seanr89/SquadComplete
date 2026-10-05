@@ -34,3 +34,5 @@ public class CreateUserSquadPlayerDto
 
     public bool IsViceCaptain { get; set; }
 }
+
+public record CreateUserSquadResponse(int Id);

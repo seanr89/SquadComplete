@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using squad_api.DTOs;
 using squad_api.Models;
 using squad_api.Services;
 using squad_api.Auth;
@@ -126,7 +127,7 @@ public static class GameRecordEndpoints
             {
                 db.GameRecords.Remove(record);
                 await db.SaveChangesAsync();
-                return Results.Ok(record);
+                return Results.Ok(GameRecordResponse.From(record));
             }
 
             return Results.NotFound();

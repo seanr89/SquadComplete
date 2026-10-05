@@ -1,116 +1,63 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
-using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
+/// <summary>Composite primary key of a <see cref="PlayerFixtureStatistic"/>, bound from <c>/{fixtureId}/{playerId}</c>.</summary>
+public sealed record PlayerFixtureStatisticKey(int FixtureId, int PlayerId) : ICrudKey<PlayerFixtureStatistic>
+{
+    public object[] Values => [FixtureId, PlayerId];
+
+    public Expression<Func<PlayerFixtureStatistic, bool>> Predicate =>
+        pfs => pfs.FixtureId == FixtureId && pfs.PlayerId == PlayerId;
+}
+
 public static class PlayerFixtureStatisticEndpoints
 {
+    /// <summary>
+    /// Maps the player fixture statistic endpoints for the API, keyed by fixture ID and player ID.
+    /// Reads include the related Fixture, Player and Team.
+    /// </summary>
+    /// <param name="routes">The endpoint route builder.</param>
     public static void MapPlayerFixtureStatisticEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/player-fixture-statistics").WithTags("PlayerFixtureStatistic");
-
-        /// <summary>
-        /// Retrieves all player fixture statistics, including related Fixture, Player, and Team data.
-        /// </summary>
-        group.MapGet("/", async (SquadContext db) =>
-        {
-            return await db.PlayerFixtureStatistics
-                .AsNoTracking()
-                .Include(pfs => pfs.Fixture)
-                .Include(pfs => pfs.Player)
-                .Include(pfs => pfs.Team)
-                .ToListAsync();
-        })
-        .WithName("GetAllPlayerFixtureStatistics");
-
-        /// <summary>
-        /// Retrieves a specific player fixture statistic by fixture ID and player ID.
-        /// </summary>
-        group.MapGet("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
-        {
-            return await db.PlayerFixtureStatistics
-                .AsNoTracking()
-                .Include(pfs => pfs.Fixture)
-                .Include(pfs => pfs.Player)
-                .Include(pfs => pfs.Team)
-                .FirstOrDefaultAsync(pfs => pfs.FixtureId == fixtureId && pfs.PlayerId == playerId)
-                is PlayerFixtureStatistic model
-                    ? Results.Ok(model)
-                    : Results.NotFound();
-        })
-        .WithName("GetPlayerFixtureStatisticById");
-
-        /// <summary>
-        /// Updates an existing player fixture statistic.
-        /// </summary>
-        group.MapPut("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, PlayerFixtureStatisticDto inputPfs, SquadContext db) =>
-        {
-            var foundModel = await db.PlayerFixtureStatistics.FindAsync(fixtureId, playerId);
-
-            if (foundModel is null)
+        routes.MapCrud<PlayerFixtureStatistic, PlayerFixtureStatisticDto, PlayerFixtureStatisticResponse, PlayerFixtureStatisticKey>(
+            "/api/player-fixture-statistics",
+            "/{fixtureId}/{playerId}",
+            new CrudEndpointConfig<PlayerFixtureStatistic, PlayerFixtureStatisticDto, PlayerFixtureStatisticResponse>
             {
-                return Results.NotFound();
-            }
-
-            // Update properties
-            foundModel.TeamId = inputPfs.TeamId;
-            foundModel.Minutes = inputPfs.Minutes;
-            foundModel.Number = inputPfs.Number;
-            foundModel.Position = inputPfs.Position;
-            foundModel.Rating = inputPfs.Rating;
-            foundModel.IsCaptain = inputPfs.IsCaptain;
-            foundModel.IsSubstitute = inputPfs.IsSubstitute;
-            foundModel.UpdatedAt = DateTime.UtcNow;
-
-            await db.SaveChangesAsync();
-
-            return Results.NoContent();
-        })
-        .WithName("UpdatePlayerFixtureStatistic")
-        .RequireAdminApiKey();
-
-        /// <summary>
-        /// Creates a new player fixture statistic.
-        /// </summary>
-        group.MapPost("/", async (PlayerFixtureStatisticDto pfsDto, SquadContext db) =>
-        {
-            var pfs = new PlayerFixtureStatistic
-            {
-                FixtureId = pfsDto.FixtureId,
-                PlayerId = pfsDto.PlayerId,
-                TeamId = pfsDto.TeamId,
-                Minutes = pfsDto.Minutes,
-                Number = pfsDto.Number,
-                Position = pfsDto.Position,
-                Rating = pfsDto.Rating,
-                IsCaptain = pfsDto.IsCaptain,
-                IsSubstitute = pfsDto.IsSubstitute
-            };
-
-            db.PlayerFixtureStatistics.Add(pfs);
-            await db.SaveChangesAsync();
-            return Results.Created($"/api/player-fixture-statistics/{pfs.FixtureId}/{pfs.PlayerId}", pfs);
-        })
-        .WithName("CreatePlayerFixtureStatistic")
-        .RequireAdminApiKey();
-
-        /// <summary>
-        /// Deletes a specific player fixture statistic by fixture ID and player ID.
-        /// </summary>
-        group.MapDelete("/{fixtureId}/{playerId}", async (int fixtureId, int playerId, SquadContext db) =>
-        {
-            if (await db.PlayerFixtureStatistics.FindAsync(fixtureId, playerId) is PlayerFixtureStatistic pfs)
-            {
-                db.PlayerFixtureStatistics.Remove(pfs);
-                await db.SaveChangesAsync();
-                return Results.Ok(pfs);
-            }
-
-            return Results.NotFound();
-        })
-        .WithName("DeletePlayerFixtureStatistic")
-        .RequireAdminApiKey();
+                Singular = "PlayerFixtureStatistic",
+                ToResponse = PlayerFixtureStatisticResponse.From,
+                Plural = "PlayerFixtureStatistics",
+                Includes = query => query
+                    .Include(pfs => pfs.Fixture)
+                    .Include(pfs => pfs.Player)
+                    .Include(pfs => pfs.Team),
+                Create = dto => new PlayerFixtureStatistic
+                {
+                    FixtureId = dto.FixtureId,
+                    PlayerId = dto.PlayerId,
+                    TeamId = dto.TeamId,
+                    Minutes = dto.Minutes,
+                    Number = dto.Number,
+                    Position = dto.Position,
+                    Rating = dto.Rating,
+                    IsCaptain = dto.IsCaptain,
+                    IsSubstitute = dto.IsSubstitute
+                },
+                ApplyUpdate = (pfs, dto) =>
+                {
+                    pfs.TeamId = dto.TeamId;
+                    pfs.Minutes = dto.Minutes;
+                    pfs.Number = dto.Number;
+                    pfs.Position = dto.Position;
+                    pfs.Rating = dto.Rating;
+                    pfs.IsCaptain = dto.IsCaptain;
+                    pfs.IsSubstitute = dto.IsSubstitute;
+                    pfs.UpdatedAt = DateTime.UtcNow;
+                }
+            });
     }
 }

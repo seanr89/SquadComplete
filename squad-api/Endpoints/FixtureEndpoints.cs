@@ -12,9 +12,10 @@ public static class FixtureEndpoints
     /// <param name="routes">The endpoint route builder.</param>
     public static void MapFixtureEndpoints(this IEndpointRouteBuilder routes)
     {
-        routes.MapCrud("/api/fixtures", new CrudEndpointConfig<Fixture, FixtureDto>
+        routes.MapCrud("/api/fixtures", new CrudEndpointConfig<Fixture, FixtureDto, FixtureResponse>
         {
             Singular = "Fixture",
+            ToResponse = FixtureResponse.From,
             Plural = "Fixtures",
             Includes = query => query.Include(f => f.League),
             Create = dto => new Fixture

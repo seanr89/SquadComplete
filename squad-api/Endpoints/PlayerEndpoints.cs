@@ -11,9 +11,10 @@ public static class PlayerEndpoints
     /// <param name="routes">The endpoint route builder.</param>
     public static void MapPlayerEndpoints(this IEndpointRouteBuilder routes)
     {
-        routes.MapCrud("/api/players", new CrudEndpointConfig<Player, PlayerDto>
+        routes.MapCrud("/api/players", new CrudEndpointConfig<Player, PlayerDto, PlayerResponse>
         {
             Singular = "Player",
+            ToResponse = PlayerResponse.From,
             Plural = "Players",
             Create = dto => new Player
             {

@@ -11,9 +11,10 @@ public static class FormationEndpoints
     /// <param name="routes">The endpoint route builder.</param>
     public static void MapFormationEndpoints(this IEndpointRouteBuilder routes)
     {
-        routes.MapCrud("/api/formations", new CrudEndpointConfig<Formation, FormationDto>
+        routes.MapCrud("/api/formations", new CrudEndpointConfig<Formation, FormationDto, FormationResponse>
         {
             Singular = "Formation",
+            ToResponse = FormationResponse.From,
             Plural = "Formations",
             Create = dto => new Formation
             {

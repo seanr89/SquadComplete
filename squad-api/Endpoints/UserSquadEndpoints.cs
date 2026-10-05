@@ -101,7 +101,7 @@ public static class UserSquadEndpoints
 
             await db.SaveChangesAsync();
 
-            return Results.Created($"/api/user-squads/{userSquad.Id}", new { userSquad.Id });
+            return Results.Created($"/api/user-squads/{userSquad.Id}", new CreateUserSquadResponse(userSquad.Id));
         })
         .WithName("CreateUserSquad")
         .RequireRateLimiting("PublicWrite");
@@ -145,18 +145,16 @@ public static class UserSquadEndpoints
                 });
                 var avgRating = us.UserSquadPlayers.Count > 0 ? ratingSum / us.UserSquadPlayers.Count : 0m;
 
-                return new {
-                    id = us.Id.ToString(),
-                    playerName = us.User?.Name ?? "Anonymous",
-                    teamAverageRating = avgRating,
-                    squad = us.UserSquadPlayers.Select(usp => new {
-                        id = usp.Player?.Id.ToString(),
-                        name = usp.Player?.Name,
-                        position = usp.Position,
-                        rating = statistics.FirstOrDefault(s => s.PlayerId == usp.PlayerId)?.Rating ?? 0m
-                    })
-                };
-            }).OrderByDescending(r => r.teamAverageRating).ToList();
+                return new LeaderboardEntryDto(
+                    us.Id.ToString(),
+                    us.User?.Name ?? "Anonymous",
+                    avgRating,
+                    us.UserSquadPlayers.Select(usp => new LeaderboardPlayerDto(
+                        usp.Player?.Id.ToString(),
+                        usp.Player?.Name,
+                        usp.Position,
+                        statistics.FirstOrDefault(s => s.PlayerId == usp.PlayerId)?.Rating ?? 0m)).ToList());
+            }).OrderByDescending(r => r.TeamAverageRating).ToList();
 
 
             return Results.Ok(result);
