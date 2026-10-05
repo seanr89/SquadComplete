@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using squad_api.Models;
 using squad_api.Endpoints;
 using Scalar.AspNetCore;
-using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using squad_api.Services;
@@ -10,11 +9,6 @@ using squad_api.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
-
 builder.Services.AddDbContext<SquadContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 

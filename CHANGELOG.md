@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### Added
+- Added a shared `PositionGroup` enum (`squad-domain/Models/PositionGroup.cs`) with `Parse` (raw data-source position string → group) and `ToCode` (`GK`/`DEF`/`MID`/`FWD`/`UNK`), replacing magic-string position matching in `squad-api`. The codes must stay in sync with the `Position` type in `squad-draft/types.ts`.
 - Created agentic markdown files suite including root `AGENTS.md` and scoped instructions (`squad-draft/AGENTS.md`, `squad-api/AGENTS.md`, `squad-func/AGENTS.md`).
 - Added specialist agent personas under `.agents/` (`code-reviewer.md`, `reactjs-specialist.md`, `dotnet-specialist.md`).
 - Added Antigravity skills under `.agents/skills/` (`code-reviewer/SKILL.md`, `reactjs-specialist/SKILL.md`).

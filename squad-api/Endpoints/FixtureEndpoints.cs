@@ -1,129 +1,50 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
-using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
 public static class FixtureEndpoints
 {
     /// <summary>
-    /// Maps the fixture management endpoints for the API.
+    /// Maps the fixture management endpoints for the API. Reads include the associated league.
     /// </summary>
     /// <param name="routes">The endpoint route builder.</param>
     public static void MapFixtureEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/fixtures").WithTags(nameof(Fixture));
-
-        /// <summary>
-        /// Retrieves all fixtures along with their associated league information.
-        /// </summary>
-        /// <param name="db">The database context.</param>
-        /// <returns>A list of all fixtures.</returns>
-        group.MapGet("/", async (SquadContext db) =>
+        routes.MapCrud("/api/fixtures", new CrudEndpointConfig<Fixture, FixtureDto, FixtureResponse>
         {
-            return await db.Fixtures.AsNoTracking().Include(f => f.League).ToListAsync();
-        })
-        .WithName("GetAllFixtures");
-
-        /// <summary>
-        /// Retrieves a specific fixture by its unique identifier.
-        /// </summary>
-        /// <param name="id">The unique identifier of the fixture.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>The requested fixture if found; otherwise, a 404 Not Found response.</returns>
-        group.MapGet("/{id}", async (int id, SquadContext db) =>
-        {
-            return await db.Fixtures.AsNoTracking().Include(f => f.League).FirstOrDefaultAsync(f => f.Id == id)
-                is Fixture model
-                    ? Results.Ok(model)
-                    : Results.NotFound();
-        })
-        .WithName("GetFixtureById");
-
-        /// <summary>
-        /// Updates an existing fixture's details.
-        /// </summary>
-        /// <param name="id">The unique identifier of the fixture to update.</param>
-        /// <param name="inputFixture">The updated fixture data.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapPut("/{id}", async (int id, FixtureDto inputFixture, SquadContext db) =>
-        {
-            var foundModel = await db.Fixtures.FindAsync(id);
-
-            if (foundModel is null)
+            Singular = "Fixture",
+            ToResponse = FixtureResponse.From,
+            Plural = "Fixtures",
+            Includes = query => query.Include(f => f.League),
+            Create = dto => new Fixture
             {
-                return Results.NotFound();
+                LeagueId = dto.LeagueId,
+                HomeTeamId = dto.HomeTeamId,
+                HomeTeamName = dto.HomeTeamName,
+                AwayTeamId = dto.AwayTeamId,
+                AwayTeamName = dto.AwayTeamName,
+                HomeGoalCount = dto.HomeGoalCount,
+                AwayGoalCount = dto.AwayGoalCount,
+                FixtureDate = dto.FixtureDate,
+                FixtureSource = dto.FixtureSource,
+                ApiId = dto.ApiId
+            },
+            ApplyUpdate = (fixture, dto) =>
+            {
+                fixture.LeagueId = dto.LeagueId;
+                fixture.HomeTeamId = dto.HomeTeamId;
+                fixture.HomeTeamName = dto.HomeTeamName;
+                fixture.AwayTeamId = dto.AwayTeamId;
+                fixture.AwayTeamName = dto.AwayTeamName;
+                fixture.HomeGoalCount = dto.HomeGoalCount;
+                fixture.AwayGoalCount = dto.AwayGoalCount;
+                fixture.FixtureDate = dto.FixtureDate;
+                fixture.FixtureSource = dto.FixtureSource;
+                fixture.ApiId = dto.ApiId;
+                fixture.UpdatedAt = DateTime.UtcNow;
             }
-
-            // Update properties
-            foundModel.LeagueId = inputFixture.LeagueId;
-            foundModel.HomeTeamId = inputFixture.HomeTeamId;
-            foundModel.HomeTeamName = inputFixture.HomeTeamName;
-            foundModel.AwayTeamId = inputFixture.AwayTeamId;
-            foundModel.AwayTeamName = inputFixture.AwayTeamName;
-            foundModel.HomeGoalCount = inputFixture.HomeGoalCount;
-            foundModel.AwayGoalCount = inputFixture.AwayGoalCount;
-            foundModel.FixtureDate = inputFixture.FixtureDate;
-            foundModel.FixtureSource = inputFixture.FixtureSource;
-            foundModel.ApiId = inputFixture.ApiId;
-            foundModel.UpdatedAt = DateTime.UtcNow;
-
-            await db.SaveChangesAsync();
-
-            return Results.NoContent();
-        })
-        .WithName("UpdateFixture")
-        .RequireAdminApiKey();
-
-        /// <summary>
-        /// Creates a new fixture.
-        /// </summary>
-        /// <param name="fixture">The fixture data to create.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>The newly created fixture with a 201 Created response.</returns>
-        group.MapPost("/", async (FixtureDto fixtureDto, SquadContext db) =>
-        {
-            var fixture = new Fixture
-            {
-                LeagueId = fixtureDto.LeagueId,
-                HomeTeamId = fixtureDto.HomeTeamId,
-                HomeTeamName = fixtureDto.HomeTeamName,
-                AwayTeamId = fixtureDto.AwayTeamId,
-                AwayTeamName = fixtureDto.AwayTeamName,
-                HomeGoalCount = fixtureDto.HomeGoalCount,
-                AwayGoalCount = fixtureDto.AwayGoalCount,
-                FixtureDate = fixtureDto.FixtureDate,
-                FixtureSource = fixtureDto.FixtureSource,
-                ApiId = fixtureDto.ApiId
-            };
-
-            db.Fixtures.Add(fixture);
-            await db.SaveChangesAsync();
-            return Results.Created($"/api/fixtures/{fixture.Id}", fixture);
-        })
-        .WithName("CreateFixture")
-        .RequireAdminApiKey();
-
-        /// <summary>
-        /// Deletes a specific fixture by its unique identifier.
-        /// </summary>
-        /// <param name="id">The unique identifier of the fixture to delete.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>The deleted fixture if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapDelete("/{id}", async (int id, SquadContext db) =>
-        {
-            if (await db.Fixtures.FindAsync(id) is Fixture fixture)
-            {
-                db.Fixtures.Remove(fixture);
-                await db.SaveChangesAsync();
-                return Results.Ok(fixture);
-            }
-
-            return Results.NotFound();
-        })
-        .WithName("DeleteFixture")
-        .RequireAdminApiKey();
+        });
     }
 }

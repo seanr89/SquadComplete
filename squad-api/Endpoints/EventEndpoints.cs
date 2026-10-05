@@ -24,7 +24,7 @@ public static class EventEndpoints
                 .OrderByDescending(e => e.CreatedAt)
                 .Take(limit)
                 .ToListAsync();
-            return Results.Ok(events);
+            return Results.Ok(events.Select(EventResponse.From).ToList());
         })
         .RequireAdminApiKey();
 
@@ -55,7 +55,7 @@ public static class EventEndpoints
             db.Events.Add(newEvent);
             await db.SaveChangesAsync();
 
-            return Results.Created($"/api/events/{newEvent.Id}", newEvent);
+            return Results.Created($"/api/events/{newEvent.Id}", EventResponse.From(newEvent));
         })
         .RequireRateLimiting("PublicWrite");
     }

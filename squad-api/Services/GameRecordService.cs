@@ -123,7 +123,9 @@ public class GameRecordService
         {
             Id = record.Id,
             GameDate = record.GameDate,
-            Formation = record.Formation ?? new Formation { Name = "Unknown", Id = 0, Defence = 4, Midfield = 4, Attack = 2 },
+            Formation = record.Formation is null
+                ? new FormationResponse(0, "Unknown", 4, 4, 2)
+                : FormationResponse.From(record.Formation),
             Teams = record.Tags.Select(t =>
             {
                 var players = statistics
@@ -158,21 +160,21 @@ public class GameRecordService
     }
 
     /// <summary>
-    /// Maps a position string to a position enum
+    /// Maps a raw position string to its <see cref="PositionGroup"/> code (GK/DEF/MID/FWD).
+    /// Empty values map to <c>UNK</c>; unrecognised values are passed through upper-cased.
     /// </summary>
     /// <param name="position">Position string to map</param>
-    /// <returns>Position enum</returns>
-    private string MapPosition(string? position)
+    /// <returns>Position group code</returns>
+    private static string MapPosition(string? position)
     {
-        if (string.IsNullOrEmpty(position)) return "UNK";
+        var group = PositionGroupExtensions.Parse(position);
 
-        var pos = position.ToUpper();
-        if (pos.Contains("GOALKEEPER") || pos == "G" || pos == "GK" || pos == "@P5") return "GK";
-        if (pos.Contains("DEFENDER") || pos == "D" || pos == "DEF" || pos == "LB" || pos == "RB" || pos == "CB") return "DEF";
-        if (pos.Contains("MIDFIELDER") || pos == "M" || pos == "MID" || pos == "CM" || pos == "DM" || pos == "AM") return "MID";
-        if (pos.Contains("FORWARD") || pos == "F" || pos == "FWD" || pos == "ST" || pos == "LW" || pos == "RW") return "FWD";
+        if (group == PositionGroup.Unknown && !string.IsNullOrEmpty(position))
+        {
+            return position.ToUpperInvariant();
+        }
 
-        return pos;
+        return group.ToCode();
     }
 
     /// <summary>
@@ -182,9 +184,9 @@ public class GameRecordService
     /// <returns>Formation string (e.g., 4-4-2)</returns>
     private string CalculateFormation(List<GameRecordPlayerDto> players)
     {
-        var defenderCount = players.Count(p => p.Statistics?.Position == "DEF");
-        var midfielderCount = players.Count(p => p.Statistics?.Position == "MID");
-        var attackerCount = players.Count(p => p.Statistics?.Position == "FWD");
+        var defenderCount = players.Count(p => p.Statistics?.Position == PositionGroup.Defender.ToCode());
+        var midfielderCount = players.Count(p => p.Statistics?.Position == PositionGroup.Midfielder.ToCode());
+        var attackerCount = players.Count(p => p.Statistics?.Position == PositionGroup.Forward.ToCode());
 
         return $"{defenderCount}-{midfielderCount}-{attackerCount}";
     }

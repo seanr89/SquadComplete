@@ -8,7 +8,7 @@ public class GameRecordDto
 {
     public int Id { get; set; }
     public DateTime GameDate { get; set; }
-    public Formation Formation { get; set; } = new();
+    public FormationResponse Formation { get; set; } = new(0, "Unknown", 0, 0, 0);
     public List<GameRecordTeamDto> Teams { get; set; } = new();
 }
 
@@ -34,4 +34,29 @@ public class GameRecordPlayerStatisticDto
 {
     public string? Position { get; set; }
     public decimal? Rating { get; set; }
+}
+
+public record GameRecordTagResponse(
+    int Id,
+    int GameRecordId,
+    int FixtureId,
+    int TeamId,
+    DateTime CreatedAt,
+    DateTime UpdatedAt)
+{
+    public static GameRecordTagResponse From(GameRecordTag t) => new(
+        t.Id, t.GameRecordId, t.FixtureId, t.TeamId, t.CreatedAt, t.UpdatedAt);
+}
+
+/// <summary>The stored game record row and its tags, as returned when a record is deleted.</summary>
+public record GameRecordResponse(
+    int Id,
+    DateTime GameDate,
+    int? FormationId,
+    DateTime CreatedAt,
+    DateTime UpdatedAt,
+    IReadOnlyList<GameRecordTagResponse> Tags)
+{
+    public static GameRecordResponse From(GameRecord r) => new(
+        r.Id, r.GameDate, r.FormationId, r.CreatedAt, r.UpdatedAt, r.Tags.Select(GameRecordTagResponse.From).ToList());
 }

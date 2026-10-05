@@ -1,7 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
 using squad_api.Models;
-using squad_api.Auth;
 
 namespace squad_api.Endpoints;
 
@@ -13,104 +11,25 @@ public static class FormationEndpoints
     /// <param name="routes">The endpoint route builder.</param>
     public static void MapFormationEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/formations").WithTags(nameof(Formation));
-
-        /// <summary>
-        /// Retrieves all formations.
-        /// </summary>
-        /// <param name="db">The database context.</param>
-        /// <returns>A list of all formations.</returns>
-        group.MapGet("/", async (SquadContext db) =>
+        routes.MapCrud("/api/formations", new CrudEndpointConfig<Formation, FormationDto, FormationResponse>
         {
-            return await db.Formations.AsNoTracking().ToListAsync();
-        })
-        .WithName("GetAllFormations");
-
-        /// <summary>
-        /// Retrieves a specific formation by its unique identifier.
-        /// </summary>
-        /// <param name="id">The unique identifier of the formation.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>The requested formation if found; otherwise, a 404 Not Found response.</returns>
-        group.MapGet("/{id}", async (int id, SquadContext db) =>
-        {
-            return await db.Formations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id)
-                is Formation model
-                    ? Results.Ok(model)
-                    : Results.NotFound();
-        })
-        .WithName("GetFormationById");
-
-        /// <summary>
-        /// Updates an existing formation's details.
-        /// </summary>
-        /// <param name="id">The unique identifier of the formation to update.</param>
-        /// <param name="inputFormation">The updated formation data.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>A 204 No Content response if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapPut("/{id}", async (int id, FormationDto inputFormation, SquadContext db) =>
-        {
-            var foundModel = await db.Formations.FindAsync(id);
-
-            if (foundModel is null)
+            Singular = "Formation",
+            ToResponse = FormationResponse.From,
+            Plural = "Formations",
+            Create = dto => new Formation
             {
-                return Results.NotFound();
+                Name = dto.Name,
+                Defence = dto.Defence,
+                Midfield = dto.Midfield,
+                Attack = dto.Attack
+            },
+            ApplyUpdate = (formation, dto) =>
+            {
+                formation.Name = dto.Name;
+                formation.Defence = dto.Defence;
+                formation.Midfield = dto.Midfield;
+                formation.Attack = dto.Attack;
             }
-
-            // Update properties
-            foundModel.Name = inputFormation.Name;
-            foundModel.Defence = inputFormation.Defence;
-            foundModel.Midfield = inputFormation.Midfield;
-            foundModel.Attack = inputFormation.Attack;
-
-            await db.SaveChangesAsync();
-
-            return Results.NoContent();
-        })
-        .WithName("UpdateFormation")
-        .RequireAdminApiKey();
-
-        /// <summary>
-        /// Creates a new formation.
-        /// </summary>
-        /// <param name="formation">The formation data to create.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>The newly created formation with a 201 Created response.</returns>
-        group.MapPost("/", async (FormationDto formationDto, SquadContext db) =>
-        {
-            var formation = new Formation
-            {
-                Name = formationDto.Name,
-                Defence = formationDto.Defence,
-                Midfield = formationDto.Midfield,
-                Attack = formationDto.Attack
-            };
-
-            db.Formations.Add(formation);
-            await db.SaveChangesAsync();
-            return Results.Created($"/api/formations/{formation.Id}", formation);
-        })
-        .WithName("CreateFormation")
-        .RequireAdminApiKey();
-
-        /// <summary>
-        /// Deletes a specific formation by its unique identifier.
-        /// </summary>
-        /// <param name="id">The unique identifier of the formation to delete.</param>
-        /// <param name="db">The database context.</param>
-        /// <returns>The deleted formation if successful; otherwise, a 404 Not Found response.</returns>
-        group.MapDelete("/{id}", async (int id, SquadContext db) =>
-        {
-            if (await db.Formations.FindAsync(id) is Formation formation)
-            {
-                db.Formations.Remove(formation);
-                await db.SaveChangesAsync();
-                return Results.Ok(formation);
-            }
-
-            return Results.NotFound();
-        })
-        .WithName("DeleteFormation")
-        .RequireAdminApiKey();
+        });
     }
 }
