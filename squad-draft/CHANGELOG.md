@@ -17,6 +17,7 @@ All notable changes to the `squad-draft` frontend service will be documented in 
 - Support for `prefers-reduced-motion` media queries.
 
 ### Changed
+- `fetchDailySquads` now loads the daily game record from the Azure Functions host (`VITE_FUNCTIONS_BASE_URL`, `GET /api/game-records/date/{date}`) instead of `squad-api`, avoiding the API's cold start. The response shape is unchanged. Also removed a leftover `API_BASE_URL` debug `console.log`.
 - Expanded midfield formation spacing across the tactical pitch with wider horizontal distribution and natural vertical depth staggering (e.g. LCM/RCM flanking with a deeper central pivot) to eliminate avatar clumping.
 - Redesigned Team and Roster screen with a modern Hero Command Center header displaying glowing average rating, squad progress, inline submission, WhatsApp sharing, and reset controls.
 - Replaced cramped 1/3 sidebar roster list with a balanced split view (`Pitch` and spacious `TeamRoster`), eliminating player name truncation.
