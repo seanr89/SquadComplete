@@ -7,9 +7,8 @@ const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || 'http://lo
 
 export const fetchDailySquads = async (date?: string): Promise<DailyChallenge | null> => {
     try {
-        console.log('API_BASE_URL', API_BASE_URL);
         const targetDate = date || new Date().toISOString().split('T')[0];
-        const response = await fetch(`${API_BASE_URL}/api/game-records/date/${targetDate}`);
+        const response = await fetch(`${FUNCTIONS_BASE_URL}/api/game-records/date/${targetDate}`);
 
         if (!response.ok) {
             console.error('Failed to fetch daily squads:', response.statusText);

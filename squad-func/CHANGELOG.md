@@ -5,6 +5,7 @@ All notable changes to the `squad-func` Azure Functions service will be document
 ## [Unreleased]
 
 ### Added
+- Added `GetGameRecordByDate`, an anonymous HTTP `GET /api/game-records/date/{date}` trigger that mirrors `squad-api`'s `GetGameRecordByDate` (same `GameRecordDto` JSON shape: formation, teams, starting-XI players with GK/DEF/MID/FWD positions and ratings) so the client's daily-squad lookup doesn't wait on the API's cold start. The date must be `yyyy-MM-dd` (400 otherwise) and a date with no record returns 404. Response contracts live in `Models/GameRecordDto.cs`.
 - Added `squad-func/AGENTS.md` containing scoped agent guidelines for Azure Functions, Gemini AI search pipelines, and blob ingestion triggers.
 - Added `IpRateLimiterService`, an in-memory per-IP fixed-window limiter, and wired it into the anonymous `RecordRequest` HTTP trigger (10 requests/minute, keyed off the server-derived IP, not the client-asserted body value) to prevent spam.
 - Added `GetFixture`, an anonymous HTTP `GET /api/fixtures/{id}` trigger that mirrors `squad-api`'s `GetFixtureById` (fixture with its `League` included, same JSON shape) so the client's fixture lookup doesn't wait on the API's cold start. Responses carry `Cache-Control: public, max-age=3600` since historic fixtures don't change.
