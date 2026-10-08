@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
-using squad_api.Models;
 using squad_api.Services;
 using squad_api.Auth;
 

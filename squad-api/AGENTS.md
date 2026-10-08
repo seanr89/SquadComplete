@@ -19,7 +19,7 @@ This file contains scoped instructions and guidelines for AI agents working with
 - **`Program.cs`**: Application entry point, dependency injection container, JSON serialization settings (handles circular references via `ReferenceHandler.IgnoreCycles`), CORS policies, OpenAPI, and pipeline registration.
 - **`Endpoints/`**: Endpoint route groupings (e.g., GameRecord, Squad, Leaderboard). All registered via `MapAllEndpoints()` in `EndpointExtensions.cs`.
 - **`Services/`**: Business logic layer (e.g., `GameRecordService.cs`). Injected as scoped services into Minimal API route handlers.
-- **`Models/` & `squad-domain/`**: Entity Framework entities, database context (`SquadContext`), and domain models.
+- **`squad-domain/`**: Entity Framework entities, the shared database context (`SquadContext`), and domain models.
 - **`DTOs/`**: Request and response contracts decoupling database models from public HTTP APIs.
 
 ---

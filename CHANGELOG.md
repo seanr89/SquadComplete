@@ -10,6 +10,7 @@
 - Added `TeamRoster` component organizing drafted squads by tactical lines (GK, DEF, MID, FWD) with hover synchronization to tactical pitch.
 
 ### Changed
+- Moved `SquadContext` into the shared `squad-domain` library (`squad-domain/Models/SquadContext.cs`), replacing the separate copies in `squad-api` and `squad-func` that had drifted (the API lacked the `Seasons`/`TeamSeasons` DbSets and `TeamSeason` unique index; the Functions app lacked the `Formation.Name` unique index). Entities were already shared; there is now one DbContext model for both hosts.
 - Expanded midfield formation spacing across the tactical pitch in `squad-draft` with wider horizontal distribution and natural vertical depth staggering (e.g. LCM/RCM flanking with a deeper central pivot) to eliminate avatar clumping.
 - Redesigned Team and Roster screen in `squad-draft` with Hero Command Center header and split layout (`lg:w-5/12` Pitch and `lg:w-7/12` Roster), fixing player name truncation and modernizing avatar framing.
 

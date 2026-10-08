@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using squad_api.Auth;
-using squad_api.Models;
 
 namespace squad_api.Endpoints;
 

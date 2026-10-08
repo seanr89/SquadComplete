@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using squad_api.DTOs;
-using squad_api.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace squad_api.Endpoints;

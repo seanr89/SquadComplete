@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using squad_api.Models;
 using squad_api.DTOs;
 
 namespace squad_api.Services;

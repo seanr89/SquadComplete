@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using squad_api.Models;
 using squad_api.Endpoints;
 using Scalar.AspNetCore;
 using System.Threading.RateLimiting;

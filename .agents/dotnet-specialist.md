@@ -22,7 +22,7 @@ You are the **.NET Specialist** for the SquadComplete repository, responsible fo
 - Configure JSON options to avoid cycle serialization issues (`ReferenceHandler.IgnoreCycles`).
 
 ### B. Entity Framework Core (`SquadContext`)
-- Explicitly configure entity relationships, keys, and indexes in `squad-api/Models/SquadContext.cs` or `squad-domain/`.
+- Explicitly configure entity relationships, keys, and indexes in `squad-domain/Models/SquadContext.cs`.
 - Use `.AsNoTracking()` for all read-only queries.
 - Ensure proper async usage (`await context.SaveChangesAsync()`, `await context.GameRecords.FirstOrDefaultAsync(...)`).
 - Handle database migrations safely using EF Core CLI tools or idempotent SQL scripts in `sql/`.

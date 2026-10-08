@@ -62,7 +62,7 @@ Specialist personas are defined under `.agents/` (`code-reviewer.md`, `reactjs-s
 - All domain interfaces live in `types.ts` (`Player`, `Squad`, `FormationSpot`, `DraftState`, `Position`) — strict typing, no `any`.
 
 ### squad-api (backend)
-- `Program.cs`: DI setup, EF Core `SquadContext` registration (Npgsql), CORS (allow-any policy), JSON `ReferenceHandler.IgnoreCycles` for circular EF navigation properties, OpenAPI + Scalar.
+- `Program.cs`: DI setup, EF Core `SquadContext` registration (Npgsql; the context class itself lives in `squad-domain`), CORS (allow-any policy), JSON `ReferenceHandler.IgnoreCycles` for circular EF navigation properties, OpenAPI + Scalar.
 - `Endpoints/`: one file per resource (e.g. `GameRecordEndpoints.cs`, `PlayerEndpoints.cs`, `LeagueEndpoints.cs`), all wired together via `MapAllEndpoints()` in `EndpointExtensions.cs`.
 - `Services/`: business logic injected as scoped services (e.g. `GameRecordService.cs`) — endpoint handlers stay thin (parse input → delegate to service → return typed `Results.*`).
 - `DTOs/`: request/response contracts, kept separate from the EF entities in `squad-domain`.
@@ -76,4 +76,5 @@ Specialist personas are defined under `.agents/` (`code-reviewer.md`, `reactjs-s
 - Blob-triggered processors must archive/delete processed blobs to avoid reprocessing loops; external API calls should tolerate rate limiting from Gemini and sports data providers.
 
 ### squad-domain (shared models)
+- The single `SquadContext` (DbSets, indexes, precision) lives in `squad-domain/Models/SquadContext.cs`; `squad-api` and `squad-func` both register it — do not re-declare a context in either host.
 - Plain EF Core entity classes shared by `squad-api` and `squad-func` (`Player`, `Team`, `Fixture`, `Season`, `TeamSeason`, `League`, `Formation`, `GameRecord`, `GameRecordTag`, `UserSquad`, `UserSquadPlayer`, `Event`, `PlayerFixtureStatistic`, `User`, `Feedback`). Both other projects reference this library rather than duplicating models — add new persisted entities here, not in `squad-api/Models` or `squad-func/Models`.

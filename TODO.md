@@ -35,7 +35,7 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 
 - [ ] Add real retry/backoff for external calls: Gemini AI and sports-data API calls in `squad-func/Services/GeminiService.cs` / `ApiService.cs` are single-shot with no retry on 429/5xx; replace blocking `Thread.Sleep` throttles with `await Task.Delay` plus proper backoff.
 - [ ] `FullSeasonAISearch` has no cap on retries for a permanently-failing team/season — since it always picks the oldest un-requested row first, one bad row can block the whole pipeline indefinitely.
-- [ ] Review cascade-delete behavior in `squad-api/Models/SquadContext.cs` — no explicit `OnDelete` configured, so deleting a `Fixture`/`Team` could cascade-delete unrelated `GameRecordTag`/`GameRecord` rows via EF Core's default convention.
+- [ ] Review cascade-delete behavior in `squad-domain/Models/SquadContext.cs` — no explicit `OnDelete` configured, so deleting a `Fixture`/`Team` could cascade-delete unrelated `GameRecordTag`/`GameRecord` rows via EF Core's default convention.
 - [ ] `squad-func/Services/StorageService.cs` calls `CreateIfNotExistsAsync()` on every blob operation — extra round-trip per call, and silently creates a fresh empty container on a typo'd name instead of erroring.
 - [ ] `squad-draft/App.tsx` (~35KB) has significant duplicated formation-layout logic vs. `constants.tsx` (~150 overlapping lines) — extract a single shared `computePositionLayout(pos, count, index)` utility.
 - [ ] Memoize handlers passed into `Pitch`/`PlayerCard` (`useCallback`) and wrap those components in `React.memo` — currently recreated every render with no memoized children to benefit.
@@ -47,6 +47,6 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 ## 🧹 Tech Debt
 
 - [ ] No automated tests anywhere in the repo (`squad-draft`, `squad-api`, `squad-func`, `squad-domain`) — highest-risk gaps are the pitch/formation layout math (frontend), `GameRecordService`'s statistic-mapping logic (API), and the Gemini JSON-parsing/score-parsing utilities (Functions), all of which are pure logic that's cheap to unit test.
-- [ ] `squad-func/Models/SquadContext.cs` duplicates entity/DbSet definitions that should come from the shared `squad-domain` library — risk of drift between the two contexts over time; worth confirming it isn't accidentally resolving to parallel local type definitions.
+- [x] `squad-func/Models/SquadContext.cs` duplicated entity/DbSet definitions that should come from the shared `squad-domain` library — risk of drift between the two contexts over time; worth confirming it isn't accidentally resolving to parallel local type definitions.
 - [ ] Inconsistent API response shapes — some `squad-api` endpoints return raw EF entities (shape varies with `ReferenceHandler.IgnoreCycles`), others return hand-built anonymous objects in camelCase alongside PascalCase DTOs elsewhere.
 - [ ] Magic-string position codes (`"GK"`, `"@P5"`, etc.) in `GameRecordService.MapPosition` instead of a shared enum from `squad-domain` — risks drift between ingestion (`squad-func`) and display (`squad-api`/frontend).
