@@ -138,7 +138,7 @@ public class GameRecordService
                         {
                             // Minutes = s.Minutes,
                             // Number = s.Number,
-                            Position = MapPosition(s.Position),
+                            Position = PositionGroupExtensions.Normalize(s.Position),
                             Rating = s.Rating,
                             // IsCaptain = s.IsCaptain,
                             // IsSubstitute = s.IsSubstitute
@@ -159,34 +159,10 @@ public class GameRecordService
     }
 
     /// <summary>
-    /// Maps a raw position string to its <see cref="PositionGroup"/> code (GK/DEF/MID/FWD).
-    /// Empty values map to <c>UNK</c>; unrecognised values are passed through upper-cased.
-    /// </summary>
-    /// <param name="position">Position string to map</param>
-    /// <returns>Position group code</returns>
-    private static string MapPosition(string? position)
-    {
-        var group = PositionGroupExtensions.Parse(position);
-
-        if (group == PositionGroup.Unknown && !string.IsNullOrEmpty(position))
-        {
-            return position.ToUpperInvariant();
-        }
-
-        return group.ToCode();
-    }
-
-    /// <summary>
     /// Calculates the expected team formation
     /// </summary>
     /// <param name="players">List of GameRecordPlayerDto objects</param>
     /// <returns>Formation string (e.g., 4-4-2)</returns>
-    private string CalculateFormation(List<GameRecordPlayerDto> players)
-    {
-        var defenderCount = players.Count(p => p.Statistics?.Position == PositionGroup.Defender.ToCode());
-        var midfielderCount = players.Count(p => p.Statistics?.Position == PositionGroup.Midfielder.ToCode());
-        var attackerCount = players.Count(p => p.Statistics?.Position == PositionGroup.Forward.ToCode());
-
-        return $"{defenderCount}-{midfielderCount}-{attackerCount}";
-    }
+    private static string CalculateFormation(List<GameRecordPlayerDto> players)
+        => PositionGroupExtensions.FormationFromCodes(players.Select(p => p.Statistics?.Position));
 }

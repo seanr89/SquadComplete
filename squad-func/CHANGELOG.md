@@ -11,6 +11,7 @@ All notable changes to the `squad-func` Azure Functions service will be document
 - Added `GetFixture`, an anonymous HTTP `GET /api/fixtures/{id}` trigger that mirrors `squad-api`'s `GetFixtureById` (fixture with its `League` included, same JSON shape) so the client's fixture lookup doesn't wait on the API's cold start. Responses carry `Cache-Control: public, max-age=3600` since historic fixtures don't change.
 
 ### Changed
+- `GetGameRecordByDate` now uses `PositionGroupExtensions.Normalize` and `FormationFromCodes` from `squad-domain` instead of private copies, and ingestion (`GenerateFixtureFromAIMatchData`) and `SquadSelector` share `PositionGroupExtensions.NotAvailable` rather than each hardcoding `"N/A"`. No behaviour change.
 - `SquadContext` now comes from `squad-domain` (`squad_domain.Models`); the local `Models/SquadContext.cs` was removed. The shared context adds the `Formation.Name` unique index that the database already enforces. No schema change.
 
 ### Fixed

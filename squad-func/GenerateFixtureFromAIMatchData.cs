@@ -231,7 +231,7 @@ public class GenerateFixtureFromAIMatchData(ILoggerFactory loggerFactory, SquadC
                 PlayerId = player.Id,
                 FixtureId = newFixture.Id,
                 TeamId = dbHomeTeam.Id,
-                Position = playerMapped?.filePlayerData?.Position ?? "N/A",
+                Position = playerMapped?.filePlayerData?.Position ?? PositionGroupExtensions.NotAvailable,
                 Rating = AiDataSanitizer.CleanRating(playerMapped?.filePlayerData?.Rating)
             };
             _context.PlayerFixtureStatistics.Add(newPlayerFixtureStat);
