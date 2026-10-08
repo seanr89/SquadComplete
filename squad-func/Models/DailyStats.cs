@@ -16,13 +16,6 @@ public class DailyStats
     public int TotalEvents { get; set; } = 0;
     public DateTime? LatestEventDate { get; set; }
 
-    #region Storage Info
-
-    public int TotalSingleFixtureRecords { get; set; } = 0;
-    public int TotalTeamRecords { get; set; } = 0;
-
-    #endregion
-
 
     public override string ToString()
     {
@@ -48,10 +41,6 @@ public class DailyStats
 [ AI & Data Quality ]
   AI Fixtures:                 {AIFixtureCount:N0}
   Players Missing Photos:      {PlayersMissingPhotos:N0}
-
-[ Storage / Azure Blobs ]
-  Total Team Records:          {TotalTeamRecords:N0}
-  Total Single Fixture Records:{TotalSingleFixtureRecords:N0}
 ";
     }
 
@@ -218,18 +207,6 @@ public class DailyStats
       <tr>
         <td class=""stat-label"">Players Missing Photos</td>
         <td class=""stat-value""><span class=""badge {(PlayersMissingPhotos > 0 ? "badge-warning" : "badge-neutral")}"">{PlayersMissingPhotos:N0}</span></td>
-      </tr>
-    </table>
-
-    <div class=""section-title"">Storage & Azure Blobs</div>
-    <table class=""stat-grid"">
-      <tr>
-        <td class=""stat-label"">Total Team Records</td>
-        <td class=""stat-value"">{TotalTeamRecords:N0}</td>
-      </tr>
-      <tr>
-        <td class=""stat-label"">Total Single Fixture Records</td>
-        <td class=""stat-value"">{TotalSingleFixtureRecords:N0}</td>
       </tr>
     </table>
   </div>

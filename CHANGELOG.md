@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Removed
+- `squad-func`: removed the blob-driven Gemini ingestion pipeline (`FullSeasonAISearch`, `SingleMatchHistoricalSearch`, `GenerateFixtureFromAIMatchData`) and all blob container access other than the `playersname` player-image container. See `squad-func/CHANGELOG.md`.
+
 ### Added
 - Added a `squad-func` HTTP endpoint `GET /api/game-records/date/{date}` mirroring the `squad-api` route of the same path, so the daily game record can be served from the Functions app.
 - Added a shared `PositionGroup` enum (`squad-domain/Models/PositionGroup.cs`) with `Parse` (raw data-source position string → group) and `ToCode` (`GK`/`DEF`/`MID`/`FWD`/`UNK`), replacing magic-string position matching in `squad-api`. The codes must stay in sync with the `Position` type in `squad-draft/types.ts`.
