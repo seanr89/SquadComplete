@@ -26,6 +26,7 @@ All notable changes to the `squad-func` Azure Functions service will be document
 - `MatchDataUtils.GetMatchDate` now returns `null` for a missing or unparseable date (parsed with the invariant culture). Previously it returned `DateTime.MinValue`, so the caller's null check never fired and bad dates were written as `0001-01-01`.
 
 ### Removed
+- Removed the `TeamRefresh` timer function (its `TeamRefresh.cs` was already gone from the tree) and its references in `README.md`, `AGENTS.md` and the root `CLAUDE.md`.
 - Removed every blob container call except the `playersname` player-image container. Deleted the blob-driven `FullSeasonAISearch`, `SingleMatchHistoricalSearch` and `GenerateFixtureFromAIMatchData` functions (which used `squad-history`, `ai-team`, `ai-team-single`, `history-completed` and `archive*`) and their now-unused helpers: `Utils/SeasonDataProcessor`, `AiDataSanitizer`, `MatchDataUtils`, `Models/AI/*`, `MappedPlayer`, `GeminiService.GetHistoryAsync`/`GetSingleMatchHistoryAsync` and the `history.md`/`team_fixture_prompt.md` prompts.
 - Trimmed `StorageService` to `GetBlobServiceClient` and `GetPlayerImageAsync`, which is now fixed to the `playersname` container: removed the `PlayerImageContainer` setting, the player-name fallback container lookup, and the `container` query override and response field on `GetPlayerImage`.
 - `DailyReport` no longer counts blobs in `ai-teams`/`ai-team-single`; the "Storage / Azure Blobs" section is gone from the report.

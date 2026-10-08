@@ -16,9 +16,6 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 - [ ] Leaderboard computation does an O(n·m) in-memory scan per squad/player (`UserSquadEndpoints.cs:137-155`) and duplicates statistic-matching logic that already exists in `GameRecordService`.
 - [ ] Commented-out DTO fields (`Minutes`, `Number`, `IsCaptain`, `IsSubstitute`) left in `GameRecordService.cs:132-137` — either wire them up or remove the dead code.
 
-### squad-func / squad-domain
-- [ ] `squad-func/AGENTS.md` references `TeamRefresh.cs`, which does not exist in the current tree — docs are stale relative to code (or the function was removed/renamed and should be reconciled).
-
 ## ✨ Features / UX Gaps
 
 - [ ] No captain/vice-captain selection UI — payload always hardcodes `IsCaptain: false, IsViceCaptain: false` (`squad-draft/App.tsx:365-366`); the concept exists in the data model but isn't exposed anywhere in the UI.

@@ -70,7 +70,7 @@ Specialist personas are defined under `.agents/` (`code-reviewer.md`, `reactjs-s
 
 ### squad-func (background jobs)
 - Isolated worker model with constructor-injected `HttpClientFactory`, `ILogger<T>`, and `SquadContext`.
-- Key functions: `SquadSelector.cs` (schedules daily squads/formations), `TeamRefresh.cs` (syncs lineups/metadata from external sports APIs), `CleanupGameRecords.cs` (purges stale/test records), `RecordRequest.cs` (HTTP-triggered engagement tracking), `GetFixture.cs`/`GetGameRecordByDate.cs` (anonymous HTTP triggers that mirror `squad-api` routes `/api/fixtures/{id}` and `/api/game-records/date/{date}` so the client can skip the API's cold start — keep their JSON shapes in sync with the API), `GetPlayerImage.cs`/`DailyReport.cs`.
+- Key functions: `SquadSelector.cs` (schedules daily squads/formations), `CleanupGameRecords.cs` (purges stale/test records), `RecordRequest.cs` (HTTP-triggered engagement tracking), `GetFixture.cs`/`GetGameRecordByDate.cs` (anonymous HTTP triggers that mirror `squad-api` routes `/api/fixtures/{id}` and `/api/game-records/date/{date}` so the client can skip the API's cold start — keep their JSON shapes in sync with the API), `GetPlayerImage.cs`/`DailyReport.cs`.
 - `Services/`: `GeminiService.cs` (Gemini AI calls), `ApiService.cs` (external sports API client), `StorageService.cs` (player-image blob reads), `EmailSMTPService.cs`, `LoggingHandler.cs`.
 - `prompts/`: Gemini prompt templates (`agent-prompt.md`, `playername-prompt.md`).
 - Blob storage access is limited to the `playersname` container (player images, read-only) — don't add calls to other containers. External API calls should tolerate rate limiting from Gemini and sports data providers.

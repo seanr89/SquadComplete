@@ -38,7 +38,3 @@ For a `TimerTrigger` to work, you provide a schedule in the form of a [cron expr
 - **SquadSelector**: 
   - **Trigger**: `0 0 2 * * *` (Daily at 02:00 UTC)
   - **Description**: Automatically creates the daily Game Record. It selects a random formation, shuffles historical fixtures, and selects 11 unique active teams that have at least 11 players with positions and ratings.
-
-- **TeamRefresh**: 
-  - **Trigger**: `0 0 9-12 * * *` (Daily hourly between 09:00 and 12:59 UTC)
-  - **Description**: Discovers fixtures in the database that lack specific date/lineup information but have an external API ID. It retrieves accurate final scores, team IDs, and precise kickoff timestamps, limiting the rate to 4 updates per run with a deliberate rate-limiting delay.

@@ -21,7 +21,6 @@ This file contains scoped instructions and guidelines for AI agents working with
 
 - **`SquadSelector.cs`**: Selects and schedules the daily squads and formations for upcoming game records.
 - **`CleanupGameRecords.cs`**: Maintenance cron function purging stale or test records.
-- **`TeamRefresh.cs`**: Synchronizes team lineups and metadata with external sports APIs.
 - **`RecordRequest.cs`**: Lightweight HTTP trigger tracking player engagement and session analytics.
 - **`GetFixture.cs` & `GetGameRecordByDate.cs`**: Anonymous read-only HTTP triggers mirroring `squad-api` routes (`/api/fixtures/{id}`, `/api/game-records/date/{date}`) so the client avoids the API's cold start. Keep their JSON shapes identical to the API's (`Models/GameRecordDto.cs` copies the API's DTOs).
 
