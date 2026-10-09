@@ -53,14 +53,14 @@ before we rebuild database ingestion, which was removed in `264b59d`.
   - Loads `prompts/weekly-results-prompt.md` and fills in `{LEAGUE}`, `{FROM_DATE}` and `{TO_DATE}` (`yyyy-MM-dd`).
   - Sends the request with Google Search grounding enabled.
   - Returns `null` on an HTTP failure, a timeout or an exception (logged), in the same style as `GetPlayerPhotoPrompt`.
-  - Otherwise it returns a `WeeklyResultsResponse` containing:
+  - Otherwise it returns `WeeklyResultsParser.FromGeminiResponse(responseJson)`, a `WeeklyResultsResponse` containing:
     - `RawText`: the model's text, taken by joining every `candidates[0].content.parts[].text`.
     - `Results`: a `WeeklyResults?` parsed from `RawText`, or `null` if parsing failed.
     - `Sources`: a list of `(Title, Uri)` from `candidates[0].groundingMetadata.groundingChunks[].web`, or empty.
 - `BuildBaseRequestBody(string userPrompt, bool useGoogleSearch = false)`: when `true`, adds
   `tools = new[] { new { google_search = new { } } }`. Existing callers keep the default and don't change.
-- Parsing: remove any leading or trailing ```` ``` ```` / ```` ```json ```` fences, take the text from the first `{` to the last `}`,
-  and deserialize with case-insensitive, snake_case-aware options. `responseMimeType` is **not** set,
+- Parsing lives in a pure static `Services/WeeklyResultsParser.cs` (no I/O, never throws). It takes the text from the first `{` to the last `}`,
+  which ignores any code fences or prose around the JSON, and deserializes with case-insensitive, snake_case options that also accept numbers sent as strings. `responseMimeType` is **not** set,
   because Gemini doesn't reliably support JSON mode together with the search tool.
 - Uses the existing `_agentModel` (`gemini-3.1-flash-lite`). A 120-second `CancellationTokenSource` matches `GetPlayerPhotoPrompt`.
 
@@ -98,8 +98,14 @@ before we rebuild database ingestion, which was removed in `264b59d`.
 - `WeeklyMatch { Date, HomeTeam, AwayTeam, int? HomeScore, int? AwayScore, Status }`
 - `WeeklyResultsResponse { string RawText, WeeklyResults? Results, List<GroundingSource> Sources }`
 - `GroundingSource { Title, Uri }`
-- `static string WeeklyResultsEmail.ToHtml(...)` renders the email. It reuses the visual style of `DailyStats.ToHtml()`
-  (same font stack, card and table styling). All Gemini-supplied strings are HTML-encoded with `WebUtility.HtmlEncode`.
+
+### `Models/WeeklyResultsEmail.cs` (new)
+
+- `static (string Subject, string Body) WeeklyResultsEmail.Build(DateOnly from, DateOnly to, WeeklyResultsResponse? response)`, where a `null` response means the Gemini call failed.
+- Reuses the visual style of `DailyStats.ToHtml()` (same font stack, card and table styling). All Gemini-supplied strings are HTML-encoded with `WebUtility.HtmlEncode`.
+  Source links are only rendered as `href`s for `http(s)` URIs.
+- Matches dated outside `from`–`to` are left out, and a "Left out N match(es) dated outside this window." note is added.
+  Dates with a time part are judged by their first 10 characters. Matches with an unreadable date are kept.
 
 ## Data flow
 
