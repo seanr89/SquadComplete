@@ -5,11 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Squad.Function;
 
-public class DailyReport(SquadContext context, EmailSMTPService emailService, StorageService storageService)
+public class DailyReport(SquadContext context, EmailSMTPService emailService)
 {
     private readonly SquadContext _context = context ?? throw new ArgumentNullException(nameof(context));
     private readonly EmailSMTPService _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-    private readonly StorageService _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
 
     [Function("DailyReport")]
     public async Task Run([TimerTrigger("0 0 1 * * *")] TimerInfo myTimer)
@@ -23,9 +22,6 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
         var userGameRecordCount = await _context.UserSquads.CountAsync();
 
         var AIFixtureCount = await _context.Fixtures.CountAsync(f => f.FixtureSource == "AI");
-
-        int aiteamCount = await _storageService.GetContainerBlobCount("ai-teams");
-        int aiteamSingleCount = await _storageService.GetContainerBlobCount("ai-team-single");
 
         int feedCount = await _context.Feedback.CountAsync();
         int eventCount = await _context.Events.CountAsync();
@@ -46,8 +42,6 @@ public class DailyReport(SquadContext context, EmailSMTPService emailService, St
             TotalMatches = fixtureCount,
             TotalGameRecords = gameRecordCount,
             TotalUserSquads = userGameRecordCount,
-            TotalTeamRecords = aiteamCount,
-            TotalSingleFixtureRecords = aiteamSingleCount,
             AIFixtureCount = AIFixtureCount,
             TotalEvents = eventCount,
             LatestEventDate = latestEventDate,

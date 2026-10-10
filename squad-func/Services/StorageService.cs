@@ -14,270 +14,8 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
     private readonly ILogger<StorageService> _logger = logger;
     private readonly IConfiguration _configuration = configuration;
 
-    /// <summary>
-    /// Uploads data to Azure Storage.
-    /// </summary>
-    /// <param name="jsonData">The data to upload.</param>
-    /// <param name="fileName">The name of the file to upload.</param>
-    /// <param name="containerName">The name of the container to upload to.</param>
-    public async Task UploadToStorage(string jsonData, string fileName, string containerName)
-    {
-        try
-        {
-            // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
-            string? connectionString = _configuration["FixtureStorage"]
-                ?? Environment.GetEnvironmentVariable("FixtureStorage");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
-                throw new InvalidOperationException("Storage connection string is not configured.");
-            }
-
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-            // Ensure the container exists
-            await containerClient.CreateIfNotExistsAsync();
-
-            var blobClient = containerClient.GetBlobClient(fileName);
-
-            _logger.LogInformation("Uploading data to {FileName} in Azure Storage container '{ContainerName}'...", fileName, containerName);
-
-            var content = BinaryData.FromString(jsonData);
-            await blobClient.UploadAsync(content, overwrite: true);
-
-            _logger.LogInformation("Successfully uploaded {FileName} to Azure Storage.", fileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error uploading {FileName} to Azure Storage.", fileName);
-            _logger.LogError($"Nested error {ex.InnerException?.Message}");
-            throw;
-        }
-    }
-
-    public async Task<int> GetContainerBlobCount(string containerName)
-    {
-        try
-        {
-            // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
-            string? connectionString = _configuration["FixtureStorage"]
-                ?? Environment.GetEnvironmentVariable("FixtureStorage");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
-                throw new InvalidOperationException("Storage connection string is not configured.");
-            }
-
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-            // Ensure the container exists
-            await containerClient.CreateIfNotExistsAsync();
-
-            var blobs = containerClient.GetBlobsAsync();
-            int count = 0;
-            await foreach (var blob in blobs)
-            {
-                count++;
-            }
-
-            _logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", count, containerName);
-            return count;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving blobs from Azure Storage container '{ContainerName}'.", containerName);
-            if (ex.InnerException != null)
-            {
-                _logger.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
-            }
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Gets a list of blobs from Azure Storage.
-    /// </summary>
-    /// <param name="containerName">The name of the container to get blobs from.</param>
-    /// <returns>A list of blob names.</returns>
-    public async Task<List<string>> GetBlobs(string containerName)
-    {
-        try
-        {
-            // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
-            string? connectionString = _configuration["FixtureStorage"]
-                ?? Environment.GetEnvironmentVariable("FixtureStorage");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
-                throw new InvalidOperationException("Storage connection string is not configured.");
-            }
-
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-            // Ensure the container exists
-            await containerClient.CreateIfNotExistsAsync();
-
-            var blobs = containerClient.GetBlobsAsync();
-            var blobList = new List<string>();
-            await foreach (var blob in blobs)
-            {
-                blobList.Add(blob.Name);
-            }
-
-            _logger.LogInformation("Successfully retrieved {Count} blobs from Azure Storage container '{ContainerName}'.", blobList.Count, containerName);
-            return blobList;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving blobs from Azure Storage container '{ContainerName}'.", containerName);
-            if (ex.InnerException != null)
-            {
-                _logger.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
-            }
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Checks if a container in Azure Storage is empty.
-    /// </summary>
-    /// <param name="containerName">The name of the container to check.</param>
-    /// <returns>true if the container is empty, false otherwise.</returns>
-    public async Task<bool> IsContainerEmpty(string containerName)
-    {
-        try
-        {
-            string? connectionString = _configuration["FixtureStorage"]
-                ?? Environment.GetEnvironmentVariable("FixtureStorage");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
-                throw new InvalidOperationException("Storage connection string is not configured.");
-            }
-
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-            // Ensure the container exists
-            await containerClient.CreateIfNotExistsAsync();
-
-            var blobs = containerClient.GetBlobsAsync();
-            if (await blobs.AnyAsync())
-            {
-                _logger.LogInformation("Container '{ContainerName}' is not empty.", containerName);
-                return false;
-            }
-            // No blobs found, container is empty
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving blobs from Azure Storage container '{ContainerName}'.", containerName);
-            if (ex.InnerException != null)
-            {
-                _logger.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
-            }
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Reads a blob from Azure Storage.
-    /// </summary>
-    /// <param name="fileName">The name of the blob to read.</param>
-    /// <param name="containerName">The name of the container to read from.</param>
-    /// <returns>The content of the blob as a string.</returns>
-    public async Task<string?> ReadFromStorage(string fileName, string containerName)
-    {
-        try
-        {
-            // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
-            string? connectionString = _configuration["FixtureStorage"]
-                ?? Environment.GetEnvironmentVariable("FixtureStorage");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
-                throw new InvalidOperationException("Storage connection string is not configured.");
-            }
-
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-            // Ensure the container exists
-            await containerClient.CreateIfNotExistsAsync();
-
-            var blobClient = containerClient.GetBlobClient(fileName);
-            var content = await blobClient.DownloadContentAsync();
-
-            _logger.LogInformation("Successfully read {FileName} from Azure Storage.", fileName);
-            return content.Value.Content.ToString();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reading {FileName} from Azure Storage.", fileName);
-            if (ex.InnerException != null)
-            {
-                _logger.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
-            }
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Moves a blob from one container to another in Azure Storage.
-    /// </summary>
-    /// <param name="blob">The name of the blob to move.</param>
-    /// <param name="sourceContainerName">The name of the container to move the blob from.</param>
-    /// <param name="destinationContainerName">The name of the container to move the blob to.</param>   
-    public async Task MoveBlob(string blob, string sourceContainerName, string destinationContainerName)
-    {
-        try
-        {
-            // Fallback to reading from Environment if standard Config value is empty (common in Azure Functions tests)
-            string? connectionString = _configuration["FixtureStorage"]
-                ?? Environment.GetEnvironmentVariable("FixtureStorage");
-
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                _logger.LogError("Storage connection string is missing. Please set 'FixtureStorage'.");
-                throw new InvalidOperationException("Storage connection string is not configured.");
-            }
-
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var sourceContainerClient = blobServiceClient.GetBlobContainerClient(sourceContainerName);
-            var destinationContainerClient = blobServiceClient.GetBlobContainerClient(destinationContainerName);
-
-            // Ensure the container exists
-            await sourceContainerClient.CreateIfNotExistsAsync();
-            await destinationContainerClient.CreateIfNotExistsAsync();
-
-            var blobClient = sourceContainerClient.GetBlobClient(blob);
-            var destinationBlobClient = destinationContainerClient.GetBlobClient(blob);
-
-            var content = await blobClient.DownloadContentAsync();
-            await destinationBlobClient.UploadAsync(content.Value.Content, overwrite: true);
-            await blobClient.DeleteAsync();
-
-            _logger.LogInformation("Successfully moved {Blob} from '{SourceContainerName}' to '{DestinationContainerName}'.", blob, sourceContainerName, destinationContainerName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error moving {Blob} from '{SourceContainerName}' to '{DestinationContainerName}'.", blob, sourceContainerName, destinationContainerName);
-            if (ex.InnerException != null)
-            {
-                _logger.LogError("Inner exception: {InnerMessage}", ex.InnerException.Message);
-            }
-            throw;
-        }
-    }
+    /// <summary>The only blob container this service reads from.</summary>
+    private const string PlayerImageContainer = "playersname";
 
     /// <summary>
     /// Gets a configured BlobServiceClient instance using FixtureStorage or AzureWebJobsStorage.
@@ -305,12 +43,10 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
     /// </summary>
     /// <param name="playerName">The player name to query (optional if playerId is supplied).</param>
     /// <param name="playerId">The player ID to query (optional if playerName is supplied or included in input).</param>
-    /// <param name="containerName">The target container name (defaults to configured PlayerImageContainer or 'playersname').</param>
     /// <returns>A tuple of the image bytes, MIME content type, and the resolved blob name, or null if not found.</returns>
     public async Task<(byte[] Content, string ContentType, string BlobName)?> GetPlayerImageAsync(
         string? playerName,
-        string? playerId = null,
-        string? containerName = null)
+        string? playerId = null)
     {
         // Parse input if playerName contains ID prefix (e.g., '511933_Stephane Henchoz.jpg' or '511933')
         if (!string.IsNullOrWhiteSpace(playerName))
@@ -345,40 +81,15 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
             return null;
         }
 
-        string targetContainer = !string.IsNullOrWhiteSpace(containerName)
-            ? containerName
-            : (_configuration["PlayerImageContainer"]
-               ?? Environment.GetEnvironmentVariable("PlayerImageContainer")
-               ?? "playersname");
-
         try
         {
             var blobServiceClient = GetBlobServiceClient();
-            var containerClient = blobServiceClient.GetBlobContainerClient(targetContainer);
+            var containerClient = blobServiceClient.GetBlobContainerClient(PlayerImageContainer);
 
-            bool containerExists = await containerClient.ExistsAsync();
-            if (!containerExists)
+            if (!await containerClient.ExistsAsync())
             {
-                // Fallback check if container itself is named in playersname format
-                string fallbackContainer = !string.IsNullOrWhiteSpace(playerName)
-                    ? NormalizePlayerName(playerName)
-                    : (playerId ?? "playersname");
-
-                if (!string.Equals(targetContainer, fallbackContainer, StringComparison.OrdinalIgnoreCase))
-                {
-                    var altContainerClient = blobServiceClient.GetBlobContainerClient(fallbackContainer);
-                    if (await altContainerClient.ExistsAsync())
-                    {
-                        containerClient = altContainerClient;
-                        containerExists = true;
-                    }
-                }
-
-                if (!containerExists)
-                {
-                    _logger.LogWarning("Container '{ContainerName}' does not exist.", targetContainer);
-                    return null;
-                }
+                _logger.LogWarning("Container '{ContainerName}' does not exist.", PlayerImageContainer);
+                return null;
             }
 
             // 1. Direct candidate matching (combining playerId and playerName in various formats)
@@ -480,7 +191,7 @@ public class StorageService(ILogger<StorageService> logger, IConfiguration confi
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving player image for ID: '{PlayerId}', Name: '{PlayerName}' from container '{ContainerName}'.",
-                playerId ?? "N/A", playerName ?? "N/A", targetContainer);
+                playerId ?? "N/A", playerName ?? "N/A", PlayerImageContainer);
             throw;
         }
     }

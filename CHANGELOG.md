@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Removed
+- `squad-func`: removed the blob-driven Gemini ingestion pipeline (`FullSeasonAISearch`, `SingleMatchHistoricalSearch`, `GenerateFixtureFromAIMatchData`) and all blob container access other than the `playersname` player-image container. See `squad-func/CHANGELOG.md`.
+
 ### Added
 - Added a `squad-func` HTTP endpoint `GET /api/game-records/date/{date}` mirroring the `squad-api` route of the same path, so the daily game record can be served from the Functions app.
 - Added a shared `PositionGroup` enum (`squad-domain/Models/PositionGroup.cs`) with `Parse` (raw data-source position string → group) and `ToCode` (`GK`/`DEF`/`MID`/`FWD`/`UNK`), replacing magic-string position matching in `squad-api`. The codes must stay in sync with the `Position` type in `squad-draft/types.ts`.
@@ -10,6 +13,8 @@
 - Added `TeamRoster` component organizing drafted squads by tactical lines (GK, DEF, MID, FWD) with hover synchronization to tactical pitch.
 
 ### Changed
+- Centralised the remaining position handling in `squad-domain`'s `PositionGroupExtensions`: `Normalize` (raw position → `GK`/`DEF`/`MID`/`FWD`/`UNK`, unrecognised values passed through upper-cased), `FormationFromCodes` (DEF-MID-FWD string) and a `NotAvailable` (`"N/A"`) constant for the position ingestion stores when the source has none. `squad-api` and `squad-func` previously each carried their own copy of the mapping and formation logic. No behaviour change.
+- Moved `SquadContext` into the shared `squad-domain` library (`squad-domain/Models/SquadContext.cs`), replacing the separate copies in `squad-api` and `squad-func` that had drifted (the API lacked the `Seasons`/`TeamSeasons` DbSets and `TeamSeason` unique index; the Functions app lacked the `Formation.Name` unique index). Entities were already shared; there is now one DbContext model for both hosts.
 - Expanded midfield formation spacing across the tactical pitch in `squad-draft` with wider horizontal distribution and natural vertical depth staggering (e.g. LCM/RCM flanking with a deeper central pivot) to eliminate avatar clumping.
 - Redesigned Team and Roster screen in `squad-draft` with Hero Command Center header and split layout (`lg:w-5/12` Pitch and `lg:w-7/12` Roster), fixing player name truncation and modernizing avatar framing.
 

@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace squad_api.Models;
+namespace squad_domain.Models;
 
+/// <summary>
+/// Single EF Core context shared by squad-api and squad-func so the model
+/// (DbSets, indexes, precision) cannot drift between the two hosts.
+/// </summary>
 public class SquadContext : DbContext
 {
     public SquadContext(DbContextOptions<SquadContext> options) : base(options) { }
@@ -14,16 +18,18 @@ public class SquadContext : DbContext
     public DbSet<GameRecord> GameRecords { get; set; }
     public DbSet<GameRecordTag> GameRecordTags { get; set; }
     public DbSet<Formation> Formations { get; set; }
-    public DbSet<User> Users { get; set; }
+    public DbSet<Season> Seasons { get; set; }
+    public DbSet<TeamSeason> TeamSeasons { get; set; }
     public DbSet<UserSquad> UserSquads { get; set; }
     public DbSet<UserSquadPlayer> UserSquadPlayers { get; set; }
-    public DbSet<Feedback> Feedback { get; set; }
+    public DbSet<User> Users { get; set; }
     public DbSet<Event> Events { get; set; }
+    public DbSet<Feedback> Feedback { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         // Configuration for decimal precision on Rating
         modelBuilder.Entity<PlayerFixtureStatistic>()
             .Property(p => p.Rating)
@@ -37,6 +43,11 @@ public class SquadContext : DbContext
         // Unique constraint for Formation
         modelBuilder.Entity<Formation>()
             .HasIndex(f => f.Name)
+            .IsUnique();
+
+        // Unique constraint for TeamSeason
+        modelBuilder.Entity<TeamSeason>()
+            .HasIndex(t => new { t.TeamId, t.SeasonId })
             .IsUnique();
 
         // Unique constraint for User BrowserIdentifierId

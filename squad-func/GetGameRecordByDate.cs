@@ -85,7 +85,7 @@ public class GetGameRecordByDate(ILogger<GetGameRecordByDate> logger, SquadConte
                         PlayerPhoto = s.Player?.Photo,
                         Statistics = new GameRecordPlayerStatisticDto
                         {
-                            Position = MapPosition(s.Position),
+                            Position = PositionGroupExtensions.Normalize(s.Position),
                             Rating = s.Rating
                         }
                     }).ToList();
@@ -103,25 +103,6 @@ public class GetGameRecordByDate(ILogger<GetGameRecordByDate> logger, SquadConte
         };
     }
 
-    // Known positions become GK/DEF/MID/FWD; empty is UNK; unrecognised values pass through upper-cased.
-    private static string MapPosition(string? position)
-    {
-        var group = PositionGroupExtensions.Parse(position);
-
-        if (group == PositionGroup.Unknown && !string.IsNullOrEmpty(position))
-        {
-            return position.ToUpperInvariant();
-        }
-
-        return group.ToCode();
-    }
-
     private static string CalculateFormation(List<GameRecordPlayerDto> players)
-    {
-        var defenders = players.Count(p => p.Statistics?.Position == PositionGroup.Defender.ToCode());
-        var midfielders = players.Count(p => p.Statistics?.Position == PositionGroup.Midfielder.ToCode());
-        var attackers = players.Count(p => p.Statistics?.Position == PositionGroup.Forward.ToCode());
-
-        return $"{defenders}-{midfielders}-{attackers}";
-    }
+        => PositionGroupExtensions.FormationFromCodes(players.Select(p => p.Statistics?.Position));
 }

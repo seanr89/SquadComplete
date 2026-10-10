@@ -147,15 +147,12 @@ public class GetPlayerImage(ILoggerFactory loggerFactory, StorageService storage
             }
         }
 
-        // Optional query parameter to override target container name
-        string? containerName = req.Query["container"].FirstOrDefault();
-
-        _logger.LogInformation("Querying image for Player ID: '{PlayerId}', Name: '{PlayerName}' in container '{ContainerName}'...",
-            resolvedId ?? "N/A", resolvedName ?? "N/A", containerName ?? "(default: playersname)");
+        _logger.LogInformation("Querying image for Player ID: '{PlayerId}', Name: '{PlayerName}'...",
+            resolvedId ?? "N/A", resolvedName ?? "N/A");
 
         try
         {
-            var imageResult = await _storageService.GetPlayerImageAsync(resolvedName, resolvedId, containerName);
+            var imageResult = await _storageService.GetPlayerImageAsync(resolvedName, resolvedId);
 
             if (imageResult == null)
             {
@@ -166,8 +163,7 @@ public class GetPlayerImage(ILoggerFactory loggerFactory, StorageService storage
                 {
                     error = "Player image was not found.",
                     playerId = resolvedId,
-                    playerName = resolvedName,
-                    container = containerName ?? "playersname"
+                    playerName = resolvedName
                 });
             }
 

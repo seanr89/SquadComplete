@@ -4,8 +4,6 @@ using squad_func.Models;
 
 namespace Squad.Function.Models.API;
 
-public record MappedPlayer(Player dbPlayer, PlayerAPIModel? apiPlayer, Squad.Function.Models.AI.PlayerData? filePlayerData);
-
 public record PlayerAPIModel(
     [property: JsonPropertyName("get")] string? Get,
     [property: JsonPropertyName("parameters")] Dictionary<string, string>? Parameters,

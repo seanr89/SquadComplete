@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using squad_api.Models;
 
 namespace squad_api.DTOs;
 
