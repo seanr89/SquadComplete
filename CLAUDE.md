@@ -62,10 +62,9 @@ Specialist personas are defined under `.agents/` (`code-reviewer.md`, `reactjs-s
 - All domain interfaces live in `types.ts` (`Player`, `Squad`, `FormationSpot`, `DraftState`, `Position`) — strict typing, no `any`.
 
 ### squad-api (backend)
-- `Program.cs`: DI setup, EF Core `SquadContext` registration (Npgsql; the context class itself lives in `squad-domain`), CORS (allow-any policy), JSON `ReferenceHandler.IgnoreCycles` for circular EF navigation properties, OpenAPI + Scalar.
-- `Endpoints/`: one file per resource (e.g. `GameRecordEndpoints.cs`, `PlayerEndpoints.cs`, `LeagueEndpoints.cs`), all wired together via `MapAllEndpoints()` in `EndpointExtensions.cs`.
-- `Services/`: business logic injected as scoped services (e.g. `GameRecordService.cs`) — endpoint handlers stay thin (parse input → delegate to service → return typed `Results.*`).
-- `DTOs/`: request/response contracts, kept separate from the EF entities in `squad-domain`.
+- `Program.cs`: DI setup, EF Core `SquadContext` registration (Npgsql; the context class itself lives in `squad-domain`), CORS, rate limiting, OpenAPI + Scalar.
+- `Endpoints/`: Active endpoint resources (`UserSquadEndpoints.cs`, `FeedbackEndpoints.cs`), wired together via `MapAllEndpoints()` in `EndpointExtensions.cs`.
+- `DTOs/`: request/response contracts (`CreateUserSquadDto`, `LeaderboardDto`, `FeedbackDto`), kept separate from the EF entities in `squad-domain`.
 - Convention: async EF Core calls everywhere, `.AsNoTracking()` for reads, explicit `.Include()`/`.ThenInclude()` to avoid N+1s.
 
 ### squad-func (background jobs)

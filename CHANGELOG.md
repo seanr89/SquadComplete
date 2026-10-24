@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### Removed
+- `squad-api`: removed 27 unused endpoints across Leagues, Fixtures, Players, Formations, PlayerFixtureStatistics, GameRecords, and Events (`/api/leagues`, `/api/fixtures`, `/api/players`, `/api/formations`, `/api/player-fixture-statistics`, `/api/game-records`, `/api/events`), along with generic CRUD routing infrastructure (`CrudEndpointExtensions.cs`), `GameRecordService.cs`, `AdminApiKeyFilter.cs`, and unreferenced DTOs to minimize the API footprint. Active API surface is focused strictly on the endpoints consumed by `squad-draft` (`/api/user-squads` and `/api/feedback`).
 - `squad-func`: removed the blob-driven Gemini ingestion pipeline (`FullSeasonAISearch`, `SingleMatchHistoricalSearch`, `GenerateFixtureFromAIMatchData`) and all blob container access other than the `playersname` player-image container. See `squad-func/CHANGELOG.md`.
 
 ### Added

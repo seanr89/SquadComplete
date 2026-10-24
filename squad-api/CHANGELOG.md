@@ -26,4 +26,14 @@ All notable changes to the `squad-api` backend service will be documented in thi
 - `PUT /api/game-records/{id}` now validates `FormationId` and every tag's fixture/team id up front and returns `400 Bad Request` instead of an unhandled FK exception (500). Tags are now diffed by fixture/team pair so unchanged tags are left alone rather than deleted and re-inserted, and `FormationId` is now actually persisted on update.
 
 ### Removed
+- Removed uncalled endpoints and unused API infrastructure to reduce the API footprint down to only the routes consumed by `squad-draft`:
+  - Removed League CRUD endpoints (`/api/leagues`, `LeagueEndpoints.cs`, `LeagueDto.cs`).
+  - Removed Fixture CRUD endpoints (`/api/fixtures`, `FixtureEndpoints.cs`, `FixtureDto.cs`).
+  - Removed Player CRUD endpoints (`/api/players`, `PlayerEndpoints.cs`, `PlayerDto.cs`).
+  - Removed PlayerFixtureStatistic CRUD endpoints (`/api/player-fixture-statistics`, `PlayerFixtureStatisticEndpoints.cs`, `PlayerFixtureStatisticDto.cs`).
+  - Removed Formation CRUD endpoints (`/api/formations`, `FormationEndpoints.cs`, `FormationDto.cs`).
+  - Removed GameRecord endpoints (`/api/game-records`, `GameRecordEndpoints.cs`, `GameRecordDto.cs`, `GameRecordService.cs`).
+  - Removed Event endpoints (`/api/events`, `EventEndpoints.cs`, `EventDto.cs`).
+  - Removed generic CRUD routing infrastructure (`CrudEndpointExtensions.cs`), admin API key filter (`Auth/AdminApiKeyFilter.cs`), and unused `TeamResponse.cs`.
+  The active API surface now comprises only the endpoints consumed by `squad-draft`: `POST /api/user-squads`, `GET /api/user-squads/{gameRecordId}/leaderboard`, and `POST /api/feedback`.
 - Removed `GET /api/statistics` (`StatisticsEndpoints.cs`, `StatisticsDto.cs`), which returned platform-wide league/team/player/fixture/game counts, along with its registration in `EndpointExtensions.cs`. No longer used now that the "Stats" tab has been removed from the frontend's `AboutDialog`.

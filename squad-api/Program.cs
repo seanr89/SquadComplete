@@ -3,15 +3,12 @@ using squad_api.Endpoints;
 using Scalar.AspNetCore;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
-using squad_api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<SquadContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<GameRecordService>();
 
 // Restrict CORS to the known squad-draft frontend origin(s), configured per-environment
 // via appsettings (Cors:AllowedOrigins) rather than allowing any origin.
@@ -30,7 +27,7 @@ builder.Services.AddCors(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Per-IP rate limiting for public write endpoints (feedback, events, user squad submissions)
+// Per-IP rate limiting for public write endpoints (feedback, user squad submissions)
 // that have no authentication and would otherwise be spammable.
 builder.Services.AddRateLimiter(options =>
 {

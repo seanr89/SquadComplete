@@ -16,9 +16,8 @@ This file contains scoped instructions and guidelines for AI agents working with
 
 ## 2. Architecture & Directory Structure
 
-- **`Program.cs`**: Application entry point, dependency injection container, JSON serialization settings (handles circular references via `ReferenceHandler.IgnoreCycles`), CORS policies, OpenAPI, and pipeline registration.
-- **`Endpoints/`**: Endpoint route groupings (e.g., GameRecord, Squad, Leaderboard). All registered via `MapAllEndpoints()` in `EndpointExtensions.cs`.
-- **`Services/`**: Business logic layer (e.g., `GameRecordService.cs`). Injected as scoped services into Minimal API route handlers.
+- **`Program.cs`**: Application entry point, dependency injection container, rate limiting, CORS policies, OpenAPI, and pipeline registration.
+- **`Endpoints/`**: Endpoint route groupings (`UserSquadEndpoints.cs`, `FeedbackEndpoints.cs`). Registered via `MapAllEndpoints()` in `EndpointExtensions.cs`.
 - **`squad-domain/`**: Entity Framework entities, the shared database context (`SquadContext`), and domain models.
 - **`DTOs/`**: Request and response contracts decoupling database models from public HTTP APIs.
 
@@ -27,9 +26,8 @@ This file contains scoped instructions and guidelines for AI agents working with
 ## 3. Backend Conventions & Best Practices
 
 - **Endpoint Handlers**:
-  - Keep endpoint handlers lean: parse input, delegate to services, and return typed results (`Results.Ok()`, `Results.NotFound()`, `Results.BadRequest()`).
-  - Use `[FromServices]` or parameter injection for dependencies.
-  - Plain single-`int`-key CRUD resources (League, Player, Formation, Fixture) use the shared `MapCrud<TEntity, TDto>` helper in `Endpoints/CrudEndpointExtensions.cs` instead of hand-written handlers; add new ones the same way. Resources with real logic or composite keys stay hand-written.
+  - Keep endpoint handlers lean: parse input, execute queries/updates, and return typed results (`Results.Ok()`, `Results.Created()`, `Results.NotFound()`, `Results.BadRequest()`).
+  - Use parameter injection for dependencies (e.g. `SquadContext`).
 - **Entity Framework & Database**:
   - Always use asynchronous EF Core queries (`ToListAsync()`, `FirstOrDefaultAsync()`).
   - Use `.AsNoTracking()` for read-only operations to maximize performance.
