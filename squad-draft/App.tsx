@@ -37,6 +37,7 @@ const App: React.FC = () => {
   const [squads, setSquads] = useState<Squad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasStorageWarningShownRef = useRef(false);
 
   const [draft, setDraft] = useState<DraftState>(() => {
     try {
@@ -128,8 +129,18 @@ const App: React.FC = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       localStorage.setItem(`squad-draft-${today}`, JSON.stringify(draft));
+      hasStorageWarningShownRef.current = false;
     } catch (e) {
       console.error("Failed to save draft to local storage", e);
+      if (!hasStorageWarningShownRef.current) {
+        hasStorageWarningShownRef.current = true;
+        setAlertConfig({
+          isOpen: true,
+          title: 'Storage Warning',
+          message: 'Unable to save your draft progress to your device storage (it may be full or disabled). Your progress will be kept in memory for this session, but will not persist if you refresh.',
+          type: 'warning'
+        });
+      }
     }
   }, [draft]);
 
@@ -137,7 +148,13 @@ const App: React.FC = () => {
   const [tempPlayer, setTempPlayer] = useState<Player | null>(null);
 
   const currentSquad = squads[draft.currentStep];
-  const isDraftComplete = draft.selectedPlayers.length === 11 || draft.currentStep >= squads.length;
+  const isDraftComplete = useMemo(() => {
+    return (
+      draft.completed ||
+      draft.selectedPlayers.length === 11 ||
+      (squads.length > 0 && draft.currentStep >= squads.length)
+    );
+  }, [draft.completed, draft.selectedPlayers.length, squads.length, draft.currentStep]);
 
   const currentSquadFormation = useMemo(() => {
     if (!currentSquad) return [];
@@ -281,21 +298,27 @@ const App: React.FC = () => {
     if (!spot || spot.player) return;
 
     const placedPlayer = tempPlayer;
+    const nextStep = draft.currentStep + 1;
     const nextCount = draft.selectedPlayers.length + 1;
-    const isNowComplete = nextCount === 11;
+    const isNowComplete = nextCount === 11 || (squads.length > 0 && nextStep >= squads.length);
 
-    setDraft(prev => ({
-      ...prev,
-      selectedPlayers: [...prev.selectedPlayers, placedPlayer],
-      formation: prev.formation.map(s => s.id === spotId ? { ...s, player: placedPlayer } : s),
-      currentStep: prev.currentStep + 1,
-      completed: isNowComplete
-    }));
+    setDraft(prev => {
+      const updatedStep = prev.currentStep + 1;
+      const updatedCount = prev.selectedPlayers.length + 1;
+      const complete = updatedCount === 11 || (squads.length > 0 && updatedStep >= squads.length);
+      return {
+        ...prev,
+        selectedPlayers: [...prev.selectedPlayers, placedPlayer],
+        formation: prev.formation.map(s => s.id === spotId ? { ...s, player: placedPlayer } : s),
+        currentStep: updatedStep,
+        completed: complete
+      };
+    });
 
     if (isNowComplete) {
-      setLiveAnnouncement(`Placed ${placedPlayer.name} into ${spot.position}. Draft complete! All 11 players selected.`);
+      setLiveAnnouncement(`Placed ${placedPlayer.name} into ${spot.position}. Draft complete! All ${nextCount} players selected.`);
     } else {
-      setLiveAnnouncement(`Placed ${placedPlayer.name} into ${spot.position}. Advancing to pick number ${draft.currentStep + 2} of 11.`);
+      setLiveAnnouncement(`Placed ${placedPlayer.name} into ${spot.position}. Advancing to pick number ${nextStep + 1} of 11.`);
     }
 
     setTempPlayer(null);
@@ -312,12 +335,20 @@ const App: React.FC = () => {
 
   const executeResetDraft = () => {
     const today = new Date().toISOString().split('T')[0];
-    localStorage.removeItem(`squad-draft-${today}`);
+    try {
+      localStorage.removeItem(`squad-draft-${today}`);
+    } catch (e) {
+      console.error("Failed to remove draft from local storage", e);
+    }
     setDraft(prev => ({
+      ...prev,
       currentStep: 0,
       selectedPlayers: [],
       formation: prev.formation.map(s => ({ ...s, player: null })),
-      completed: false
+      completed: false,
+      submitted: false,
+      gameRecordId: prev.gameRecordId,
+      formationId: prev.formationId
     }));
     setView('draft');
     setIsResetConfirmOpen(false);
@@ -356,56 +387,84 @@ const App: React.FC = () => {
   };
 
   const getBrowserId = () => {
-    let id = localStorage.getItem('squad-browser-id');
-    if (!id) {
-      id = generateUuid();
-      localStorage.setItem('squad-browser-id', id);
+    try {
+      let id = localStorage.getItem('squad-browser-id');
+      if (!id) {
+        id = generateUuid();
+        localStorage.setItem('squad-browser-id', id);
+      }
+      return id;
+    } catch {
+      return generateUuid();
     }
-    return id;
   };
 
   const handleSubmitTeam = async () => {
-    if (!draft.completed || draft.submitted) return;
+    if (!isDraftComplete || draft.submitted) return;
     if (!userName.trim()) {
-        setAlertConfig({
-            isOpen: true,
-            title: 'Name Required',
-            message: 'Please enter your name to submit your team.',
-            type: 'error'
-        });
-        return;
+      setAlertConfig({
+        isOpen: true,
+        title: 'Name Required',
+        message: 'Please enter your name to submit your team.',
+        type: 'error'
+      });
+      return;
+    }
+
+    const unfilledSpots = draft.formation.filter(
+      spot => !spot.player || !spot.player.id || isNaN(parseInt(spot.player.id, 10)) || parseInt(spot.player.id, 10) <= 0
+    );
+
+    if (draft.formation.length !== 11 || draft.selectedPlayers.length !== 11 || unfilledSpots.length > 0) {
+      setAlertConfig({
+        isOpen: true,
+        title: 'Incomplete Squad',
+        message: 'All 11 formation spots must be filled with valid players before submitting your team.',
+        type: 'error'
+      });
+      return;
+    }
+
+    if (!draft.gameRecordId) {
+      setAlertConfig({
+        isOpen: true,
+        title: 'Missing Challenge Data',
+        message: 'Game record identifier is missing. Please refresh and try again.',
+        type: 'error'
+      });
+      return;
     }
 
     setIsSubmitting(true);
     const payload = {
-        BrowserIdentifierId: getBrowserId(),
-        UserName: userName.trim(),
-        GameRecordId: draft.gameRecordId,
-        FormationId: draft.formationId,
-        Players: draft.formation.map(spot => ({
-            PlayerId: parseInt(spot.player?.id || '0', 10),
-            Position: spot.position,
-            IsCaptain: false,
-            IsViceCaptain: false
-        }))
+      BrowserIdentifierId: getBrowserId(),
+      UserName: userName.trim(),
+      GameRecordId: draft.gameRecordId,
+      FormationId: draft.formationId,
+      Players: draft.formation.map(spot => ({
+        PlayerId: parseInt(spot.player!.id, 10),
+        Position: spot.position,
+        IsCaptain: false,
+        IsViceCaptain: false
+      }))
     };
 
     const success = await submitUserSquad(payload);
     if (success) {
-        setDraft(prev => ({ ...prev, submitted: true }));
-        setAlertConfig({
-            isOpen: true,
-            title: 'Success!',
-            message: 'Team submitted successfully!',
-            type: 'success'
-        });
+      setDraft(prev => ({ ...prev, submitted: true }));
+      setAlertConfig({
+        isOpen: true,
+        title: 'Success!',
+        message: 'Team submitted successfully!',
+        type: 'success'
+      });
     } else {
-        setAlertConfig({
-            isOpen: true,
-            title: 'Submission Failed',
-            message: 'Failed to submit team. You may have already submitted one for today.',
-            type: 'error'
-        });
+      setAlertConfig({
+        isOpen: true,
+        title: 'Submission Failed',
+        message: 'Failed to submit team. You may have already submitted one for today.',
+        type: 'error'
+      });
     }
     setIsSubmitting(false);
   };
@@ -495,15 +554,15 @@ const App: React.FC = () => {
             type="button"
             onClick={() => setView('leaderboard')}
             aria-current={view === 'leaderboard' ? 'page' : undefined}
-            disabled={!draft.completed}
+            disabled={!isDraftComplete}
             className={`px-4 py-2 rounded-lg font-bold transition-all focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${
-              !draft.completed
+              !isDraftComplete
                 ? 'opacity-50 cursor-not-allowed bg-slate-800 text-slate-500'
                 : view === 'leaderboard'
                 ? 'bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
-            title={!draft.completed ? 'Complete draft to view leaderboard' : ''}
+            title={!isDraftComplete ? 'Complete draft to view leaderboard' : ''}
           >
             <i className="fas fa-list-ol mr-2" aria-hidden="true"></i> Leaderboard
           </button>
@@ -541,7 +600,7 @@ const App: React.FC = () => {
           <Leaderboard />
         )}
 
-        {!loading && !error && currentSquad && view === 'draft' && !draft.completed && (
+        {!loading && !error && currentSquad && view === 'draft' && !isDraftComplete && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             {/* Squad Selection Area */}
             <div className="space-y-6">
@@ -620,7 +679,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {!loading && !error && view !== 'leaderboard' && (view === 'team' || draft.completed) && (
+        {!loading && !error && view !== 'leaderboard' && (view === 'team' || isDraftComplete) && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
             {/* Hero Command Center Header */}
             <div className="bg-slate-800/80 backdrop-blur-md border border-slate-700/80 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6">
@@ -637,7 +696,7 @@ const App: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2.5 flex-wrap">
                     <h2 className="text-lg md:text-xl font-extrabold text-white">Your Squad</h2>
-                    {draft.completed && (
+                    {isDraftComplete && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                         <i className="fa-solid fa-circle-check text-[10px]" aria-hidden="true"></i> Draft Complete
                       </span>
@@ -658,7 +717,7 @@ const App: React.FC = () => {
 
               {/* Right: Actions Cluster */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap lg:justify-end">
-                {draft.completed && !draft.submitted && (
+                {isDraftComplete && !draft.submitted && (
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     <label htmlFor="user-name-input" className="sr-only">Your Name</label>
                     <input
@@ -822,15 +881,15 @@ const App: React.FC = () => {
             type="button"
             onClick={() => setView('leaderboard')}
             aria-current={view === 'leaderboard' ? 'page' : undefined}
-            disabled={!draft.completed}
+            disabled={!isDraftComplete}
             className={`flex flex-col items-center gap-1 p-2 rounded-lg focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:outline-none ${
-              !draft.completed
+              !isDraftComplete
                 ? 'opacity-50 cursor-not-allowed text-slate-600'
                 : view === 'leaderboard'
                 ? 'text-yellow-400'
                 : 'text-slate-400'
             }`}
-            title={!draft.completed ? 'Complete draft to view leaderboard' : ''}
+            title={!isDraftComplete ? 'Complete draft to view leaderboard' : ''}
           >
             <i className="fas fa-list-ol" aria-hidden="true"></i>
             <span className="text-[10px] font-bold uppercase">Ranks</span>

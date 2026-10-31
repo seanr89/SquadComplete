@@ -1,6 +1,14 @@
 ## [Unreleased]
 
+### Fixed
+- `squad-draft`: gated completion checks and view rendering with memoized `isDraftComplete`, preventing draft deadlock when daily squads are exhausted.
+- `squad-draft`: preserved `gameRecordId` and `formationId` across draft resets in `executeResetDraft`, preventing missing identifier failures during subsequent squad submissions.
+- `squad-draft`: added squad completion validation in `handleSubmitTeam` to ensure all 11 formation spots contain valid player IDs before submission, eliminating fallback player ID coercion to `0`.
+- `squad-draft`: updated screen reader pick announcement ("Advancing to pick number X of 11") to compute next step indices from the active placement rather than closing over stale `draft.currentStep` state.
+- `squad-draft`: surfaced `localStorage.setItem` errors to users via an `AlertDialog` warning rather than silently logging failures to the console, alerting users to disabled/full storage.
+
 ### Removed
+- `squad-api`: removed 27 unused endpoints across Leagues, Fixtures, Players, Formations, PlayerFixtureStatistics, GameRecords, and Events (`/api/leagues`, `/api/fixtures`, `/api/players`, `/api/formations`, `/api/player-fixture-statistics`, `/api/game-records`, `/api/events`), along with generic CRUD routing infrastructure (`CrudEndpointExtensions.cs`), `GameRecordService.cs`, `AdminApiKeyFilter.cs`, and unreferenced DTOs to minimize the API footprint. Active API surface is focused strictly on the endpoints consumed by `squad-draft` (`/api/user-squads` and `/api/feedback`).
 - `squad-func`: removed the blob-driven Gemini ingestion pipeline (`FullSeasonAISearch`, `SingleMatchHistoricalSearch`, `GenerateFixtureFromAIMatchData`) and all blob container access other than the `playersname` player-image container. See `squad-func/CHANGELOG.md`.
 
 ### Added

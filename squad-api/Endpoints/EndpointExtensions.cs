@@ -5,16 +5,13 @@ namespace squad_api.Endpoints;
 
 public static class EndpointExtensions
 {
+    /// <summary>
+    /// Maps all API endpoints.
+    /// </summary>
+    /// <param name="app">The endpoint route builder.</param>
     public static void MapAllEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapLeagueEndpoints();
-        app.MapFixtureEndpoints();
-        app.MapPlayerEndpoints();
-        app.MapPlayerFixtureStatisticEndpoints();
-        app.MapFormationEndpoints();
-        app.MapGameRecordEndpoints();
         app.MapFeedbackEndpoints();
-        app.MapEventEndpoints();
         app.MapUserSquadEndpoints();
     }
 }

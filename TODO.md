@@ -5,11 +5,11 @@ Generated from a full-codebase review of `squad-draft`, `squad-api`, `squad-func
 ## 🐞 Bugs
 
 ### squad-draft
-- [ ] `isDraftComplete` (`App.tsx:117`) is computed but never used to gate completion — only `draft.completed` (set when `selectedPlayers` reaches exactly 11) does. If the API ever returns fewer than 11 daily squads, users get stuck and can never reach submission.
-- [ ] `executeResetDraft` (`App.tsx:290-302`) doesn't preserve/clear `gameRecordId`/`formationId` — after a reset these remain `undefined` for the rest of the session since the fetch effect only runs once (`[]` deps).
-- [ ] `submitUserSquad` coerces a missing player id to `0` (`parseInt(spot.player?.id || '0', 10)`, `App.tsx:363`) instead of validating all 11 spots are filled before submit.
-- [ ] "Advancing to pick number X of 11" message (`App.tsx:275`) relies on a stale-closure value of `draft.currentStep` rather than the freshly computed next step — works today but is fragile.
-- [ ] `localStorage.setItem` failures (e.g. `QuotaExceededError`) are only logged, not surfaced to the user — draft silently stops persisting (`App.tsx:104-111`).
+- [x] `isDraftComplete` (`App.tsx`) is now derived with `useMemo` and used throughout the application to gate completion (navigation, view switching, submission, badges), preventing users from getting stuck if available daily squads are exhausted.
+- [x] `executeResetDraft` (`App.tsx`) preserves `gameRecordId` and `formationId` across resets so subsequent squad submissions retain valid identifiers.
+- [x] `submitUserSquad` (`App.tsx`) validates that all 11 formation spots contain valid players with positive numeric IDs before sending the payload, eliminating player ID coercion to `0`.
+- [x] "Advancing to pick number X of 11" message (`App.tsx`) now computes the next step directly from the newly placed player increment rather than closing over a stale `draft.currentStep` value.
+- [x] `localStorage.setItem` failures (e.g. `QuotaExceededError`) are now surfaced to the user with an accessible `AlertDialog` warning that draft persistence is disabled, avoiding silent data loss.
 
 ### squad-api
 - [ ] `CreateUserSquadDto` flow has a check-then-insert race: two rapid submissions for the same user/game record can both pass the "existing squad" check before either commits; the DB unique index eventually blocks the second insert but as an unhandled `DbUpdateException` (500) rather than a clean 409/400 (`UserSquadEndpoints.cs`).

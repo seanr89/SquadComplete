@@ -1,316 +1,49 @@
 @squad_api_HostAddress = http://localhost:5212
-# Admin API key for write endpoints; must match Auth:AdminApiKey (set via user-secrets or env var, never committed).
-@admin_api_key = {{$dotenv SQUAD_ADMIN_API_KEY}}
 
-### Leagues
+### User Squads
 
-# @name GetAllLeagues
-GET {{squad_api_HostAddress}}/api/leagues
-Accept: application/json
-
-###
-
-# @name GetLeagueById
-GET {{squad_api_HostAddress}}/api/leagues/1
-Accept: application/json
-
-###
-
-# @name CreateLeague
-POST {{squad_api_HostAddress}}/api/leagues
-X-Api-Key: {{admin_api_key}}
+# @name SubmitUserSquad
+POST {{squad_api_HostAddress}}/api/user-squads
 Content-Type: application/json
 
 {
-  "id": 1,
-  "name": "Premier League",
-  "type": "League",
-  "logo": "https://example.com/logo.png",
-  "countryName": "England",
-  "countryCode": "GB",
-  "countryFlag": "https://example.com/flag.png"
-}
-
-###
-
-# @name UpdateLeague
-PUT {{squad_api_HostAddress}}/api/leagues/1
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "name": "Premier League Updated",
-  "type": "League",
-  "logo": "https://example.com/logo_updated.png",
-  "countryName": "England",
-  "countryCode": "GB",
-  "countryFlag": "https://example.com/flag_updated.png"
-}
-
-###
-
-# @name DeleteLeague
-DELETE {{squad_api_HostAddress}}/api/leagues/1
-X-Api-Key: {{admin_api_key}}
-
-###
-
-### Fixtures
-
-# @name GetAllFixtures
-GET {{squad_api_HostAddress}}/api/fixtures
-Accept: application/json
-
-###
-
-# @name GetFixtureById
-GET {{squad_api_HostAddress}}/api/fixtures/1
-Accept: application/json
-
-###
-
-# @name CreateFixture
-POST {{squad_api_HostAddress}}/api/fixtures
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "id": 1,
-  "leagueId": 1,
-  "homeTeamId": 10,
-  "homeTeamName": "Arsenal",
-  "awayTeamId": 11,
-  "awayTeamName": "Chelsea",
-  "homeGoalCount": 2,
-  "awayGoalCount": 1
-}
-
-###
-
-# @name UpdateFixture
-PUT {{squad_api_HostAddress}}/api/fixtures/1
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "leagueId": 1,
-  "homeTeamId": 10,
-  "homeTeamName": "Arsenal FC",
-  "awayTeamId": 11,
-  "awayTeamName": "Chelsea FC",
-  "homeGoalCount": 3,
-  "awayGoalCount": 0
-}
-
-###
-
-# @name DeleteFixture
-DELETE {{squad_api_HostAddress}}/api/fixtures/1
-X-Api-Key: {{admin_api_key}}
-
-###
-
-### Players
-
-# @name GetAllPlayers
-GET {{squad_api_HostAddress}}/api/players
-Accept: application/json
-
-###
-
-# @name GetPlayerById
-GET {{squad_api_HostAddress}}/api/players/1
-Accept: application/json
-
-###
-
-# @name CreatePlayer
-POST {{squad_api_HostAddress}}/api/players
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "id": 1,
-  "name": "Bukayo Saka",
-  "photo": "https://example.com/saka.png"
-}
-
-###
-
-# @name UpdatePlayer
-PUT {{squad_api_HostAddress}}/api/players/1
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "name": "Bukayo Saka Updated",
-  "photo": "https://example.com/saka_updated.png"
-}
-
-###
-
-# @name DeletePlayer
-DELETE {{squad_api_HostAddress}}/api/players/1
-X-Api-Key: {{admin_api_key}}
-
-###
-
-### Player Fixture Statistics
-
-# @name GetAllPlayerFixtureStatistics
-GET {{squad_api_HostAddress}}/api/player-fixture-statistics
-Accept: application/json
-
-###
-
-# @name GetPlayerFixtureStatisticById
-GET {{squad_api_HostAddress}}/api/player-fixture-statistics/1/1
-Accept: application/json
-
-###
-
-# @name CreatePlayerFixtureStatistic
-POST {{squad_api_HostAddress}}/api/player-fixture-statistics
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "fixtureId": 1,
-  "playerId": 1,
-  "teamId": 10,
-  "minutes": 90,
-  "number": 7,
-  "position": "RW",
-  "rating": 8.5,
-  "isCaptain": false,
-  "isSubstitute": false
-}
-
-###
-
-# @name UpdatePlayerFixtureStatistic
-PUT {{squad_api_HostAddress}}/api/player-fixture-statistics/1/1
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "teamId": 10,
-  "minutes": 95,
-  "number": 7,
-  "position": "RW",
-  "rating": 9.0,
-  "isCaptain": true,
-  "isSubstitute": false
-}
-
-###
-
-# @name DeletePlayerFixtureStatistic
-DELETE {{squad_api_HostAddress}}/api/player-fixture-statistics/1/1
-X-Api-Key: {{admin_api_key}}
-
-###
-
-### Game Records
-
-# @name GetAllGameRecords
-GET {{squad_api_HostAddress}}/api/game-records
-Accept: application/json
-
-###
-
-# @name GetGameRecordById
-GET {{squad_api_HostAddress}}/api/game-records/1
-Accept: application/json
-
-###
-
-# @name CreateGameRecord
-POST {{squad_api_HostAddress}}/api/game-records
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "gameDate": "2026-02-18T19:00:00Z",
-  "tags": [
-    {
-      "fixtureId": 1,
-      "teamId": 10
-    }
+  "browserIdentifierId": "test-browser-id-12345",
+  "userName": "Player One",
+  "gameRecordId": 1,
+  "formationId": 1,
+  "players": [
+    { "playerId": 1, "position": "GK", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 2, "position": "DEF", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 3, "position": "DEF", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 4, "position": "DEF", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 5, "position": "DEF", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 6, "position": "MID", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 7, "position": "MID", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 8, "position": "MID", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 9, "position": "FWD", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 10, "position": "FWD", "isCaptain": false, "isViceCaptain": false },
+    { "playerId": 11, "position": "FWD", "isCaptain": true, "isViceCaptain": false }
   ]
 }
 
 ###
 
-# @name UpdateGameRecord
-PUT {{squad_api_HostAddress}}/api/game-records/1
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "id": 1,
-  "gameDate": "2026-02-19T20:00:00Z",
-  "tags": [
-    {
-      "fixtureId": 2,
-      "teamId": 11
-    }
-  ]
-}
-
-###
-
-# @name DeleteGameRecord
-DELETE {{squad_api_HostAddress}}/api/game-records/1
-X-Api-Key: {{admin_api_key}}
-
-###
-
-### Formations
-
-# @name GetAllFormations
-GET {{squad_api_HostAddress}}/api/formations
+# @name GetLeaderboard
+GET {{squad_api_HostAddress}}/api/user-squads/1/leaderboard
 Accept: application/json
 
 ###
 
-# @name GetFormationById
-GET {{squad_api_HostAddress}}/api/formations/1
-Accept: application/json
+### Feedback
 
-###
-
-# @name CreateFormation
-POST {{squad_api_HostAddress}}/api/formations
-X-Api-Key: {{admin_api_key}}
+# @name SubmitFeedback
+POST {{squad_api_HostAddress}}/api/feedback
 Content-Type: application/json
 
 {
-  "name": "4-3-3",
-  "defence": 4,
-  "midfield": 3,
-  "attack": 3
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "message": "Great draft challenge today!"
 }
 
 ###
-
-# @name UpdateFormation
-PUT {{squad_api_HostAddress}}/api/formations/1
-X-Api-Key: {{admin_api_key}}
-Content-Type: application/json
-
-{
-  "name": "4-4-2",
-  "defence": 4,
-  "midfield": 4,
-  "attack": 2
-}
-
-###
-
-# @name DeleteFormation
-DELETE {{squad_api_HostAddress}}/api/formations/1
-X-Api-Key: {{admin_api_key}}
-
-###
-
